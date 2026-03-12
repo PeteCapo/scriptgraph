@@ -3112,7 +3112,9 @@ export default function ScriptGraph() {
               ← Library
             </Btn>
           )}
-          <Btn color={screen === "docs" ? T.accent : T.borderMid} variant="ghost" small onClick={() => setScreen("docs")}>Docs</Btn>
+          {!PUBLIC_MODE && (
+            <Btn color={screen === "docs" ? T.accent : T.borderMid} variant="ghost" small onClick={() => setScreen("docs")}>Docs</Btn>
+          )}
         </div>
       </div>
 
@@ -3895,7 +3897,7 @@ export default function ScriptGraph() {
 
 
         {/* ════ DOCS ════ */}
-        {screen === "docs" && (() => {
+        {!PUBLIC_MODE && screen === "docs" && (() => {
           const H1 = ({ children }) => (
             <h2 style={{ margin: "0 0 8px", fontSize: 28, fontWeight: 700, letterSpacing: 1.5,
               fontFamily: T.fontDisplay, textTransform: "uppercase", color: T.textPrimary }}>{children}</h2>
@@ -4288,6 +4290,41 @@ export default function ScriptGraph() {
                   <P>
                     Hybrid documents where the finished portion uses non-standard formatting (no INT./EXT. headings, no character cues) will not be detected as hybrid. The outline path will still run and produce valid structural analysis — it just won't inject the format hint or show the FORMAT SHIFT line on the tension arc.
                   </P>
+
+                  <Rule />
+                  <H2>Adding Scripts to the Public Library</H2>
+                  <P>
+                    The public library at scriptgraph.vercel.app is populated by JSON files in the <Code>public/library/</Code> folder of the repository. Each file is one complete analysis result. The <Code>manifest.json</Code> file in that folder is an array of filenames telling the app which scripts to load.
+                  </P>
+                  <H3>Step 1 — Run the analysis locally</H3>
+                  <P>
+                    Open the ScriptGraph Claude artifact (your local version with full upload capability). Upload the script PDF and run the full analysis as normal. Wait for it to complete and land on the results screen.
+                  </P>
+                  <H3>Step 2 — Export the JSON</H3>
+                  <P>
+                    Click <Code>↓ Export JSON</Code> in the nav bar. This downloads a <Code>.json</Code> file named after the script title to your Downloads folder. This file contains the complete analysis result — tension arc, scenes, key moments, structural analysis, everything.
+                  </P>
+                  <H3>Step 3 — Run the add-script helper</H3>
+                  <P>
+                    Open Terminal and run:
+                  </P>
+                  <Note>
+                    <code style={{ fontFamily: T.fontMono, fontSize: 12, color: T.accent }}>bash ~/Desktop/ScriptGraph/scriptgraph/add-script.sh ~/Downloads/yourscript.json</code>
+                  </Note>
+                  <P>
+                    Replace <Code>yourscript.json</Code> with the actual filename. The script will copy the file into <Code>public/library/</Code>, rebuild <Code>manifest.json</Code>, commit both files, and push to GitHub. Vercel deploys automatically — the script is live in approximately 60 seconds.
+                  </P>
+                  <H3>Removing a script</H3>
+                  <P>
+                    Delete the <Code>.json</Code> file from <Code>public/library/</Code>, then run the add-script helper with any file (it rebuilds the manifest from whatever remains). Or manually edit <Code>manifest.json</Code> to remove the filename, then push. The script will disappear from the public library on next deploy.
+                  </P>
+                  <H3>Reusing analyses from previous sessions</H3>
+                  <P>
+                    If a script was analyzed in an earlier Claude artifact session that is still open, navigate to it, open the results screen, and click <Code>↓ Export JSON</Code> — the export button works on any loaded result regardless of when it was analyzed. If the session is no longer accessible, re-analyze the script PDF using the local app to generate a fresh result.
+                  </P>
+                  <Note>
+                    <strong style={{ color: T.textPrimary }}>Script sources:</strong> Use text-based PDFs from legitimate sources. The WGA Script Library (wga.org), IMSDB (imsdb.com), and Simply Scripts (simplyscripts.com) host produced screenplays that are widely used for study and education. Always verify a script's authenticity before publishing its analysis — fan-written or AI-generated scripts will produce meaningless structural data.
+                  </Note>
 
                   <Rule />
                   <H2>Before Making Changes</H2>
