@@ -461,6 +461,7 @@ Return ONLY valid JSON, no markdown:
 
 {
   "title": string,
+  "writer": string (full name(s) as credited on the cover page — "Written by", "Screenplay by", etc. If not found, empty string),
   "logline": string,
   "totalPages": ${totalPages},
   "totalScenes": ${sceneSkeletons.length},
@@ -921,6 +922,7 @@ Identify the story's NATURAL structure. Do not hedge or reduce precision because
 Return ONLY valid JSON, no markdown:
 {
   "title": string,
+  "writer": string (full name(s) as credited on the cover page — "Written by", "Screenplay by", etc. If not found, empty string),
   "logline": string (1-2 sentences),
   "totalPages": ${sceneCount},
   "totalScenes": ${sceneCount},
@@ -2766,7 +2768,7 @@ export default function ScriptGraph() {
       try {
         const autoEntry = {
           id: String(Date.now()), savedAt: Date.now(),
-          title: parsed.title, logline: parsed.logline,
+          title: parsed.title, logline: parsed.logline, writer: parsed.writer || "",
           totalPages: parsed.totalPages, totalScenes: parsed.totalScenes,
           protagonist: parsed.protagonist, antagonistOrConflict: parsed.antagonistOrConflict,
           genre: parsed.genre, tone: parsed.tone, themes: parsed.themes,
@@ -2968,7 +2970,7 @@ export default function ScriptGraph() {
           id: String(Date.now()), savedAt: Date.now(),
           isOutline: true,
           formatTransition: parsed.formatTransition || null,
-          title: parsed.title, logline: parsed.logline,
+          title: parsed.title, logline: parsed.logline, writer: parsed.writer || "",
           totalPages: totalScenes, totalScenes,
           protagonist: parsed.protagonist, antagonistOrConflict: parsed.antagonistOrConflict,
           genre: parsed.genre, tone: parsed.tone, themes: parsed.themes,
@@ -3040,7 +3042,7 @@ export default function ScriptGraph() {
 
   function openEntry(entry) {
     setP1({
-      title: entry.title, logline: entry.logline,
+      title: entry.title, logline: entry.logline, writer: entry.writer || "",
       totalPages: entry.totalPages, totalScenes: entry.totalScenes,
       protagonist: entry.protagonist, antagonistOrConflict: entry.antagonistOrConflict,
       genre: entry.genre, tone: entry.tone, themes: entry.themes,
@@ -3136,7 +3138,7 @@ export default function ScriptGraph() {
           <span style={{ fontSize: 9, color: T.textDim, letterSpacing: 3, fontFamily: T.fontMono, textTransform: "uppercase", paddingTop: 1 }}>{T.appTagline}</span>
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          {screen === "results" && p1 && (
+          {!PUBLIC_MODE && screen === "results" && p1 && (
             <Btn color={T.borderMid} variant="ghost" small onClick={saveScript}>↓ Re-save</Btn>
           )}
           {!PUBLIC_MODE && screen === "results" && p1 && (
@@ -3338,6 +3340,11 @@ export default function ScriptGraph() {
                   </span>
                 )}
               </div>
+              {p1.writer && (
+                <div style={{ fontSize: 12, color: T.textMuted, fontFamily: T.fontSans, fontWeight: 400, letterSpacing: 0.3, marginBottom: 10, marginTop: -4 }}>
+                  Written by {p1.writer}
+                </div>
+              )}
               <p style={{ margin: "0 0 24px", fontSize: 14, color: T.textMuted, lineHeight: 1.75, maxWidth: 680, fontFamily: T.fontSans, fontWeight: 300 }}>{p1.logline}</p>
 
               {/* Stat bar */}
