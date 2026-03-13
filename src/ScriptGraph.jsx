@@ -2453,6 +2453,7 @@ export default function ScriptGraph() {
   }
 
   const [screen, setScreen]               = useState("library");
+  const [shareCopied, setShareCopied]     = useState(false);
   const [pdfFile, setPdfFile]             = useState(null);
   const [pdfName, setPdfName]             = useState("");
   const [p1, setP1]                       = useState(null);
@@ -3443,7 +3444,6 @@ export default function ScriptGraph() {
                   </div>
                 </div>
                 {PUBLIC_MODE && (() => {
-                  const [shareCopied, setShareCopied] = useState(false);
                   function handleShare() {
                     const url = window.location.href;
                     const title = `${p1.title} — ScriptGraph`;
