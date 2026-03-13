@@ -1107,7 +1107,9 @@ async function loadLibrary() {
         manifest.map(async (filename) => {
           try {
             const r = await fetch(`/library/${filename}`);
-            return r.ok ? await r.json() : null;
+            if (!r.ok) return null;
+            const data = await r.json();
+            return { ...data, _filename: filename };
           } catch { return null; }
         })
       );
@@ -2430,6 +2432,26 @@ function LibraryCard({ entry, onOpen, onDelete, onToggleCompare, compareSelected
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export default function ScriptGraph() {
+  // ── URL routing helpers ──────────────────────────────────────────────────────
+  function slugFromFilename(filename) {
+    return filename.replace(/\.json$/i, "");
+  }
+  function screenFromPath(path, lib) {
+    if (path === "/" || path === "") return { screen: "library", entry: null };
+    if (path === "/about") return { screen: "about", entry: null };
+    if (path === "/compare") return { screen: "compare", entry: null };
+    const scriptMatch = path.match(/^\/script\/(.+)$/);
+    if (scriptMatch && lib) {
+      const slug = scriptMatch[1];
+      const entry = lib.find(e => slugFromFilename(e._filename || "") === slug || slugFromFilename((e.title || "").replace(/[^a-z0-9]/gi, "-").toLowerCase()) === slug);
+      if (entry) return { screen: "results", entry };
+    }
+    return { screen: "library", entry: null };
+  }
+  function pushPath(path) {
+    if (window.location.pathname !== path) window.history.pushState({}, "", path);
+  }
+
   const [screen, setScreen]               = useState("library");
   const [pdfFile, setPdfFile]             = useState(null);
   const [pdfName, setPdfName]             = useState("");
@@ -2474,7 +2496,60 @@ export default function ScriptGraph() {
   const naturalColor = T.accent;
   const fwColor = T.accent;
 
-  useEffect(() => { loadLibrary().then(setLibrary); }, []);
+  useEffect(() => {
+    loadLibrary().then(lib => {
+      setLibrary(lib);
+      // Handle initial URL on load
+      const { screen: s, entry } = screenFromPath(window.location.pathname, lib);
+      if (s === "results" && entry) {
+        setP1({
+          title: entry.title, logline: entry.logline, writer: entry.writer || "",
+          totalPages: entry.totalPages, totalScenes: entry.totalScenes,
+          protagonist: entry.protagonist, antagonistOrConflict: entry.antagonistOrConflict,
+          genre: entry.genre, tone: entry.tone, themes: entry.themes,
+          naturalStructure: entry.naturalStructure,
+          keyMoments: entry.keyMoments || null,
+          overallTension: entry.overallTension,
+          scenes: entry.scenes || [],
+          isOutline: entry.isOutline || false,
+          formatTransition: entry.formatTransition || null,
+          _truncated: entry._truncated,
+        });
+        setFwBeats(entry.frameworkBeats || {});
+        setActiveFw(entry.activeFramework || null);
+        setTab("arc");
+      }
+      setScreen(s);
+    });
+
+    // Handle browser back/forward
+    function onPopState() {
+      loadLibrary().then(lib => {
+        const { screen: s, entry } = screenFromPath(window.location.pathname, lib);
+        if (s === "results" && entry) {
+          setP1({
+            title: entry.title, logline: entry.logline, writer: entry.writer || "",
+            totalPages: entry.totalPages, totalScenes: entry.totalScenes,
+            protagonist: entry.protagonist, antagonistOrConflict: entry.antagonistOrConflict,
+            genre: entry.genre, tone: entry.tone, themes: entry.themes,
+            naturalStructure: entry.naturalStructure,
+            keyMoments: entry.keyMoments || null,
+            overallTension: entry.overallTension,
+            scenes: entry.scenes || [],
+            isOutline: entry.isOutline || false,
+            formatTransition: entry.formatTransition || null,
+            _truncated: entry._truncated,
+          });
+          setFwBeats(entry.frameworkBeats || {});
+          setActiveFw(entry.activeFramework || null);
+          setTab("arc");
+        }
+        setScreen(s);
+      });
+    }
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
 
   function handleFile(e) {
     const file = e.target.files[0];
@@ -3041,6 +3116,7 @@ export default function ScriptGraph() {
   }
 
   function openEntry(entry) {
+    const slug = slugFromFilename(entry._filename || (entry.title || "script").replace(/[^a-z0-9]/gi, "-").toLowerCase() + ".json");
     setP1({
       title: entry.title, logline: entry.logline, writer: entry.writer || "",
       totalPages: entry.totalPages, totalScenes: entry.totalScenes,
@@ -3056,7 +3132,9 @@ export default function ScriptGraph() {
     });
     setFwBeats(entry.frameworkBeats || {});
     setActiveFw(entry.activeFramework || null);
-    setTab("arc"); setScreen("results");
+    setTab("arc");
+    pushPath(`/script/${slug}`);
+    setScreen("results");
   }
 
   async function deleteEntry(id) {
@@ -3075,6 +3153,7 @@ export default function ScriptGraph() {
 
   async function startCompare() {
     if (compareItems.length < 2) return;
+    pushPath("/compare");
     setScreen("compare"); setComparison(null); setComparingLoading(true);
     try {
       const result = await callClaude(buildComparisonPrompt(compareItems[0], compareItems[1]), 4000);
@@ -3131,7 +3210,7 @@ export default function ScriptGraph() {
 
       {/* Nav */}
       <div style={{ borderBottom: `1px solid ${T.borderSubtle}`, padding: "0 48px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 64, background: T.bgPage, position: "sticky", top: 0, zIndex: 100, backdropFilter: "blur(12px)" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 14, cursor: "pointer" }} onClick={() => setScreen("library")}>
+        <div style={{ display: "flex", alignItems: "center", gap: 14, cursor: "pointer" }} onClick={() => { pushPath("/"); setScreen("library"); }}>
           <span style={{ fontSize: 20, fontWeight: 700, letterSpacing: 1, fontFamily: T.fontDisplay, textTransform: "uppercase", color: T.textPrimary }}>
             Script<span style={{ color: fwColor, fontWeight: 600 }}>Graph</span>
           </span>
@@ -3161,7 +3240,6 @@ export default function ScriptGraph() {
               };
               const jsonStr = JSON.stringify(entry, null, 2);
               const filename = `${(p1.title || "script").replace(/[^a-z0-9]/gi, "-").toLowerCase()}.json`;
-              // Try data URI download first (works in most browsers)
               try {
                 const dataUri = "data:application/json;charset=utf-8," + encodeURIComponent(jsonStr);
                 const a = document.createElement("a");
@@ -3171,17 +3249,16 @@ export default function ScriptGraph() {
                 a.click();
                 document.body.removeChild(a);
               } catch {}
-              // Always show the copy overlay as the reliable fallback
               setExportJson({ json: jsonStr, filename });
             }}>↓ Export JSON</Btn>
           )}
           {screen !== "library" && (
-            <Btn color={T.borderMid} variant="ghost" small onClick={() => setScreen("library")}>
+            <Btn color={T.borderMid} variant="ghost" small onClick={() => { pushPath("/"); setScreen("library"); }}>
               ← Library
             </Btn>
           )}
           {PUBLIC_MODE && (
-            <Btn color={screen === "about" ? T.accent : T.borderMid} variant="ghost" small onClick={() => setScreen("about")}>About</Btn>
+            <Btn color={screen === "about" ? T.accent : T.borderMid} variant="ghost" small onClick={() => { pushPath("/about"); setScreen("about"); }}>About</Btn>
           )}
           {!PUBLIC_MODE && (
             <Btn color={screen === "docs" ? T.accent : T.borderMid} variant="ghost" small onClick={() => setScreen("docs")}>Docs</Btn>
@@ -3347,22 +3424,56 @@ export default function ScriptGraph() {
               )}
               <p style={{ margin: "0 0 24px", fontSize: 14, color: T.textMuted, lineHeight: 1.75, maxWidth: 680, fontFamily: T.fontSans, fontWeight: 300 }}>{p1.logline}</p>
 
-              {/* Stat bar */}
-              <div style={{ display: "flex", gap: 40, flexWrap: "wrap", alignItems: "flex-start" }}>
-                {!p1.isOutline && <StatBadge label="Pages" value={p1.totalPages} color={naturalColor} />}
-                <StatBadge label="Scenes" value={p1.scenes?.length || p1.totalScenes} color={naturalColor} />
-                {!p1.isOutline && <StatBadge label="Avg Scene" value={`${avgSceneLen}pp`} color={naturalColor} />}
-                <StatBadge label="Structure" value={`${p1.naturalStructure?.actCount}-Act`} color={naturalColor} />
-                <StatBadge label="Genre" value={p1.genre} />
-                <StatBadge label="Tone" value={p1.tone} />
-                <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                  <div style={{ fontSize: 9, fontFamily: T.fontMono, color: T.textMuted, letterSpacing: 2, textTransform: "uppercase" }}>Themes</div>
-                  <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginTop: 2 }}>
-                    {(p1.themes || []).map(th => (
-                      <span key={th} style={{ fontSize: 11, fontFamily: T.fontSans, fontWeight: 400, color: T.textSecondary, background: T.bgHover, border: `1px solid ${T.borderSubtle}`, borderRadius: T.radiusSm, padding: "3px 9px" }}>{th}</span>
-                    ))}
+              {/* Stat bar + Share */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 16 }}>
+                <div style={{ display: "flex", gap: 40, flexWrap: "wrap", alignItems: "flex-start" }}>
+                  {!p1.isOutline && <StatBadge label="Pages" value={p1.totalPages} color={naturalColor} />}
+                  <StatBadge label="Scenes" value={p1.scenes?.length || p1.totalScenes} color={naturalColor} />
+                  {!p1.isOutline && <StatBadge label="Avg Scene" value={`${avgSceneLen}pp`} color={naturalColor} />}
+                  <StatBadge label="Structure" value={`${p1.naturalStructure?.actCount}-Act`} color={naturalColor} />
+                  <StatBadge label="Genre" value={p1.genre} />
+                  <StatBadge label="Tone" value={p1.tone} />
+                  <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                    <div style={{ fontSize: 9, fontFamily: T.fontMono, color: T.textMuted, letterSpacing: 2, textTransform: "uppercase" }}>Themes</div>
+                    <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginTop: 2 }}>
+                      {(p1.themes || []).map(th => (
+                        <span key={th} style={{ fontSize: 11, fontFamily: T.fontSans, fontWeight: 400, color: T.textSecondary, background: T.bgHover, border: `1px solid ${T.borderSubtle}`, borderRadius: T.radiusSm, padding: "3px 9px" }}>{th}</span>
+                      ))}
+                    </div>
                   </div>
                 </div>
+                {PUBLIC_MODE && (() => {
+                  const [shareCopied, setShareCopied] = useState(false);
+                  function handleShare() {
+                    const url = window.location.href;
+                    const title = `${p1.title} — ScriptGraph`;
+                    if (navigator.share) {
+                      navigator.share({ title, url }).catch(() => {});
+                    } else {
+                      navigator.clipboard.writeText(url).then(() => {
+                        setShareCopied(true);
+                        setTimeout(() => setShareCopied(false), 2000);
+                      }).catch(() => {});
+                    }
+                  }
+                  return (
+                    <button onClick={handleShare} style={{
+                      display: "flex", alignItems: "center", gap: 6,
+                      background: "none", border: `1px solid ${shareCopied ? naturalColor + "80" : T.borderMid}`,
+                      borderRadius: T.radiusMd, padding: "6px 14px", cursor: "pointer",
+                      color: shareCopied ? naturalColor : T.textMuted,
+                      fontSize: 11, fontFamily: T.fontSans, fontWeight: 500,
+                      letterSpacing: 0.3, transition: "all 0.15s", whiteSpace: "nowrap",
+                    }}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                      </svg>
+                      {shareCopied ? "Copied!" : "Share"}
+                    </button>
+                  );
+                })()}
               </div>
             </div>
 
@@ -3465,7 +3576,7 @@ export default function ScriptGraph() {
             {tab === "scenes" && <SceneList scenes={p1.scenes || []} color={fwColor} />}
 
             <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 16 }}>
-              <Btn color={T.borderMid} variant="ghost" small onClick={() => setScreen("library")}>
+              <Btn color={T.borderMid} variant="ghost" small onClick={() => { pushPath("/"); setScreen("library"); }}>
                 {PUBLIC_MODE ? "← LIBRARY" : "← ANALYZE NEW SCRIPT"}
               </Btn>
             </div>
@@ -3515,7 +3626,7 @@ export default function ScriptGraph() {
                   fontFamily: T.fontSans,
                   fontStyle: "italic",
                   fontWeight: 300,
-                }}>— Pete</p>
+                }}>— Pete Capo</p>
               </div>
             )}
 
@@ -4041,7 +4152,12 @@ export default function ScriptGraph() {
               <P>Sometimes seeing the shape of a story is enough to notice something you couldn't see before.</P>
 
               <Rule />
-              <p style={{ margin: 0, fontSize: 13, color: T.textMuted, fontFamily: T.fontSans, fontStyle: "italic", fontWeight: 300 }}>— Pete</p>
+              <H2>A note on the scripts</H2>
+              <P>ScriptGraph analyzes structure — it doesn't reproduce screenplay text. What you're seeing are derived graphs, scene counts, and structural observations, not the works themselves.</P>
+              <P>All scripts analyzed here are produced films whose screenplays have been publicly released or widely circulated. All rights to the underlying works remain with their authors and rights holders. This is a non-commercial educational project.</P>
+
+              <Rule />
+              <p style={{ margin: 0, fontSize: 13, color: T.textMuted, fontFamily: T.fontSans, fontStyle: "italic", fontWeight: 300 }}>— Pete Capo</p>
             </div>
           );
         })()}
