@@ -1095,11 +1095,8 @@ async function callClaude(content, maxTokens = 4000) {
 
 const STORAGE_KEY = "scriptgraph_v11";
 
-// In PUBLIC_MODE, the curated library is loaded from /public/library/*.json
-// In local dev, the personal library is read from localStorage
 async function loadLibrary() {
   if (PUBLIC_MODE) {
-    // Load the manifest which lists all available script JSON files
     try {
       const res = await fetch("/library/manifest.json");
       if (!res.ok) return [];
@@ -1115,7 +1112,6 @@ async function loadLibrary() {
       return entries.filter(Boolean);
     } catch { return []; }
   }
-  // Local dev: use localStorage
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     return raw ? JSON.parse(raw) : [];
@@ -1123,7 +1119,7 @@ async function loadLibrary() {
 }
 
 async function persistLibrary(entries) {
-  if (PUBLIC_MODE) return; // Public library is read-only — managed via files
+  if (PUBLIC_MODE) return;
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(entries.slice(0, 30)));
   } catch {}
@@ -2287,6 +2283,60 @@ function StructuralSummary({ naturalStructure, color }) {
 // LIBRARY CARD
 // ═══════════════════════════════════════════════════════════════════════════════
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// MINI TENSION CURVE — library card thumbnail, no markers, no axes
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function MiniTensionCurve({ tension, color, actBreaks, height = 52 }) {
+  if (!tension?.length) return (
+    <div style={{ height, background: T.bgHover, borderRadius: T.radiusSm, opacity: 0.4 }} />
+  );
+
+  const W = 400, H = height * 2; // render at 2× then scale down via viewBox
+  const P = { t: 6, r: 4, b: 6, l: 4 };
+  const iw = W - P.l - P.r, ih = H - P.t - P.b;
+
+  // Smooth slightly
+  const smooth = tension.map((_, i) => {
+    const lo = Math.max(0, i - 1), hi = Math.min(tension.length - 1, i + 1);
+    const slice = tension.slice(lo, hi + 1);
+    return slice.reduce((a, b) => a + b, 0) / slice.length;
+  });
+
+  const pts = smooth.map((t, i) => ({
+    x: P.l + (i / (smooth.length - 1)) * iw,
+    y: P.t + ih - (t / 10) * ih,
+  }));
+
+  const linePath = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+  const areaPath = `${linePath} L${pts[pts.length-1].x},${P.t+ih} L${pts[0].x},${P.t+ih} Z`;
+
+  // Act break vertical lines
+  const abLines = (actBreaks || []).map((ab, i) => {
+    const x = P.l + (ab.position / 100) * iw;
+    return <line key={i} x1={x} y1={P.t} x2={x} y2={P.t+ih} stroke={color} strokeWidth="1.5" opacity="0.25" />;
+  });
+
+  return (
+    <svg
+      viewBox={`0 0 ${W} ${H}`}
+      style={{ width: "100%", height, display: "block", borderRadius: T.radiusSm, overflow: "hidden" }}
+      preserveAspectRatio="none"
+    >
+      <defs>
+        <linearGradient id={`mcg-${color.replace("#","")}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.35" />
+          <stop offset="100%" stopColor={color} stopOpacity="0.03" />
+        </linearGradient>
+      </defs>
+      <rect x="0" y="0" width={W} height={H} fill={T.bgPage} />
+      {abLines}
+      <path d={areaPath} fill={`url(#mcg-${color.replace("#","")})`} />
+      <path d={linePath} fill="none" stroke={color} strokeWidth="3" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 function LibraryCard({ entry, onOpen, onDelete, onToggleCompare, compareSelected, compareIndex }) {
   const color = T.fwColors.natural;
   const avgLen = entry.scenes?.length
@@ -2349,9 +2399,14 @@ function LibraryCard({ entry, onOpen, onDelete, onToggleCompare, compareSelected
           </span>
         )}
       </div>
-      {/* Logline */}
-      <div style={{ fontSize: 12, color: T.textMuted, lineHeight: 1.65, fontFamily: T.fontSans, fontWeight: 400, flex: 1 }}>
-        {(entry.logline || "").slice(0, 130)}{(entry.logline || "").length > 130 ? "…" : ""}
+      {/* Mini tension curve — replaces logline */}
+      <div style={{ borderRadius: T.radiusSm, overflow: "hidden", margin: "2px 0" }}>
+        <MiniTensionCurve
+          tension={entry.overallTension}
+          color={color}
+          actBreaks={entry.naturalStructure?.actBreaks}
+          height={52}
+        />
       </div>
       {/* Actions */}
       <div style={{ display: "flex", gap: 7, marginTop: 2 }}>
@@ -2359,11 +2414,14 @@ function LibraryCard({ entry, onOpen, onDelete, onToggleCompare, compareSelected
         <Btn small color={compareSelected ? T.accent : T.borderMid} variant={compareSelected ? "fill" : "ghost"} onClick={() => onToggleCompare(entry)} style={{ flex: 1 }}>
           {compareSelected ? `✓ Script ${compareIndex + 1}` : "Compare"}
         </Btn>
-        <Btn small color={T.textMuted} variant="ghost" onClick={() => onDelete(entry.id)}>✕</Btn>
+        {!PUBLIC_MODE && (
+          <Btn small color={T.textMuted} variant="ghost" onClick={() => onDelete(entry.id)}>✕</Btn>
+        )}
       </div>
     </div>
   );
 }
+
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // MAIN APP
@@ -2377,7 +2435,7 @@ export default function ScriptGraph() {
   const [fwBeats, setFwBeats]             = useState({});
   const [fwValidation, setFwValidation]   = useState({});
   const [activeFw, setActiveFw]           = useState(null);
-  const [tab, setTab]                     = useState("structure");
+  const [tab, setTab]                     = useState("arc");
   const [loading, setLoading]             = useState(null);
   const [loadingLabel, setLoadingLabel]   = useState("");
   const [err, setErr]                     = useState(null);
@@ -2393,6 +2451,7 @@ export default function ScriptGraph() {
   const [hoveredMarkerId, setHoveredMarkerId]   = useState(null);
   const [showPages, setShowPages]               = useState(false);
   const [toasts, setToasts]                     = useState([]);
+  const [exportJson, setExportJson]             = useState(null); // { json, filename }
   const [libSearch, setLibSearch]               = useState("");
   const [libGenreFilter, setLibGenreFilter]     = useState(null);
   const [uploadMode, setUploadMode]             = useState("script");
@@ -2701,7 +2760,7 @@ export default function ScriptGraph() {
       }
       setP1(parsed);
       setScreen("results");
-      setTab("structure");
+      setTab("arc");
 
       // Auto-save to library
       try {
@@ -2901,7 +2960,7 @@ export default function ScriptGraph() {
 
       setP1(parsed);
       setScreen("results");
-      setTab("structure");
+      setTab("arc");
 
       // Auto-save
       try {
@@ -2995,7 +3054,7 @@ export default function ScriptGraph() {
     });
     setFwBeats(entry.frameworkBeats || {});
     setActiveFw(entry.activeFramework || null);
-    setTab("structure"); setScreen("results");
+    setTab("arc"); setScreen("results");
   }
 
   async function deleteEntry(id) {
@@ -3098,19 +3157,29 @@ export default function ScriptGraph() {
                 frameworkBeats: {}, activeFramework: null,
                 _truncated: p1._truncated,
               };
-              const blob = new Blob([JSON.stringify(entry, null, 2)], { type: "application/json" });
-              const url = URL.createObjectURL(blob);
-              const a = document.createElement("a");
-              a.href = url;
-              a.download = `${(p1.title || "script").replace(/[^a-z0-9]/gi, "-").toLowerCase()}.json`;
-              a.click();
-              URL.revokeObjectURL(url);
+              const jsonStr = JSON.stringify(entry, null, 2);
+              const filename = `${(p1.title || "script").replace(/[^a-z0-9]/gi, "-").toLowerCase()}.json`;
+              // Try data URI download first (works in most browsers)
+              try {
+                const dataUri = "data:application/json;charset=utf-8," + encodeURIComponent(jsonStr);
+                const a = document.createElement("a");
+                a.href = dataUri;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+              } catch {}
+              // Always show the copy overlay as the reliable fallback
+              setExportJson({ json: jsonStr, filename });
             }}>↓ Export JSON</Btn>
           )}
           {screen !== "library" && (
             <Btn color={T.borderMid} variant="ghost" small onClick={() => setScreen("library")}>
               ← Library
             </Btn>
+          )}
+          {PUBLIC_MODE && (
+            <Btn color={screen === "about" ? T.accent : T.borderMid} variant="ghost" small onClick={() => setScreen("about")}>About</Btn>
           )}
           {!PUBLIC_MODE && (
             <Btn color={screen === "docs" ? T.accent : T.borderMid} variant="ghost" small onClick={() => setScreen("docs")}>Docs</Btn>
@@ -3414,6 +3483,35 @@ export default function ScriptGraph() {
           return (
           <div style={{ marginTop: 48, paddingBottom: compareItems.length > 0 ? 100 : 0 }}>
 
+            {/* ── Intro banner — public only ── */}
+            {PUBLIC_MODE && (
+              <div style={{
+                borderBottom: `1px solid ${T.borderSubtle}`,
+                marginBottom: 40,
+                paddingBottom: 32,
+              }}>
+                <p style={{
+                  margin: "0 0 6px",
+                  fontSize: 14,
+                  color: T.textSecondary,
+                  lineHeight: 1.85,
+                  maxWidth: 600,
+                  fontFamily: T.fontSans,
+                  fontWeight: 300,
+                }}>
+                  I built this to understand how films move. Each graph maps the rise and fall of narrative pressure across a screenplay — the overall shape of the story rather than its individual parts. Browse the library, open a script, compare two films side by side.
+                </p>
+                <p style={{
+                  margin: 0,
+                  fontSize: 13,
+                  color: T.textMuted,
+                  fontFamily: T.fontSans,
+                  fontStyle: "italic",
+                  fontWeight: 300,
+                }}>— Pete</p>
+              </div>
+            )}
+
             {/* ── Header ── */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 28 }}>
               <h1 style={{ margin: 0, fontSize: 44, fontWeight: 800, letterSpacing: 3, fontFamily: T.fontDisplay, textTransform: "uppercase", color: T.textPrimary }}>Library</h1>
@@ -3525,9 +3623,8 @@ export default function ScriptGraph() {
         {/* ════ COMPARE ════ */}
         {screen === "compare" && compareItems.length === 2 && (
           <div style={{ marginTop: 28 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 22 }}>
+            <div style={{ marginBottom: 22 }}>
               <SectionLabel>Structure Comparison</SectionLabel>
-              <Btn color={T.borderMid} variant="ghost" small onClick={() => setScreen("library")}>← LIBRARY</Btn>
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 22 }}>
@@ -3895,6 +3992,52 @@ export default function ScriptGraph() {
           </div>
         )}
 
+
+        {/* ════ ABOUT ════ */}
+        {PUBLIC_MODE && screen === "about" && (() => {
+          const H1 = ({ children }) => (
+            <h2 style={{ margin: "0 0 28px", fontSize: 28, fontWeight: 700, letterSpacing: 1.5,
+              fontFamily: T.fontDisplay, textTransform: "uppercase", color: T.textPrimary }}>{children}</h2>
+          );
+          const H2 = ({ children }) => (
+            <h3 style={{ margin: "40px 0 10px", fontSize: 11, fontWeight: 600, letterSpacing: 2,
+              fontFamily: T.fontMono, textTransform: "uppercase", color: T.accent }}>{children}</h3>
+          );
+          const P = ({ children }) => (
+            <p style={{ margin: "0 0 18px", fontSize: 14, color: T.textSecondary,
+              lineHeight: 1.9, fontFamily: T.fontSans, fontWeight: 300 }}>{children}</p>
+          );
+          const Rule = () => (
+            <div style={{ borderTop: `1px solid ${T.borderSubtle}`, margin: "36px 0" }} />
+          );
+          return (
+            <div style={{ marginTop: 48, maxWidth: 620 }}>
+              <H1>About the Project</H1>
+
+              <P>I built ScriptGraph because I kept asking the same question while writing and studying scripts:</P>
+              <P><em style={{ color: T.textPrimary, fontStyle: "italic" }}>Why do some movies feel the way they do?</em></P>
+              <P>Not just whether they're good or bad. But the sensation of watching them. Some films feel like they're tightening a screw the entire time. Some feel calm until suddenly they aren't. Some escalate in waves. Others climb steadily and never look back.</P>
+              <P>When you're inside a script, those patterns are hard to see. Writing is microscopic work. You're thinking about scenes, lines, beats, transitions. The overall shape disappears into the details.</P>
+              <P>I wanted a way to step back and see the structure from above — to map a screenplay the way you might map terrain. The result is a curve that shows how tension builds, releases, and turns over the course of a story.</P>
+
+              <Rule />
+              <H2>What the graphs represent</H2>
+              <P>Each graph attempts to map the relative narrative pressure across a screenplay. The system identifies moments where the story shifts direction — inciting incidents, act breaks, midpoints, climaxes — and uses them as reference points, not absolute truths.</P>
+              <P>Story structure is not math. Two smart readers can disagree about where a turning point really happens, and both can be right. These graphs aren't meant to declare definitive answers. They're meant to provide a consistent way of seeing how a story behaves.</P>
+              <P>The value isn't in pinpointing a single page number. The value is in seeing the overall shape.</P>
+
+              <Rule />
+              <H2>Why I started collecting them</H2>
+              <P>Once you start mapping films visually, patterns appear that are hard to see otherwise. Two movies in the same genre can move in completely different ways. A film that feels perfectly paced often has a very particular structural rhythm.</P>
+              <P>So I started collecting them. This site is where I'm sharing that collection — partly research, partly curiosity, partly a way for other filmmakers and writers to look at story structure from a different angle.</P>
+              <P>The graphs don't replace taste, instinct, or craft. They just offer a different lens.</P>
+              <P>Sometimes seeing the shape of a story is enough to notice something you couldn't see before.</P>
+
+              <Rule />
+              <p style={{ margin: 0, fontSize: 13, color: T.textMuted, fontFamily: T.fontSans, fontStyle: "italic", fontWeight: 300 }}>— Pete</p>
+            </div>
+          );
+        })()}
 
         {/* ════ DOCS ════ */}
         {!PUBLIC_MODE && screen === "docs" && (() => {
@@ -4408,6 +4551,48 @@ export default function ScriptGraph() {
             cursor: "pointer", fontSize: 11, fontFamily: T.fontSans,
             padding: "4px 8px", marginLeft: "auto",
           }}>Clear all</button>
+        </div>
+      )}
+      {/* ── Export JSON overlay — reliable cross-environment fallback ── */}
+      {exportJson && (
+        <div style={{
+          position: "fixed", inset: 0, zIndex: 500,
+          background: "#00000090", display: "flex", alignItems: "center", justifyContent: "center",
+          padding: 24,
+        }} onClick={() => setExportJson(null)}>
+          <div style={{
+            background: T.bgCard, border: `1px solid ${T.borderMid}`,
+            borderRadius: T.radiusLg, padding: "28px 28px 22px", maxWidth: 640, width: "100%",
+            boxShadow: "0 24px 64px #00000080",
+          }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+              <div>
+                <div style={{ fontSize: 13, fontFamily: T.fontMono, color: T.accent, letterSpacing: 1.5, marginBottom: 3 }}>
+                  ↓ EXPORT JSON
+                </div>
+                <div style={{ fontSize: 11, color: T.textMuted, fontFamily: T.fontMono }}>{exportJson.filename}</div>
+              </div>
+              <button onClick={() => {
+                navigator.clipboard?.writeText(exportJson.json).then(() => showToast("JSON copied to clipboard"));
+              }} style={{
+                padding: "7px 18px", background: T.accent + "20", border: `1px solid ${T.accent + "60"}`,
+                borderRadius: T.radiusSm, color: T.accent, fontSize: 11, fontFamily: T.fontMono,
+                letterSpacing: 1, cursor: "pointer",
+              }}>Copy All</button>
+            </div>
+            <div style={{ fontSize: 11, color: T.textSecondary, lineHeight: 1.6, marginBottom: 14, fontFamily: T.fontSans }}>
+              If the download didn't start automatically, copy the JSON below and save it as <code style={{ fontFamily: T.fontMono, color: T.accent }}>{exportJson.filename}</code>
+            </div>
+            <textarea readOnly value={exportJson.json} style={{
+              width: "100%", height: 220, padding: 12, resize: "none",
+              background: T.bgPage, border: `1px solid ${T.borderSubtle}`,
+              borderRadius: T.radiusMd, color: T.textMuted, fontSize: 10,
+              fontFamily: T.fontMono, lineHeight: 1.5, outline: "none",
+            }} onClick={e => e.target.select()} />
+            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 12 }}>
+              <Btn color={T.borderMid} variant="ghost" small onClick={() => setExportJson(null)}>Close</Btn>
+            </div>
+          </div>
         </div>
       )}
       {/* ── Toast notifications ── */}
