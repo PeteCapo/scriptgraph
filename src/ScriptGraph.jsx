@@ -3253,6 +3253,34 @@ export default function ScriptGraph() {
               setExportJson({ json: jsonStr, filename });
             }}>↓ Export JSON</Btn>
           )}
+          {PUBLIC_MODE && screen === "results" && p1 && (
+            <button onClick={() => {
+              const url = window.location.href;
+              const title = `${p1.title} — ScriptGraph`;
+              if (navigator.share) {
+                navigator.share({ title, url }).catch(() => {});
+              } else {
+                navigator.clipboard.writeText(url).then(() => {
+                  setShareCopied(true);
+                  setTimeout(() => setShareCopied(false), 2000);
+                }).catch(() => {});
+              }
+            }} style={{
+              display: "flex", alignItems: "center", gap: 5,
+              background: "none", border: `1px solid ${shareCopied ? T.accent + "80" : T.borderMid}`,
+              borderRadius: T.radiusMd, padding: "5px 12px", cursor: "pointer",
+              color: shareCopied ? T.accent : T.textMuted,
+              fontSize: 11, fontFamily: T.fontSans, fontWeight: 500,
+              letterSpacing: 0.3, transition: "all 0.15s",
+            }}>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+              </svg>
+              {shareCopied ? "Copied!" : "Share"}
+            </button>
+          )}
           {screen !== "library" && (
             <Btn color={T.borderMid} variant="ghost" small onClick={() => { pushPath("/"); setScreen("library"); }}>
               ← Library
@@ -3425,55 +3453,22 @@ export default function ScriptGraph() {
               )}
               <p style={{ margin: "0 0 24px", fontSize: 14, color: T.textMuted, lineHeight: 1.75, maxWidth: 680, fontFamily: T.fontSans, fontWeight: 300 }}>{p1.logline}</p>
 
-              {/* Stat bar + Share */}
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 16 }}>
-                <div style={{ display: "flex", gap: 40, flexWrap: "wrap", alignItems: "flex-start" }}>
-                  {!p1.isOutline && <StatBadge label="Pages" value={p1.totalPages} color={naturalColor} />}
-                  <StatBadge label="Scenes" value={p1.scenes?.length || p1.totalScenes} color={naturalColor} />
-                  {!p1.isOutline && <StatBadge label="Avg Scene" value={`${avgSceneLen}pp`} color={naturalColor} />}
-                  <StatBadge label="Structure" value={`${p1.naturalStructure?.actCount}-Act`} color={naturalColor} />
-                  <StatBadge label="Genre" value={p1.genre} />
-                  <StatBadge label="Tone" value={p1.tone} />
-                  <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                    <div style={{ fontSize: 9, fontFamily: T.fontMono, color: T.textMuted, letterSpacing: 2, textTransform: "uppercase" }}>Themes</div>
-                    <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginTop: 2 }}>
-                      {(p1.themes || []).map(th => (
-                        <span key={th} style={{ fontSize: 11, fontFamily: T.fontSans, fontWeight: 400, color: T.textSecondary, background: T.bgHover, border: `1px solid ${T.borderSubtle}`, borderRadius: T.radiusSm, padding: "3px 9px" }}>{th}</span>
-                      ))}
-                    </div>
+              {/* Stat bar */}
+              <div style={{ display: "flex", gap: 40, flexWrap: "wrap", alignItems: "flex-start" }}>
+                {!p1.isOutline && <StatBadge label="Pages" value={p1.totalPages} color={naturalColor} />}
+                <StatBadge label="Scenes" value={p1.scenes?.length || p1.totalScenes} color={naturalColor} />
+                {!p1.isOutline && <StatBadge label="Avg Scene" value={`${avgSceneLen}pp`} color={naturalColor} />}
+                <StatBadge label="Structure" value={`${p1.naturalStructure?.actCount}-Act`} color={naturalColor} />
+                <StatBadge label="Genre" value={p1.genre} />
+                <StatBadge label="Tone" value={p1.tone} />
+                <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                  <div style={{ fontSize: 9, fontFamily: T.fontMono, color: T.textMuted, letterSpacing: 2, textTransform: "uppercase" }}>Themes</div>
+                  <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginTop: 2 }}>
+                    {(p1.themes || []).map(th => (
+                      <span key={th} style={{ fontSize: 11, fontFamily: T.fontSans, fontWeight: 400, color: T.textSecondary, background: T.bgHover, border: `1px solid ${T.borderSubtle}`, borderRadius: T.radiusSm, padding: "3px 9px" }}>{th}</span>
+                    ))}
                   </div>
                 </div>
-                {PUBLIC_MODE && (() => {
-                  function handleShare() {
-                    const url = window.location.href;
-                    const title = `${p1.title} — ScriptGraph`;
-                    if (navigator.share) {
-                      navigator.share({ title, url }).catch(() => {});
-                    } else {
-                      navigator.clipboard.writeText(url).then(() => {
-                        setShareCopied(true);
-                        setTimeout(() => setShareCopied(false), 2000);
-                      }).catch(() => {});
-                    }
-                  }
-                  return (
-                    <button onClick={handleShare} style={{
-                      display: "flex", alignItems: "center", gap: 6,
-                      background: "none", border: `1px solid ${shareCopied ? naturalColor + "80" : T.borderMid}`,
-                      borderRadius: T.radiusMd, padding: "6px 14px", cursor: "pointer",
-                      color: shareCopied ? naturalColor : T.textMuted,
-                      fontSize: 11, fontFamily: T.fontSans, fontWeight: 500,
-                      letterSpacing: 0.3, transition: "all 0.15s", whiteSpace: "nowrap",
-                    }}>
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
-                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
-                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-                      </svg>
-                      {shareCopied ? "Copied!" : "Share"}
-                    </button>
-                  );
-                })()}
               </div>
             </div>
 
