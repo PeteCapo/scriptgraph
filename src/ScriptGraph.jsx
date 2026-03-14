@@ -208,23 +208,27 @@ function formatForClaude(keptLines) {
 function buildSceneContentMap(taggedLines, sceneSkeletons) {
   const map = {};
   for (const skeleton of sceneSkeletons) {
-    // Pull all raw lines within this scene's page range, skip the heading itself
-    const lines = taggedLines.filter(
-      l => l.page >= skeleton.startPage && l.page <= skeleton.endPage
-    );
-    // Skip the scene heading line (first match)
-    const bodyLines = lines.filter(l => !isSceneHeading(l.text));
+    let lines;
+    if (skeleton.lineStart != null && skeleton.lineEnd != null) {
+      // Line-index based — precise, handles multiple scenes on same page
+      lines = taggedLines.slice(skeleton.lineStart + 1, skeleton.lineEnd + 1); // +1 to skip heading
+    } else {
+      // Page-based fallback
+      lines = taggedLines.filter(
+        l => l.page >= skeleton.startPage && l.page <= skeleton.endPage
+      ).filter(l => !isSceneHeading(l.text));
+    }
 
-    // Filter out pure technical lines (page numbers, CONTINUED, etc.)
-    const usable = bodyLines.filter(l => {
+    // Filter out pure technical lines
+    const usable = lines.filter(l => {
       const t = l.text.trim();
       return t.length > 1
         && !/^(CONTINUED|CONT'D|\(CONT'D\)|MORE)$/i.test(t)
-        && !/^\d+\.$/.test(t)         // bare page numbers
-        && !/^[A-Z]\.$/.test(t);      // single letter slugs
+        && !/^\d+\.$/.test(t)
+        && !/^[A-Z]\.$/.test(t);
     });
 
-    // Build content: action lines + character cues + first line of each dialogue block
+    // Build content: action lines + character cues + up to 2 dialogue lines per cue
     const parts = [];
     let lastWasChar = false;
     let dialogueLinesAfterCue = 0;
@@ -236,19 +240,17 @@ function buildSceneContentMap(taggedLines, sceneSkeletons) {
         lastWasChar = true;
         dialogueLinesAfterCue = 0;
       } else if (lastWasChar || dialogueLinesAfterCue < 2) {
-        // Include up to 2 dialogue lines per character cue
         parts.push(t);
         lastWasChar = false;
         dialogueLinesAfterCue++;
       } else {
-        // Action line
         parts.push(t);
         lastWasChar = false;
         dialogueLinesAfterCue = 0;
       }
     }
 
-    // Cap scales with scene length: short scenes get everything, long scenes get more
+    // Cap scales with scene length
     const lengthPages = skeleton.lengthPages || 1;
     const charCap = lengthPages <= 1 ? 600 : lengthPages <= 3 ? 900 : 1200;
     const joined = parts.join(" | ");
@@ -259,12 +261,22 @@ function buildSceneContentMap(taggedLines, sceneSkeletons) {
 
 function computeSceneLengths(taggedLines, totalPages) {
   const headings = [];
-  for (const { page, text } of taggedLines) {
-    if (isSceneHeading(text)) headings.push({ page, heading: text.trim() });
+  for (let i = 0; i < taggedLines.length; i++) {
+    if (isSceneHeading(taggedLines[i].text)) {
+      headings.push({ page: taggedLines[i].page, heading: taggedLines[i].text.trim(), lineIndex: i });
+    }
   }
   return headings.map((h, i) => {
     const endPage = i < headings.length - 1 ? headings[i + 1].page - 1 : totalPages;
-    return { heading: h.heading, startPage: h.page, endPage, lengthPages: Math.max(1, endPage - h.page + 1) };
+    const lineEnd = i < headings.length - 1 ? headings[i + 1].lineIndex - 1 : taggedLines.length - 1;
+    return {
+      heading: h.heading,
+      startPage: h.page,
+      endPage,
+      lengthPages: Math.max(1, endPage - h.page + 1),
+      lineStart: h.lineIndex,
+      lineEnd,
+    };
   });
 }
 
@@ -495,14 +507,13 @@ Return ONLY valid JSON, no markdown:
       "sceneNumber": int,
       "note": string (one sentence: the moment of peak confrontation or highest stakes)
     }
-  },
-  "overallTension": [EXACTLY 40 numbers 0-10 evenly spaced from page 1 to page ${totalPages}]
+  }
 }
 
 RULES:
 - actBreaks sceneNumber and keyMoments sceneNumber MUST exist in the scene index above
-- overallTension MUST have exactly 40 values
 - Do NOT include a scenes array
+- Do NOT include an overallTension array — tension is derived from scene-level scoring in a later phase
 
 SCRIPT:
 ${compressedText}`;
@@ -536,7 +547,23 @@ SCRIPT CONTEXT:
 - Conflict: ${structureSummary.antagonistOrConflict}
 - ${structureSummary.naturalStructure?.actCount}-act structure
 - Act breaks: ${(structureSummary.naturalStructure?.actBreaks || []).map(ab => `Act${ab.actNumber}@${ab.position}%p${ab.page}`).join(" | ")}
-- Tension arc (40pts, 0-10): ${(structureSummary.overallTension || []).join(",")}
+
+TENSION SCORING — score each scene based purely on what is happening in its content:
+
+Tension is not limited to physical danger. Emotional confrontations, psychological crises, devastating revelations, and moments of irreversible loss can score just as high as violence or mortal threat. Use the full scale regardless of genre.
+
+10: The highest possible stakes are in immediate play with no escape. A character's life, freedom, or identity is being destroyed in real time. A confrontation that cannot be walked back. A truth that obliterates everything. Unendurable — the reader cannot look away.
+9: A crisis that feels unavoidable and is actively unfolding. Imminent physical danger OR an emotional/psychological breaking point — a confession that shatters a relationship, a character hitting rock bottom, an irreversible act. The situation is critical.
+8: High stakes actively in motion. A significant threat, a desperate act, a betrayal landing, a character collapsing under the weight of something they can no longer carry. The outcome is uncertain and failure costs everything.
+7: Real pressure with meaningful consequences. Something important could go very wrong — physically, emotionally, or relationally. A confrontation building toward a breaking point. Tension is present and felt.
+6: Growing conflict with real stakes. A difficult situation that is worsening. An argument escalating, a secret getting closer to exposure, a character making a choice they'll regret. The pressure is building noticeably.
+5: Moderate conflict or emotional weight. Something is at stake but the scene has room to breathe. A hard conversation, a setback, a discovery that raises uncomfortable questions. Stakes exist but resolution feels possible.
+4: Low-level tension or mild friction. Setup scenes where something feels slightly off. Character scenes with underlying unease or unspoken conflict that hasn't surfaced yet.
+3: Mostly calm with a hint of dread or dramatic irony. The audience senses something the character doesn't, or a quiet scene carries subtle emotional weight beneath a peaceful surface.
+2: Deliberately low tension. Character work, worldbuilding, breathing room between escalations. Nothing is immediately at stake.
+1: Near-zero tension. Pure setup, transition, or atmosphere. No conflict, no stakes, no threat.
+
+IMPORTANT: Score based on what the content actually is — not the genre, not where the scene falls in the script. A quiet drama about grief and estrangement should use the full scale. A devastating emotional confrontation in a family film earns the same score as a chase scene in a thriller. A weak horror scene earns a low score. Let the content speak. Emotional and psychological stakes are real stakes.
 
 For EACH scene, read the CONTENT lines provided. Content includes action lines, character names followed by their dialogue, and stage directions. Write a summary of what specifically happens — who does or says what, what changes. Do not summarize the heading.
 
@@ -549,7 +576,7 @@ Return ONLY valid JSON, no markdown:
     {
       "number": int,
       "summary": string (one tight sentence describing what ACTUALLY HAPPENS in this specific scene — active voice, specific to the content provided, not generic),
-      "tension": number 0-10 (match the overallTension arc at this scene position),
+      "tension": number 0-10 (score from content only — see definitions above),
       "turningPoint": boolean,
       "turningPointNote": string (only if turningPoint:true)
     }
@@ -557,9 +584,11 @@ Return ONLY valid JSON, no markdown:
 }
 
 RULES:
-- Base summaries on the CONTENT lines, not just the heading
-- ★KEY MOMENT★ scenes must have especially accurate, specific summaries — these are displayed as structural markers
-- Tension must align with arc — scene at ${Math.round(sceneSlice[0]?.position || 0)}%-${Math.round(sceneSlice[sceneSlice.length-1]?.position || 100)}% of script
+- Base summaries STRICTLY on the CONTENT lines provided. Do NOT invent events, actions, or outcomes that are not in the content.
+- If content is sparse, write a minimal accurate summary of what IS there — do not fill gaps with assumed plot logic.
+- NEVER state that a character is dead, killed, or harmed unless the content explicitly shows it happening in THIS scene.
+- NEVER attribute an action to a character unless the content shows that specific character performing it.
+- ★KEY MOMENT★ scenes must have especially accurate, specific summaries — these are displayed as structural markers. Be precise about who does what to whom. Do not conflate separate characters' actions or attribute one character's action to another.
 - turningPoint: true only for scenes that genuinely shift the story — expect 8-15 total across full script
 - Return exactly ${sceneSlice.length} objects, one per scene number`;
 }
@@ -580,10 +609,11 @@ function buildPhase1CPrompt(candidates, sceneSkeletons, totalPages) {
 
   const formatCandidate = (key, c) => {
     if (!c) return `${key}: NO CANDIDATE PROVIDED`;
+    const neighborsBlock = c.neighbors ? `\n  NEIGHBORING SCENES (for context if replacement needed):\n${c.neighbors}` : "";
     return `${key.toUpperCase()}
   Scene #${c.sceneNumber} · p${c.page} · ${c.position}% · ${c.heading}
   CONTENT:
-${c.content || "(no content available)"}`;
+${c.content || "(no content available)"}${neighborsBlock}`;
   };
 
   const candidateBlock = [
@@ -629,6 +659,7 @@ ACT BREAK — confirms if ALL of:
 • Forces the protagonist into new, higher-stakes conflict
 • Functions as a crucial, often climactic turning point
 • The story cannot return to its pre-break state
+• IMPORTANT: The act break scene is the LAST scene of the act ending, not the first scene of the next act. If a script cuts to black and jumps forward in time, the act break is the final scene BEFORE the cut — not the first scene after it. Do not select the opening scene of a new time period or new act as the break point.
 
 INCITING INCIDENT — confirms if MOST of:
 • Shatters the protagonist's ordinary world / status quo
@@ -648,12 +679,13 @@ MIDPOINT — confirms if MOST of:
 
 CLIMAX — confirms if MOST of:
 • Timing: roughly 85–100% into the script
-• Highest dramatic tension in the script
-• Protagonist confronts the ultimate obstacle or antagonist
+• Highest dramatic tension in the script — peak confrontation, peak danger, or peak stakes
+• Protagonist confronts the ultimate obstacle or antagonist directly — action, not setup for action
 • Resolves the main story question
 • Demonstrates character arc completion — lessons applied
 • Final, unavoidable confrontation or defining choice
 • Pays off foreshadowing and rising action
+• NOTE: A scene where a character spots the protagonist or a transitional moment BEFORE the confrontation is NOT the climax — the climax is the confrontation itself
 
 ═══════════════════════════════════
 GROUND-TRUTH SCENE INDEX
@@ -671,19 +703,19 @@ Return ONLY valid JSON, no markdown:
     "verdict": "confirmed" | "replaced" | "none",
     "sceneNumber": int (confirmed scene, or replacement from index, or null if none found),
     "confidence": "high" | "medium" | "low",
-    "ruling": string (1-2 sentences: why confirmed/replaced, which criteria it meets or fails, note if non-standard structure)
+    "ruling": string (1-2 sentences: why this specific sceneNumber was confirmed or chosen — the ruling MUST describe the scene at this sceneNumber, not any other scene)
   },
   "midpoint": {
     "verdict": "confirmed" | "replaced" | "none",
     "sceneNumber": int | null,
     "confidence": "high" | "medium" | "low",
-    "ruling": string
+    "ruling": string (MUST describe what happens in the scene at sceneNumber — not a different scene)
   },
   "climax": {
     "verdict": "confirmed" | "replaced" | "none",
     "sceneNumber": int | null,
     "confidence": "high" | "medium" | "low",
-    "ruling": string
+    "ruling": string (MUST describe what happens in the scene at sceneNumber — not a different scene)
   },
   "actBreaks": [
     {
@@ -691,22 +723,29 @@ Return ONLY valid JSON, no markdown:
       "verdict": "confirmed" | "replaced" | "none",
       "sceneNumber": int | null,
       "confidence": "high" | "medium" | "low",
-      "ruling": string
+      "ruling": string (MUST describe what happens in the scene at sceneNumber)
     }
   ]
-}`;
+}
+
+CRITICAL: Every ruling must describe the scene at the sceneNumber you returned. If you replaced a scene, the ruling must explain why the original failed AND describe why the replacement (at its sceneNumber) is correct. Do not describe a third scene in the ruling.`;
 }
 
 // Extract full scene content from taggedLines for a given scene skeleton
 // Used by Phase 1C to give the validator the actual scene text
 function extractFullSceneContent(skeleton, taggedLines, charCap = 1500) {
   if (!skeleton) return "";
-  const lines = taggedLines.filter(
-    l => l.page >= skeleton.startPage && l.page <= skeleton.endPage
-  );
-  // Skip the heading line, keep everything else including dialogue
-  const body = lines.filter(l => !isSceneHeading(l.text));
-  const usable = body.filter(l => {
+  let lines;
+  if (skeleton.lineStart != null && skeleton.lineEnd != null) {
+    // Line-index based — precise boundary
+    lines = taggedLines.slice(skeleton.lineStart + 1, skeleton.lineEnd + 1);
+  } else {
+    // Page-based fallback
+    lines = taggedLines.filter(
+      l => l.page >= skeleton.startPage && l.page <= skeleton.endPage
+    ).filter(l => !isSceneHeading(l.text));
+  }
+  const usable = lines.filter(l => {
     const t = l.text.trim();
     return t.length > 1
       && !/^(CONTINUED|CONT'D|\(CONT'D\)|MORE)$/i.test(t)
@@ -947,9 +986,9 @@ Return ONLY valid JSON, no markdown:
     "incitingIncident": { "sceneNumber": number },
     "midpoint":         { "sceneNumber": number },
     "climax":           { "sceneNumber": number }
-  },
-  "overallTension": [number] (exactly 40 values 0-10, evenly distributed across the full story — calibrate to dramatic stakes, not prose density)
-}`;
+  }
+}
+Note: Do NOT include overallTension — it is derived from per-scene scores in Phase OB.`;
 }
 
 function buildOutlinePhaseOBPrompt(sceneSlice, totalScenes, structureSummary, formatHint) {
@@ -1005,6 +1044,7 @@ async function callClaude(content, maxTokens = 4000) {
     body: JSON.stringify({
       model: "claude-sonnet-4-20250514",
       max_tokens: maxTokens,
+      temperature: 0,
       messages: [{ role: "user", content }],
     }),
   });
@@ -1302,7 +1342,7 @@ function RhythmPanel({ markers, actBreaks, hoveredMarkerId, onMarkerHover }) {
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, minWidth: 44 }}>
               <span style={{ fontSize: 15, color: ms.color, lineHeight: 1 }}>{ms.icon}</span>
               <span style={{ fontSize: 9, fontFamily: T.fontMono, color: ms.color }}>{m.position}%</span>
-              {m.page && <span style={{ fontSize: 9, fontFamily: T.fontMono, color: T.textDim }}>p{m.page}</span>}
+              {m.page && <span style={{ fontSize: 9, fontFamily: T.fontMono, color: T.textMuted }}>p{m.page}</span>}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 12, fontFamily: T.fontMono, color: isHov ? ms.color : T.textSecondary, marginBottom: m.note ? 4 : 0, letterSpacing: 0.5 }}>
@@ -1311,7 +1351,7 @@ function RhythmPanel({ markers, actBreaks, hoveredMarkerId, onMarkerHover }) {
               </div>
               {m.note && <div style={{ fontSize: 12, color: T.textMuted, lineHeight: 1.65, fontFamily: T.fontSans, fontWeight: 3005, fontFamily: T.fontSans, fontWeight: 300 }}>{m.note}</div>}
               {m.sceneHeading && (
-                <div style={{ fontSize: 10, fontFamily: T.fontMono, color: T.textDim, marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                <div style={{ fontSize: 10, fontFamily: T.fontMono, color: T.textMuted, marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                   {m.sceneHeading}
                 </div>
               )}
@@ -1438,7 +1478,7 @@ function CompareTensionChart({ datasets, markers = [], showPages, normalized, ma
           border: `1px solid ${tooltip.color}55`,
           borderRadius: T.radiusMd,
           padding: "8px 12px",
-          maxWidth: 260,
+          maxWidth: 280,
           pointerEvents: "none",
           zIndex: 20,
           boxShadow: "0 4px 20px #00000070",
@@ -1446,7 +1486,22 @@ function CompareTensionChart({ datasets, markers = [], showPages, normalized, ma
           <div style={{ fontSize: 9, fontFamily: T.fontMono, color: tooltip.color, letterSpacing: 1.4, marginBottom: 3 }}>
             {tooltip.label} · p{tooltip.page} · {tooltip.position?.toFixed(0)}%
           </div>
-          <div style={{ fontSize: 12, color: T.textSecondary, lineHeight: 1.5 }}>{tooltip.note}</div>
+          <div style={{ fontSize: 12, color: T.textSecondary, lineHeight: 1.5, marginBottom: tooltip.validation ? 6 : 0 }}>{tooltip.note}</div>
+          {tooltip.validation && (
+            <div style={{
+              padding: "4px 7px", borderRadius: T.radiusSm,
+              background: tooltip.validation.verdict === "replaced" ? "#d4605018" : "#48b87814",
+              border: `1px solid ${tooltip.validation.verdict === "replaced" ? "#d4605038" : "#48b87830"}`,
+            }}>
+              <div style={{ fontSize: 9, fontFamily: T.fontMono, letterSpacing: 1.2, marginBottom: tooltip.validation.ruling ? 3 : 0,
+                color: tooltip.validation.verdict === "replaced" ? "#d46050" : "#48b878" }}>
+                {tooltip.validation.verdict === "replaced" ? "⚠ CORRECTED" : "✓ VALIDATED"} {tooltip.validation.confidence?.toUpperCase()}
+              </div>
+              {tooltip.validation.ruling && (
+                <div style={{ fontSize: 11, color: T.textMuted, lineHeight: 1.5 }}>{tooltip.validation.ruling}</div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -2428,6 +2483,110 @@ function LibraryCard({ entry, onOpen, onDelete, onToggleCompare, compareSelected
 
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// DERIVE OVERALL TENSION FROM SCENE-LEVEL SCORES
+// Builds the 40-point tension curve from Phase 1B per-scene tension values.
+// More reliable than Phase 1A holistic scoring — grounded in actual scene content.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MIDPOINT RULING CORRECTION
+// Phase 1C sometimes returns the wrong sceneNumber for the midpoint while the
+// ruling text correctly identifies the intended scene. This runs at both analysis
+// time and display time (openEntry) so saved JSONs also benefit.
+// ═══════════════════════════════════════════════════════════════════════════════
+function applyMidpointRulingCorrection(keyMoments, scenes) {
+  if (!keyMoments?.midpoint?.validation?.ruling) return keyMoments;
+  const mp = keyMoments.midpoint;
+  const ruling = mp.validation.ruling;
+  const currentSN = mp.sceneNumber;
+
+  // Find all Scene #N references in the ruling — the LAST one is what the model argues for
+  const sceneRefs = [...ruling.matchAll(/[Ss]cene\s*#(\d+)/g)].map(m => parseInt(m[1]));
+  const targetSN = [...sceneRefs].reverse().find(sn => {
+    if (sn === currentSN) return false;
+    const sc = scenes?.find(s => s.number === sn);
+    if (!sc) return false;
+    return sc.position >= 35 && sc.position <= 72;
+  });
+
+  if (!targetSN) return keyMoments;
+
+  const targetScene = scenes?.find(s => s.number === targetSN);
+  if (!targetScene) return keyMoments;
+
+  return {
+    ...keyMoments,
+    midpoint: {
+      ...mp,
+      sceneNumber: targetSN,
+      page: targetScene.startPage,
+      position: targetScene.position,
+      description: targetScene.summary || mp.description,
+      sceneHeading: targetScene.heading || mp.sceneHeading,
+      validation: {
+        ...mp.validation,
+        verdict: "replaced",
+      },
+    },
+  };
+}
+
+function deriveOverallTension(enrichedScenes, totalPages) {
+  if (!enrichedScenes?.length) return Array(40).fill(5);
+
+  // Map each scene to position, tension, and length weight
+  const scenePts = enrichedScenes.map(s => ({
+    pos: s.position ?? ((s.startPage || 1) / totalPages * 100),
+    tension: typeof s.tension === "number" ? s.tension : 5,
+    weight: Math.max(0.5, s.lengthPages || 1),
+  })).sort((a, b) => a.pos - b.pos);
+
+  // For each of 40 sample points, blend weighted average with weighted peak.
+  // This preserves the overall shape while allowing genuine high-tension moments
+  // to register fully rather than being diluted by surrounding low-tension scenes.
+  const raw = [];
+  const WINDOW = 5; // tighter window prevents high-tension peaks bleeding into distant scenes
+  const PEAK_BLEND = 0.55; // 55% peak, 45% average — tune here if needed
+
+  for (let i = 0; i < 40; i++) {
+    const targetPos = (i / 39) * 100;
+    const nearby = scenePts.filter(s => Math.abs(s.pos - targetPos) <= WINDOW);
+
+    if (nearby.length === 0) {
+      const nearest = scenePts.reduce((a, b) =>
+        Math.abs(a.pos - targetPos) < Math.abs(b.pos - targetPos) ? a : b
+      );
+      raw.push(nearest.tension);
+      continue;
+    }
+
+    // Weighted average (length × proximity)
+    let sumW = 0, sumWT = 0, peakT = 0, peakW = 0;
+    for (const s of nearby) {
+      const dist = Math.abs(s.pos - targetPos);
+      const proximityW = 1 - dist / WINDOW;
+      const w = s.weight * proximityW;
+      sumW += w;
+      sumWT += w * s.tension;
+      // Track the heaviest high-tension scene in the window
+      if (w * s.tension > peakW * peakT) { peakW = w; peakT = s.tension; }
+    }
+    const avg = sumW > 0 ? sumWT / sumW : 5;
+    // Blend: pull toward peak for high-tension moments, stay near average for low ones
+    const blended = avg + PEAK_BLEND * (peakT - avg);
+    raw.push(blended);
+  }
+
+  // Light smoothing pass — window of 1
+  return raw.map((_, i) => {
+    const lo = Math.max(0, i - 1), hi = Math.min(39, i + 1);
+    const slice = raw.slice(lo, hi + 1);
+    const avg = slice.reduce((a, b) => a + b, 0) / slice.length;
+    return Math.round(Math.min(10, Math.max(0, avg)) * 10) / 10;
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // MAIN APP
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -2587,12 +2746,21 @@ export default function ScriptGraph() {
         endPage: s.endPage,
         lengthPages: s.lengthPages,
         position: parseFloat((s.startPage / totalPages * 100).toFixed(1)),
+        lineStart: s.lineStart,
+        lineEnd: s.lineEnd,
       }));
 
       // Step 3: Compress script and build per-scene content map
       setLoadingLabel(`COMPRESSING — ${taggedLines.length} lines → structural skeleton…`);
       const keptLines = compressScript(taggedLines);
-      const compressedText = formatForClaude(keptLines);
+
+      // Prepend raw cover page text (pages 1-2) so writer credit reaches Phase 1A
+      // compressScript strips non-screenplay lines (cover page has no scene headings)
+      const coverLines = taggedLines
+        .filter(l => l.page <= 2 && l.text.trim())
+        .map(l => l.text.trim())
+        .join("\n");
+      const compressedText = `COVER PAGE:\n${coverLines}\n\nSCRIPT:\n${formatForClaude(keptLines)}`;
       // Build content map AFTER sceneSkeletons is ready — maps scene number -> compressed content
       const sceneContentMap = buildSceneContentMap(taggedLines, sceneSkeletons);
 
@@ -2684,15 +2852,22 @@ export default function ScriptGraph() {
       setLoadingLabel("VALIDATING STRUCTURAL MOMENTS…");
 
       // Build candidates: skeleton + full scene content for each
+      // Also include enriched summaries of nearby scenes so validator can make informed replacements
       const buildCandidate = (sceneNumber) => {
         const sk = resolveSkeleton(sceneNumber);
         if (!sk) return null;
+        // Include summaries of ±3 neighboring scenes so validator can see what surrounds the candidate
+        const neighbors = enrichedScenes
+          .filter(s => Math.abs(s.number - sk.number) <= 3 && s.number !== sk.number)
+          .map(s => `  Scene #${s.number} [p${s.startPage}, ${s.position.toFixed(0)}%]: ${s.summary} (tension: ${s.tension})`)
+          .join("\n");
         return {
           sceneNumber: sk.number,
           heading: sk.heading,
           page: sk.startPage,
           position: sk.position,
           content: extractFullSceneContent(sk, taggedLines, 1500),
+          neighbors,
         };
       };
 
@@ -2750,9 +2925,15 @@ export default function ScriptGraph() {
         };
       }
 
+      // ── Ruling mismatch detection ────────────────────────────────────────────
+      // Correct midpoint sceneNumber if ruling text argues for a different scene.
+      // Uses the shared applyMidpointRulingCorrection function so saved entries
+      // also benefit at display time via openEntry.
+      Object.assign(finalKeyMoments, applyMidpointRulingCorrection(finalKeyMoments, enrichedScenes));
+
       // ── Position sanity check for midpoint ──────────────────────────────────
-      // If the resolved midpoint falls outside 35-65% it almost certainly collided
-      // with an act break. Find the best turning-point scene in range instead.
+      // If the resolved midpoint falls outside 35-72% it almost certainly collided
+      // with an act break or has no clean 50% pivot. Find the best turning-point scene in range instead.
       if (finalKeyMoments.midpoint) {
         const mpPos = finalKeyMoments.midpoint.position;
         const actBreakPositions = new Set(
@@ -2763,12 +2944,12 @@ export default function ScriptGraph() {
         );
         const isActBreakScene = actBreakPositions.has(finalKeyMoments.midpoint.sceneNumber);
 
-        if (isActBreakScene || mpPos < 35 || mpPos > 65) {
-          console.warn(`ScriptGraph: midpoint at ${mpPos}% ${isActBreakScene ? "(act break collision)" : "(out of 35-65% window)"} — searching for better candidate`);
+        if (isActBreakScene || mpPos < 35 || mpPos > 72) {
+          console.warn(`ScriptGraph: midpoint at ${mpPos}% ${isActBreakScene ? "(act break collision)" : "(out of 35-72% window)"} — searching for better candidate`);
           // Find turning-point scenes in the 35-65% window from enriched data
           const candidates40_60 = enrichedScenes
             .filter(s => {
-              const inWindow = s.position >= 35 && s.position <= 65;
+              const inWindow = s.position >= 35 && s.position <= 72;
               const notActBreak = !actBreakPositions.has(s.number);
               const hasTurning = s.turningPoint;
               return inWindow && notActBreak && hasTurning;
@@ -2793,7 +2974,7 @@ export default function ScriptGraph() {
                 validation: {
                   verdict: "replaced",
                   confidence: "medium",
-                  ruling: `Position sanity check: original midpoint was at ${mpPos}%${isActBreakScene ? " and was also an act break scene" : ""}. Corrected to nearest turning-point scene in 40-60% window.`,
+                  ruling: `Position sanity check: original midpoint was at ${mpPos}%${isActBreakScene ? " and was also an act break scene" : ""}. Corrected to nearest turning-point scene in 35-72% window.`,
                 },
               };
             }
@@ -2822,6 +3003,8 @@ export default function ScriptGraph() {
       }).filter(Boolean);
 
       // Step 8: Merge into complete p1 object
+      // overallTension derived from Phase 1B per-scene scores — more reliable than Phase 1A holistic scoring
+      const derivedTension = deriveOverallTension(enrichedScenes, totalPages);
       const parsed = {
         ...p1a,
         naturalStructure: {
@@ -2830,6 +3013,7 @@ export default function ScriptGraph() {
         },
         keyMoments: finalKeyMoments,
         totalScenes: sceneSkeletons.length,
+        overallTension: derivedTension,
         scenes: enrichedScenes,
       };
 
@@ -2999,9 +3183,9 @@ export default function ScriptGraph() {
         const mpPos = finalKeyMoments.midpoint.position;
         const actBreakNums = new Set(finalActBreaks.map(ab => ab.sceneNumber));
         const isActBreak = actBreakNums.has(finalKeyMoments.midpoint.sceneNumber);
-        if (isActBreak || mpPos < 35 || mpPos > 65) {
+        if (isActBreak || mpPos < 35 || mpPos > 72) {
           const candidates = enrichedScenes.filter(s =>
-            s.position >= 35 && s.position <= 65 &&
+            s.position >= 35 && s.position <= 72 &&
             !actBreakNums.has(s.number) &&
             s.turningPoint
           ).sort((a, b) => Math.abs(a.position - 50) - Math.abs(b.position - 50));
@@ -3014,7 +3198,7 @@ export default function ScriptGraph() {
                 position: bestSk.position, description: best.summary,
                 sceneHeading: bestSk.heading,
                 validation: { verdict: "replaced", confidence: "medium",
-                  ruling: `Position sanity check: original midpoint at ${mpPos}%. Corrected to nearest turning-point scene in 40-60% window.` },
+                  ruling: `Position sanity check: original midpoint at ${mpPos}%. Corrected to nearest turning-point scene in 35-72% window.` },
               };
             }
           }
@@ -3022,6 +3206,8 @@ export default function ScriptGraph() {
       }
 
       // Step 7: Assemble final parsed object — same schema as script pipeline
+      // overallTension derived from Phase OB per-scene scores, same as script path
+      const derivedTension = deriveOverallTension(enrichedScenes, totalScenes);
       const parsed = {
         ...oa,
         isOutline: true,
@@ -3033,6 +3219,7 @@ export default function ScriptGraph() {
           actBreaks: finalActBreaks,
         },
         keyMoments: finalKeyMoments,
+        overallTension: derivedTension,
         scenes: enrichedScenes,
       };
 
@@ -3118,15 +3305,17 @@ export default function ScriptGraph() {
 
   function openEntry(entry) {
     const slug = slugFromFilename(entry._filename || (entry.title || "script").replace(/[^a-z0-9]/gi, "-").toLowerCase() + ".json");
+    const scenes = entry.scenes || [];
+    const correctedKeyMoments = applyMidpointRulingCorrection(entry.keyMoments, scenes);
     setP1({
       title: entry.title, logline: entry.logline, writer: entry.writer || "",
       totalPages: entry.totalPages, totalScenes: entry.totalScenes,
       protagonist: entry.protagonist, antagonistOrConflict: entry.antagonistOrConflict,
       genre: entry.genre, tone: entry.tone, themes: entry.themes,
       naturalStructure: entry.naturalStructure,
-      keyMoments: entry.keyMoments || null,
+      keyMoments: correctedKeyMoments || null,
       overallTension: entry.overallTension,
-      scenes: entry.scenes || [],
+      scenes,
       isOutline: entry.isOutline || false,
       formatTransition: entry.formatTransition || null,
       _truncated: entry._truncated,
@@ -3533,6 +3722,20 @@ export default function ScriptGraph() {
                     <RhythmLegend showFormatShift={!!p1.formatTransition} />
                   </div>
                 </div>
+                {/* Disclaimer */}
+                <p style={{
+                  margin: 0,
+                  fontSize: 11,
+                  color: T.textMuted,
+                  fontFamily: T.fontSans,
+                  fontStyle: "italic",
+                  fontWeight: 300,
+                  lineHeight: 1.7,
+                  borderLeft: `2px solid ${T.borderMid}`,
+                  paddingLeft: 12,
+                }}>
+                  Scene summaries and structural markers are generated by AI analysis of the screenplay and may contain minor inaccuracies. The graphs are the point — use them to see how a story moves, where it breathes, and where it escalates. Individual scene details are context, not the claim.
+                </p>
                 {/* Marker list */}
                 <div>
                   <SectionLabel>Structural Markers · {(p1.naturalStructure?.actBreaks?.length || 0)} Act Breaks · {rhythmMarkers.length} Story Markers</SectionLabel>
@@ -4135,9 +4338,11 @@ export default function ScriptGraph() {
 
               <Rule />
               <H2>What the graphs represent</H2>
-              <P>Each graph attempts to map the relative narrative pressure across a screenplay. The system identifies moments where the story shifts direction — inciting incidents, act breaks, midpoints, climaxes — and uses them as reference points, not absolute truths.</P>
-              <P>Story structure is not math. Two smart readers can disagree about where a turning point really happens, and both can be right. These graphs aren't meant to declare definitive answers. They're meant to provide a consistent way of seeing how a story behaves.</P>
+              <P>Each graph maps the dramatic intensity of a screenplay scene by scene — not based on genre, not based on where a scene falls in the story, but based on what actually happens in it. A scene where a character's life is in immediate danger scores high. So does a scene where a relationship breaks apart irreversibly, or a character finally confesses something they've been carrying for the whole film. Physical danger and emotional devastation are treated as equally valid sources of tension. A quiet drama about grief can hit the same peaks as a thriller — if the content earns it.</P>
+              <P>This means the graphs are honest about what they find. A flat curve across a script is meaningful data — it means the story never genuinely escalates. A jagged, unpredictable curve reflects a script that keeps shifting the pressure. The shape is the information.</P>
+              <P>Story structure is not math. Two smart readers can disagree about where a turning point really happens, and both can be right. These graphs aren't meant to declare definitive answers. They're meant to provide a consistent way of seeing how a story moves — and to make that visible in a form you can actually compare across films.</P>
               <P>The value isn't in pinpointing a single page number. The value is in seeing the overall shape.</P>
+              <P><em>Scene summaries and structural markers are generated by AI analysis and may contain minor inaccuracies. The graphs are the point — use them to see how a story moves, where it breathes, and where it escalates. Individual scene details are context, not the claim.</em></P>
 
               <Rule />
               <H2>Why I started collecting them</H2>
@@ -4264,7 +4469,7 @@ export default function ScriptGraph() {
                   <Rule />
                   <H2>Reading the Tension Arc</H2>
                   <P>
-                    The tension arc is a rough proxy for the story's energy across its runtime. A value of 10 means peak dramatic intensity — the highest-stakes moments. A value near 0 means deliberate low tension: breathing room, quiet character moments, setup. Most stories move between 3 and 8 with spikes at key turns.
+                    The tension arc is a rough proxy for the story's energy across its runtime. A value of 10 means peak dramatic intensity — the highest-stakes moments, whether that's physical danger, emotional devastation, or irreversible loss. A value near 0 means deliberate low tension: breathing room, quiet character moments, setup. Most stories move between 3 and 8 with spikes at key turns. Character-driven dramas and genre films are scored on the same scale — a quiet film about grief can earn the same peaks as a thriller if the content warrants it.
                   </P>
                   <P>
                     The Y-axis is always fixed from 0 to 10. This is intentional — it lets you compare curves across different scripts without the scale adjusting to each one.
@@ -4378,15 +4583,25 @@ export default function ScriptGraph() {
                   </P>
                   <H3>Phase 1B — Scene Enrichment</H3>
                   <P>
-                    Processes scenes in batches of 50. Each batch receives the scene skeletons plus rich content from the raw tagged lines including dialogue. Key moment scenes are flagged with ★KEY MOMENT★ for priority treatment. Returns: summary, tension (0–10), turningPoint (boolean), turningPointNote per scene. Each batch is wrapped in try/catch — a failed batch falls back to skeleton defaults and does not kill the full analysis. Max tokens: 4000 per batch.
+                    Processes scenes in batches of 50. Each batch receives the scene skeletons plus rich content extracted by line index (not page number) from the raw tagged lines, including dialogue. Key moment scenes are flagged with ★KEY MOMENT★ for priority treatment and must produce especially precise summaries. Returns: summary, tension (0–10), turningPoint (boolean), turningPointNote per scene. Each batch is wrapped in try/catch — a failed batch falls back to skeleton defaults and does not kill the full analysis. Max tokens: 4000 per batch. Temperature: 0.
+                  </P>
+                  <P>
+                    <strong style={{ color: T.textPrimary }}>Tension scoring:</strong> Scores are content-based, not position or genre-based. Physical danger and emotional/psychological stakes are treated equally — a devastating confession or relationship collapse can score as high as a chase scene. The full 1–10 scale applies to all genres including quiet dramas, so character-driven films are not artificially flattened. Anti-fabrication rules instruct the model never to invent events or character deaths not present in the scene content.
+                  </P>
+                  <P>
+                    <strong style={{ color: T.textPrimary }}>Content extraction:</strong> Scene boundaries are determined by line index (lineStart / lineEnd), not page numbers. This fixes a common failure mode where multiple short scenes on the same page shared content pools, diluting summaries for fast-cutting sequences.
                   </P>
                   <H3>Phase 1C — Key Moment Validation</H3>
                   <P>
-                    After Phase 1B, the Phase 1A key moment candidates are validated against explicit structural criteria. Each candidate scene receives its full content (up to 1500 chars). The validator returns: verdict (confirmed / replaced / none), replacement sceneNumber if needed, confidence (high / medium / low), and a 1–2 sentence ruling. Collision prevention: act break scene numbers are explicitly listed and the validator is told not to reuse them as key moments. Max tokens: 3000.
+                    After Phase 1B, the Phase 1A key moment candidates are validated against explicit structural criteria. Each candidate scene receives its full content (up to 1500 chars) plus summaries of the ±3 neighboring scenes, giving the validator context to make informed replacements. The validator returns: verdict (confirmed / replaced / none), replacement sceneNumber if needed, confidence (high / medium / low), and a ruling. Collision prevention: act break scene numbers are explicitly listed and the validator is told not to reuse them as key moments. Act break criteria include an explicit rule that the break is the last scene of the act ending — not the first scene of the next act. Max tokens: 3000. Temperature: 0.
+                  </P>
+                  <H3>Midpoint Ruling Mismatch Correction</H3>
+                  <P>
+                    Phase 1C sometimes returns the correct reasoning but the wrong scene number for the midpoint. A client-side correction function (<Code>applyMidpointRulingCorrection</Code>) scans the ruling text for Scene #N references and uses the last reference (the one the model argues for, not the one it rejects) to correct the sceneNumber. This runs at both analysis time and display time when opening a saved entry, so existing JSONs benefit without re-analysis.
                   </P>
                   <H3>Client-Side Midpoint Sanity Check</H3>
                   <P>
-                    After Phase 1C resolves the midpoint, a client-side check runs: (1) is the midpoint position outside 35–65%? (2) is the midpoint scene the same as an act break? If either is true, the check searches enriched scenes for turning-point scenes in the 35–65% window and picks the one closest to 50%, substituting it with a "replaced" validation note. This runs on both the script path and the outline path.
+                    After Phase 1C resolves the midpoint, a client-side check runs: (1) is the midpoint position outside 35–72%? (2) is the midpoint scene the same as an act break? If either is true, the check searches enriched scenes for turning-point scenes in the 35–72% window and picks the one closest to 50%, substituting it with a "replaced" validation note. The window extends to 72% to accommodate slow-burn and character-driven stories where the structural pivot happens later than convention. This runs on both the script path and the outline path.
                   </P>
 
                   <Rule />
