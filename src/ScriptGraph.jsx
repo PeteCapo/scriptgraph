@@ -4056,7 +4056,7 @@ export default function ScriptGraph() {
           // Apply search + genre filter
           const filtered = library.filter(e => {
             const q = libSearch.toLowerCase();
-            const matchSearch = !q || e.title?.toLowerCase().includes(q) || e.logline?.toLowerCase().includes(q) || e.genre?.toLowerCase().includes(q);
+            const matchSearch = !q || e.title?.toLowerCase().includes(q) || e.logline?.toLowerCase().includes(q) || e.genre?.toLowerCase().includes(q) || e.writer?.toLowerCase().includes(q);
             const matchGenre  = !libGenreFilter || (e.genre || "").toLowerCase().includes(libGenreFilter.toLowerCase());
             return matchSearch && matchGenre;
           });
@@ -4113,7 +4113,7 @@ export default function ScriptGraph() {
                   <input
                     value={libSearch}
                     onChange={e => setLibSearch(e.target.value)}
-                    placeholder="Search titles, loglines…"
+                    placeholder="Search titles, writers, genres…"
                     style={{
                       width: "100%", paddingLeft: 28, paddingRight: 10, paddingTop: 7, paddingBottom: 7,
                       background: T.bgCard, border: `1px solid ${libSearch ? T.accent + "60" : T.borderMid}`,
