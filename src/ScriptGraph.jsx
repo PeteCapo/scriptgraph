@@ -2535,9 +2535,270 @@ function applyMidpointRulingCorrection(keyMoments, scenes) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// PUBLISH STUDIO — password-protected JSON publisher
+// PUBLISH STUDIO — password-protected JSON publisher with delete
 // ═══════════════════════════════════════════════════════════════════════════════
 function PublishStudio({ T }) {
+  const [tab, setTab] = useState("publish"); // "publish" | "delete"
+  const [password, setPassword] = useState("");
+
+  // Publish state
+  const [files, setFiles] = useState([]);
+  const [dragOver, setDragOver] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+
+  // Delete state
+  const [library, setLibrary] = useState([]);
+  const [libraryLoading, setLibraryLoading] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleteStatus, setDeleteStatus] = useState(null);
+  const [deleteMessage, setDeleteMessage] = useState("");
+
+  const reserved = ["manifest.json", "index.json", "config.json"];
+
+  // Load library manifest for delete tab
+  const loadLibrary = async () => {
+    setLibraryLoading(true);
+    try {
+      const res = await fetch("/library/manifest.json");
+      const manifest = await res.json();
+      setLibrary(manifest.filter(f => !reserved.includes(f)));
+    } catch { setLibrary([]); }
+    setLibraryLoading(false);
+  };
+
+  useEffect(() => { if (tab === "delete") loadLibrary(); }, [tab]);
+
+  // Parse dropped files
+  const parseFiles = (rawFiles) => {
+    const results = [];
+    let pending = rawFiles.length;
+    if (!pending) return;
+    [...rawFiles].forEach(f => {
+      if (!f.name.endsWith(".json")) {
+        results.push({ filename: f.name, title: f.name, content: null, status: "error", message: "Not a .json file" });
+        if (--pending === 0) setFiles(prev => [...prev, ...results]);
+        return;
+      }
+      const fname = f.name.toLowerCase().replace(/[^a-z0-9\-.]/g, "-");
+      if (reserved.includes(fname)) {
+        results.push({ filename: fname, title: fname, content: null, status: "error", message: "Reserved filename" });
+        if (--pending === 0) setFiles(prev => [...prev, ...results]);
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          if (!parsed.title || !parsed.scenes) throw new Error("Invalid");
+          results.push({ filename: fname, title: parsed.title, content: e.target.result, status: "ready", message: "" });
+        } catch {
+          results.push({ filename: fname, title: fname, content: null, status: "error", message: "Invalid ScriptGraph JSON" });
+        }
+        if (--pending === 0) setFiles(prev => {
+          const merged = [...prev];
+          results.forEach(r => {
+            const idx = merged.findIndex(p => p.filename === r.filename);
+            if (idx >= 0) merged[idx] = r; else merged.push(r);
+          });
+          return merged;
+        });
+      };
+      reader.readAsText(f);
+    });
+  };
+
+  const handlePublishAll = async () => {
+    const ready = files.filter(f => f.status === "ready" && f.content);
+    if (!ready.length || !password) return;
+    setPublishing(true);
+    for (const file of ready) {
+      setFiles(prev => prev.map(f => f.filename === file.filename ? { ...f, status: "loading", message: "Publishing..." } : f));
+      try {
+        const res = await fetch("/api/publish", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ password, filename: file.filename, content: file.content }),
+        });
+        const data = await res.json();
+        setFiles(prev => prev.map(f => f.filename === file.filename
+          ? { ...f, status: res.ok ? "success" : "error", message: res.ok ? data.message : (data.error || "Failed") }
+          : f));
+      } catch {
+        setFiles(prev => prev.map(f => f.filename === file.filename ? { ...f, status: "error", message: "Network error" } : f));
+      }
+    }
+    setPublishing(false);
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget || !password) return;
+    setDeleteStatus("loading"); setDeleteMessage(`Deleting ${deleteTarget}...`);
+    try {
+      const res = await fetch("/api/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password, filename: deleteTarget }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setDeleteStatus("success");
+        setDeleteMessage(data.message);
+        setDeleteTarget(null);
+        setLibrary(prev => prev.filter(f => f !== deleteTarget));
+      } else {
+        setDeleteStatus("error");
+        setDeleteMessage(data.error || "Delete failed");
+      }
+    } catch {
+      setDeleteStatus("error"); setDeleteMessage("Network error — try again");
+    }
+  };
+
+  const removeFile = (filename) => setFiles(prev => prev.filter(f => f.filename !== filename));
+  const readyCount = files.filter(f => f.status === "ready").length;
+  const statusColor = (s) => s === "success" ? T.colorSuccess : s === "error" ? T.colorError : s === "loading" ? T.accent : T.textMuted;
+  const delMsgColor = deleteStatus === "success" ? T.colorSuccess : deleteStatus === "error" ? T.colorError : T.accent;
+
+  const tabStyle = (active) => ({
+    padding: "6px 16px", borderRadius: T.radiusSm, cursor: "pointer", border: "none",
+    fontSize: 11, fontFamily: T.fontMono, fontWeight: 600, letterSpacing: 1.5, textTransform: "uppercase",
+    background: active ? T.accent : "transparent",
+    color: active ? T.bgPage : T.textMuted,
+  });
+
+  return (
+    <div style={{ maxWidth: 560, margin: "0 auto", padding: "60px 0" }}>
+      <div style={{ marginBottom: 28 }}>
+        <div style={{ fontSize: 11, fontFamily: T.fontMono, letterSpacing: 2, color: T.accent, marginBottom: 8, textTransform: "uppercase" }}>ScriptGraph Studio</div>
+        <h1 style={{ margin: 0, fontSize: 32, fontWeight: 800, fontFamily: T.fontDisplay, textTransform: "uppercase", color: T.textPrimary, letterSpacing: 2 }}>Library Manager</h1>
+      </div>
+
+      {/* Tabs */}
+      <div style={{ display: "flex", gap: 6, marginBottom: 28, padding: "4px", background: T.bgPanel, borderRadius: T.radiusSm, width: "fit-content" }}>
+        <button style={tabStyle(tab === "publish")} onClick={() => setTab("publish")}>Publish</button>
+        <button style={tabStyle(tab === "delete")} onClick={() => setTab("delete")}>Delete</button>
+      </div>
+
+      {/* Shared password */}
+      <div style={{ marginBottom: 20 }}>
+        <label style={{ display: "block", fontSize: 10, fontFamily: T.fontMono, letterSpacing: 1.5, color: T.textMuted, textTransform: "uppercase", marginBottom: 6 }}>Password</label>
+        <input type="password" value={password} onChange={e => setPassword(e.target.value)}
+          placeholder="Enter publish password"
+          style={{ width: "100%", boxSizing: "border-box", background: T.bgPanel, border: `1px solid ${T.borderMid}`, borderRadius: T.radiusSm, padding: "10px 14px", color: T.textPrimary, fontFamily: T.fontSans, fontSize: 14, outline: "none" }}
+        />
+      </div>
+
+      {/* ── PUBLISH TAB ── */}
+      {tab === "publish" && (
+        <>
+          <div
+            onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={e => { e.preventDefault(); setDragOver(false); parseFiles(e.dataTransfer.files); }}
+            onClick={() => { const i = document.createElement("input"); i.type = "file"; i.accept = ".json"; i.multiple = true; i.onchange = ev => parseFiles(ev.target.files); i.click(); }}
+            style={{
+              border: `2px dashed ${dragOver ? T.accent : files.length ? T.borderMid : T.borderSubtle}`,
+              borderRadius: T.radiusLg, padding: "32px 24px", textAlign: "center",
+              cursor: "pointer", marginBottom: 16, transition: "border-color 0.15s",
+              background: dragOver ? `${T.accent}08` : T.bgPanel,
+            }}
+          >
+            <div style={{ fontSize: 24, marginBottom: 6, color: T.textMuted }}>↓</div>
+            <div style={{ fontSize: 13, color: T.textSecondary, fontFamily: T.fontSans }}>Drop JSON files here or click to browse</div>
+            <div style={{ fontSize: 11, color: T.textMuted, fontFamily: T.fontMono, marginTop: 4 }}>Multiple files supported</div>
+          </div>
+
+          {files.length > 0 && (
+            <div style={{ marginBottom: 16, display: "flex", flexDirection: "column", gap: 6 }}>
+              {files.map(f => (
+                <div key={f.filename} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", background: T.bgPanel, borderRadius: T.radiusSm, border: `1px solid ${T.borderSubtle}` }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, color: T.textPrimary, fontFamily: T.fontSans, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{f.title}</div>
+                    <div style={{ fontSize: 10, color: T.textMuted, fontFamily: T.fontMono }}>{f.filename}</div>
+                  </div>
+                  <div style={{ fontSize: 11, color: statusColor(f.status), fontFamily: T.fontMono, whiteSpace: "nowrap" }}>
+                    {f.status === "ready" ? "ready" : f.status === "loading" ? "publishing..." : f.status === "success" ? "✓ live" : `✗ ${f.message}`}
+                  </div>
+                  {(f.status === "ready" || f.status === "error") && (
+                    <button onClick={() => removeFile(f.filename)} style={{ background: "none", border: "none", color: T.textMuted, cursor: "pointer", fontSize: 14, padding: "0 2px" }}>×</button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          <button onClick={handlePublishAll} disabled={!readyCount || !password || publishing}
+            style={{
+              width: "100%", padding: "12px", borderRadius: T.radiusSm,
+              background: (!readyCount || !password || publishing) ? T.borderMid : T.accent,
+              color: T.bgPage, border: "none", cursor: (!readyCount || !password || publishing) ? "not-allowed" : "pointer",
+              fontSize: 13, fontFamily: T.fontMono, fontWeight: 600, letterSpacing: 1.5, textTransform: "uppercase",
+            }}
+          >
+            {publishing ? "Publishing..." : readyCount > 1 ? `Publish ${readyCount} Scripts` : "Publish to Library"}
+          </button>
+          <div style={{ marginTop: 12, fontSize: 11, color: T.textMuted, fontFamily: T.fontSans, textAlign: "center" }}>
+            Live on scriptgraph.ai in ~60 seconds
+          </div>
+        </>
+      )}
+
+      {/* ── DELETE TAB ── */}
+      {tab === "delete" && (
+        <>
+          {libraryLoading ? (
+            <div style={{ fontSize: 12, color: T.textMuted, fontFamily: T.fontMono, padding: "20px 0" }}>Loading library...</div>
+          ) : library.length === 0 ? (
+            <div style={{ fontSize: 12, color: T.textMuted, fontFamily: T.fontSans, padding: "20px 0" }}>No scripts in library.</div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 20 }}>
+              {library.map(f => {
+                const title = f.replace(".json", "").replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+                const isSelected = deleteTarget === f;
+                return (
+                  <div key={f} onClick={() => setDeleteTarget(isSelected ? null : f)}
+                    style={{
+                      display: "flex", alignItems: "center", justifyContent: "space-between",
+                      padding: "10px 14px", borderRadius: T.radiusSm, cursor: "pointer",
+                      border: `1px solid ${isSelected ? T.colorError + "60" : T.borderSubtle}`,
+                      background: isSelected ? `${T.colorError}10` : T.bgPanel,
+                      transition: "all 0.15s",
+                    }}>
+                    <div>
+                      <div style={{ fontSize: 13, color: isSelected ? T.colorError : T.textPrimary, fontFamily: T.fontSans }}>{title}</div>
+                      <div style={{ fontSize: 10, color: T.textMuted, fontFamily: T.fontMono }}>{f}</div>
+                    </div>
+                    {isSelected && <div style={{ fontSize: 11, color: T.colorError, fontFamily: T.fontMono }}>selected</div>}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {deleteMessage && (
+            <div style={{ marginBottom: 16, padding: "10px 14px", borderRadius: T.radiusSm, background: `${delMsgColor}15`, border: `1px solid ${delMsgColor}40`, fontSize: 13, color: delMsgColor, fontFamily: T.fontSans }}>
+              {deleteMessage}
+            </div>
+          )}
+
+          <button onClick={handleDelete} disabled={!deleteTarget || !password || deleteStatus === "loading"}
+            style={{
+              width: "100%", padding: "12px", borderRadius: T.radiusSm,
+              background: (!deleteTarget || !password || deleteStatus === "loading") ? T.borderMid : T.colorError,
+              color: T.bgPage, border: "none", cursor: (!deleteTarget || !password || deleteStatus === "loading") ? "not-allowed" : "pointer",
+              fontSize: 13, fontFamily: T.fontMono, fontWeight: 600, letterSpacing: 1.5, textTransform: "uppercase",
+            }}
+          >
+            {deleteStatus === "loading" ? "Deleting..." : deleteTarget ? `Delete ${deleteTarget}` : "Select a Script to Delete"}
+          </button>
+          <div style={{ marginTop: 12, fontSize: 11, color: T.textMuted, fontFamily: T.fontSans, textAlign: "center" }}>
+            Deletion is permanent and cannot be undone
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
   const [password, setPassword] = useState("");
   const [files, setFiles] = useState([]); // [{ content, filename, title, status, message }]
   const [dragOver, setDragOver] = useState(false);
