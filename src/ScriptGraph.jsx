@@ -3416,7 +3416,7 @@ export default function ScriptGraph() {
                 id: String(Date.now()), savedAt: Date.now(),
                 isOutline: p1.isOutline || false,
                 formatTransition: p1.formatTransition || null,
-                title: p1.title, logline: p1.logline,
+                title: p1.title, logline: p1.logline, writer: p1.writer || "",
                 totalPages: p1.totalPages, totalScenes: p1.totalScenes,
                 protagonist: p1.protagonist, antagonistOrConflict: p1.antagonistOrConflict,
                 genre: p1.genre, tone: p1.tone, themes: p1.themes,
@@ -3430,16 +3430,20 @@ export default function ScriptGraph() {
               };
               const jsonStr = JSON.stringify(entry, null, 2);
               const filename = `${(p1.title || "script").replace(/[^a-z0-9]/gi, "-").toLowerCase()}.json`;
+              let downloaded = false;
               try {
-                const dataUri = "data:application/json;charset=utf-8," + encodeURIComponent(jsonStr);
+                const blob = new Blob([jsonStr], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
                 const a = document.createElement("a");
-                a.href = dataUri;
+                a.href = url;
                 a.download = filename;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
+                downloaded = true;
               } catch {}
-              setExportJson({ json: jsonStr, filename });
+              if (!downloaded) setExportJson({ json: jsonStr, filename });
             }}>↓ Export JSON</Btn>
           )}
           {PUBLIC_MODE && screen === "results" && p1 && (
