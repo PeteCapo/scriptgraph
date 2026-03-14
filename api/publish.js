@@ -27,9 +27,10 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: "Invalid password" });
   }
 
-  // Validate filename — only allow safe JSON filenames
-  if (!/^[a-z0-9-]+\.json$/.test(filename)) {
-    return res.status(400).json({ error: "Invalid filename — use lowercase letters, numbers, and hyphens only" });
+  // Validate filename — only allow safe JSON filenames, block reserved names
+  const reserved = ["manifest.json", "index.json", "config.json"];
+  if (!/^[a-z0-9-]+\.json$/.test(filename) || reserved.includes(filename)) {
+    return res.status(400).json({ error: `Invalid or reserved filename: ${filename}` });
   }
 
   // Validate content is valid JSON

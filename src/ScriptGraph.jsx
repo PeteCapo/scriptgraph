@@ -2536,62 +2536,83 @@ function applyMidpointRulingCorrection(keyMoments, scenes) {
 // ═══════════════════════════════════════════════════════════════════════════════
 function PublishStudio({ T }) {
   const [password, setPassword] = useState("");
-  const [file, setFile] = useState(null);
-  const [filename, setFilename] = useState("");
-  const [status, setStatus] = useState(null);
-  const [message, setMessage] = useState("");
+  const [files, setFiles] = useState([]); // [{ content, filename, title, status, message }]
   const [dragOver, setDragOver] = useState(false);
+  const [publishing, setPublishing] = useState(false);
 
-  const handleFile = (f) => {
-    if (!f || !f.name.endsWith(".json")) {
-      setMessage("Please drop a .json file"); setStatus("error"); return;
-    }
-    const reader = new FileReader();
-    reader.onload = (e) => {
+  const reserved = ["manifest.json", "index.json", "config.json"];
+
+  const parseFiles = (rawFiles) => {
+    const results = [];
+    let pending = rawFiles.length;
+    if (!pending) return;
+    [...rawFiles].forEach(f => {
+      if (!f.name.endsWith(".json")) {
+        results.push({ filename: f.name, title: f.name, content: null, status: "error", message: "Not a .json file" });
+        if (--pending === 0) setFiles(prev => [...prev.filter(p => !results.find(r => r.filename === p.filename)), ...results]);
+        return;
+      }
+      const fname = f.name.toLowerCase().replace(/[^a-z0-9\-.]/g, "-");
+      if (reserved.includes(fname)) {
+        results.push({ filename: fname, title: fname, content: null, status: "error", message: "Reserved filename — cannot publish" });
+        if (--pending === 0) setFiles(prev => [...prev.filter(p => !results.find(r => r.filename === p.filename)), ...results]);
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          if (!parsed.title || !parsed.scenes) throw new Error("Invalid");
+          results.push({ filename: fname, title: parsed.title, content: e.target.result, status: "ready", message: "" });
+        } catch {
+          results.push({ filename: fname, title: fname, content: null, status: "error", message: "Invalid ScriptGraph JSON" });
+        }
+        if (--pending === 0) setFiles(prev => {
+          const merged = [...prev];
+          results.forEach(r => {
+            const idx = merged.findIndex(p => p.filename === r.filename);
+            if (idx >= 0) merged[idx] = r; else merged.push(r);
+          });
+          return merged;
+        });
+      };
+      reader.readAsText(f);
+    });
+  };
+
+  const handlePublishAll = async () => {
+    const ready = files.filter(f => f.status === "ready" && f.content);
+    if (!ready.length || !password) return;
+    setPublishing(true);
+    for (const file of ready) {
+      setFiles(prev => prev.map(f => f.filename === file.filename ? { ...f, status: "loading", message: "Publishing..." } : f));
       try {
-        const parsed = JSON.parse(e.target.result);
-        if (!parsed.title || !parsed.scenes) throw new Error("Invalid");
-        const fname = f.name.toLowerCase().replace(/[^a-z0-9\-.]/g, "-");
-        setFile({ content: e.target.result, title: parsed.title });
-        setFilename(fname);
-        setStatus(null); setMessage("");
+        const res = await fetch("/api/publish", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ password, filename: file.filename, content: file.content }),
+        });
+        const data = await res.json();
+        setFiles(prev => prev.map(f => f.filename === file.filename
+          ? { ...f, status: res.ok ? "success" : "error", message: res.ok ? data.message : (data.error || "Failed") }
+          : f));
       } catch {
-        setMessage("Invalid file — must be a ScriptGraph JSON export");
-        setStatus("error");
+        setFiles(prev => prev.map(f => f.filename === file.filename ? { ...f, status: "error", message: "Network error" } : f));
       }
-    };
-    reader.readAsText(f);
-  };
-
-  const handlePublish = async () => {
-    if (!file || !password) return;
-    setStatus("loading"); setMessage("Publishing...");
-    try {
-      const res = await fetch("/api/publish", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password, filename, content: file.content }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setStatus("success"); setMessage(data.message);
-        setFile(null); setFilename("");
-      } else {
-        setStatus("error"); setMessage(data.error || "Publish failed");
-      }
-    } catch {
-      setStatus("error"); setMessage("Network error — try again");
     }
+    setPublishing(false);
   };
 
-  const msgColor = status === "success" ? T.colorSuccess : status === "error" ? T.colorError : T.accent;
+  const removeFile = (filename) => setFiles(prev => prev.filter(f => f.filename !== filename));
+  const readyCount = files.filter(f => f.status === "ready").length;
+  const statusColor = (s) => s === "success" ? T.colorSuccess : s === "error" ? T.colorError : s === "loading" ? T.accent : T.textMuted;
 
   return (
-    <div style={{ maxWidth: 520, margin: "0 auto", padding: "60px 0" }}>
+    <div style={{ maxWidth: 560, margin: "0 auto", padding: "60px 0" }}>
       <div style={{ marginBottom: 32 }}>
         <div style={{ fontSize: 11, fontFamily: T.fontMono, letterSpacing: 2, color: T.accent, marginBottom: 8, textTransform: "uppercase" }}>ScriptGraph Studio</div>
-        <h1 style={{ margin: 0, fontSize: 32, fontWeight: 800, fontFamily: T.fontDisplay, textTransform: "uppercase", color: T.textPrimary, letterSpacing: 2 }}>Publish Script</h1>
-        <p style={{ margin: "10px 0 0", fontSize: 13, color: T.textSecondary, fontFamily: T.fontSans }}>Drop a ScriptGraph JSON export to publish it to the live library.</p>
+        <h1 style={{ margin: 0, fontSize: 32, fontWeight: 800, fontFamily: T.fontDisplay, textTransform: "uppercase", color: T.textPrimary, letterSpacing: 2 }}>Publish Scripts</h1>
+        <p style={{ margin: "10px 0 0", fontSize: 13, color: T.textSecondary, fontFamily: T.fontSans }}>Drop one or more ScriptGraph JSON exports to publish them to the live library.</p>
       </div>
 
       <div style={{ marginBottom: 20 }}>
@@ -2602,55 +2623,53 @@ function PublishStudio({ T }) {
         />
       </div>
 
+      {/* Drop zone */}
       <div
         onDragOver={e => { e.preventDefault(); setDragOver(true); }}
         onDragLeave={() => setDragOver(false)}
-        onDrop={e => { e.preventDefault(); setDragOver(false); handleFile(e.dataTransfer.files[0]); }}
-        onClick={() => { const i = document.createElement("input"); i.type = "file"; i.accept = ".json"; i.onchange = ev => handleFile(ev.target.files[0]); i.click(); }}
+        onDrop={e => { e.preventDefault(); setDragOver(false); parseFiles(e.dataTransfer.files); }}
+        onClick={() => { const i = document.createElement("input"); i.type = "file"; i.accept = ".json"; i.multiple = true; i.onchange = ev => parseFiles(ev.target.files); i.click(); }}
         style={{
-          border: `2px dashed ${dragOver ? T.accent : file ? T.colorSuccess : T.borderMid}`,
-          borderRadius: T.radiusLg, padding: "40px 24px", textAlign: "center",
+          border: `2px dashed ${dragOver ? T.accent : files.length ? T.borderMid : T.borderSubtle}`,
+          borderRadius: T.radiusLg, padding: "32px 24px", textAlign: "center",
           cursor: "pointer", marginBottom: 16, transition: "border-color 0.15s",
           background: dragOver ? `${T.accent}08` : T.bgPanel,
         }}
       >
-        {file ? (
-          <div>
-            <div style={{ fontSize: 13, fontFamily: T.fontMono, color: T.colorSuccess, marginBottom: 4 }}>✓ {file.title}</div>
-            <div style={{ fontSize: 11, color: T.textMuted, fontFamily: T.fontMono }}>{filename}</div>
-          </div>
-        ) : (
-          <div>
-            <div style={{ fontSize: 28, marginBottom: 8, color: T.textMuted }}>↓</div>
-            <div style={{ fontSize: 13, color: T.textSecondary, fontFamily: T.fontSans }}>Drop JSON file here or click to browse</div>
-          </div>
-        )}
+        <div style={{ fontSize: 24, marginBottom: 6, color: T.textMuted }}>↓</div>
+        <div style={{ fontSize: 13, color: T.textSecondary, fontFamily: T.fontSans }}>Drop JSON files here or click to browse</div>
+        <div style={{ fontSize: 11, color: T.textMuted, fontFamily: T.fontMono, marginTop: 4 }}>Multiple files supported</div>
       </div>
 
-      {file && (
-        <div style={{ marginBottom: 16 }}>
-          <label style={{ display: "block", fontSize: 10, fontFamily: T.fontMono, letterSpacing: 1.5, color: T.textMuted, textTransform: "uppercase", marginBottom: 6 }}>Filename</label>
-          <input type="text" value={filename} onChange={e => setFilename(e.target.value.toLowerCase().replace(/[^a-z0-9\-.]/g, "-"))}
-            style={{ width: "100%", boxSizing: "border-box", background: T.bgPanel, border: `1px solid ${T.borderMid}`, borderRadius: T.radiusSm, padding: "10px 14px", color: T.textPrimary, fontFamily: T.fontMono, fontSize: 13, outline: "none" }}
-          />
+      {/* File list */}
+      {files.length > 0 && (
+        <div style={{ marginBottom: 16, display: "flex", flexDirection: "column", gap: 6 }}>
+          {files.map(f => (
+            <div key={f.filename} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", background: T.bgPanel, borderRadius: T.radiusSm, border: `1px solid ${T.borderSubtle}` }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, color: T.textPrimary, fontFamily: T.fontSans, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{f.title}</div>
+                <div style={{ fontSize: 10, color: T.textMuted, fontFamily: T.fontMono }}>{f.filename}</div>
+              </div>
+              <div style={{ fontSize: 11, color: statusColor(f.status), fontFamily: T.fontMono, whiteSpace: "nowrap" }}>
+                {f.status === "ready" ? "ready" : f.status === "loading" ? "publishing..." : f.status === "success" ? "✓ live" : `✗ ${f.message}`}
+              </div>
+              {(f.status === "ready" || f.status === "error") && (
+                <button onClick={() => removeFile(f.filename)} style={{ background: "none", border: "none", color: T.textMuted, cursor: "pointer", fontSize: 14, padding: "0 2px", lineHeight: 1 }}>×</button>
+              )}
+            </div>
+          ))}
         </div>
       )}
 
-      {message && (
-        <div style={{ marginBottom: 16, padding: "10px 14px", borderRadius: T.radiusSm, background: `${msgColor}15`, border: `1px solid ${msgColor}40`, fontSize: 13, color: msgColor, fontFamily: T.fontSans }}>
-          {message}
-        </div>
-      )}
-
-      <button onClick={handlePublish} disabled={!file || !password || status === "loading"}
+      <button onClick={handlePublishAll} disabled={!readyCount || !password || publishing}
         style={{
           width: "100%", padding: "12px", borderRadius: T.radiusSm,
-          background: (!file || !password || status === "loading") ? T.borderMid : T.accent,
-          color: T.bgPage, border: "none", cursor: (!file || !password || status === "loading") ? "not-allowed" : "pointer",
+          background: (!readyCount || !password || publishing) ? T.borderMid : T.accent,
+          color: T.bgPage, border: "none", cursor: (!readyCount || !password || publishing) ? "not-allowed" : "pointer",
           fontSize: 13, fontFamily: T.fontMono, fontWeight: 600, letterSpacing: 1.5, textTransform: "uppercase",
         }}
       >
-        {status === "loading" ? "Publishing..." : "Publish to Library"}
+        {publishing ? "Publishing..." : readyCount > 1 ? `Publish ${readyCount} Scripts` : "Publish to Library"}
       </button>
 
       <div style={{ marginTop: 12, fontSize: 11, color: T.textMuted, fontFamily: T.fontSans, textAlign: "center" }}>
