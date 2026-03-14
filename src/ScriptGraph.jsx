@@ -2531,6 +2531,135 @@ function applyMidpointRulingCorrection(keyMoments, scenes) {
   };
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// PUBLISH STUDIO — password-protected JSON publisher
+// ═══════════════════════════════════════════════════════════════════════════════
+function PublishStudio({ T }) {
+  const [password, setPassword] = useState("");
+  const [file, setFile] = useState(null);
+  const [filename, setFilename] = useState("");
+  const [status, setStatus] = useState(null);
+  const [message, setMessage] = useState("");
+  const [dragOver, setDragOver] = useState(false);
+
+  const handleFile = (f) => {
+    if (!f || !f.name.endsWith(".json")) {
+      setMessage("Please drop a .json file"); setStatus("error"); return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const parsed = JSON.parse(e.target.result);
+        if (!parsed.title || !parsed.scenes) throw new Error("Invalid");
+        const fname = f.name.toLowerCase().replace(/[^a-z0-9\-.]/g, "-");
+        setFile({ content: e.target.result, title: parsed.title });
+        setFilename(fname);
+        setStatus(null); setMessage("");
+      } catch {
+        setMessage("Invalid file — must be a ScriptGraph JSON export");
+        setStatus("error");
+      }
+    };
+    reader.readAsText(f);
+  };
+
+  const handlePublish = async () => {
+    if (!file || !password) return;
+    setStatus("loading"); setMessage("Publishing...");
+    try {
+      const res = await fetch("/api/publish", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password, filename, content: file.content }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setStatus("success"); setMessage(data.message);
+        setFile(null); setFilename("");
+      } else {
+        setStatus("error"); setMessage(data.error || "Publish failed");
+      }
+    } catch {
+      setStatus("error"); setMessage("Network error — try again");
+    }
+  };
+
+  const msgColor = status === "success" ? T.colorSuccess : status === "error" ? T.colorError : T.accent;
+
+  return (
+    <div style={{ maxWidth: 520, margin: "0 auto", padding: "60px 0" }}>
+      <div style={{ marginBottom: 32 }}>
+        <div style={{ fontSize: 11, fontFamily: T.fontMono, letterSpacing: 2, color: T.accent, marginBottom: 8, textTransform: "uppercase" }}>ScriptGraph Studio</div>
+        <h1 style={{ margin: 0, fontSize: 32, fontWeight: 800, fontFamily: T.fontDisplay, textTransform: "uppercase", color: T.textPrimary, letterSpacing: 2 }}>Publish Script</h1>
+        <p style={{ margin: "10px 0 0", fontSize: 13, color: T.textSecondary, fontFamily: T.fontSans }}>Drop a ScriptGraph JSON export to publish it to the live library.</p>
+      </div>
+
+      <div style={{ marginBottom: 20 }}>
+        <label style={{ display: "block", fontSize: 10, fontFamily: T.fontMono, letterSpacing: 1.5, color: T.textMuted, textTransform: "uppercase", marginBottom: 6 }}>Password</label>
+        <input type="password" value={password} onChange={e => setPassword(e.target.value)}
+          placeholder="Enter publish password"
+          style={{ width: "100%", boxSizing: "border-box", background: T.bgPanel, border: `1px solid ${T.borderMid}`, borderRadius: T.radiusSm, padding: "10px 14px", color: T.textPrimary, fontFamily: T.fontSans, fontSize: 14, outline: "none" }}
+        />
+      </div>
+
+      <div
+        onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={e => { e.preventDefault(); setDragOver(false); handleFile(e.dataTransfer.files[0]); }}
+        onClick={() => { const i = document.createElement("input"); i.type = "file"; i.accept = ".json"; i.onchange = ev => handleFile(ev.target.files[0]); i.click(); }}
+        style={{
+          border: `2px dashed ${dragOver ? T.accent : file ? T.colorSuccess : T.borderMid}`,
+          borderRadius: T.radiusLg, padding: "40px 24px", textAlign: "center",
+          cursor: "pointer", marginBottom: 16, transition: "border-color 0.15s",
+          background: dragOver ? `${T.accent}08` : T.bgPanel,
+        }}
+      >
+        {file ? (
+          <div>
+            <div style={{ fontSize: 13, fontFamily: T.fontMono, color: T.colorSuccess, marginBottom: 4 }}>✓ {file.title}</div>
+            <div style={{ fontSize: 11, color: T.textMuted, fontFamily: T.fontMono }}>{filename}</div>
+          </div>
+        ) : (
+          <div>
+            <div style={{ fontSize: 28, marginBottom: 8, color: T.textMuted }}>↓</div>
+            <div style={{ fontSize: 13, color: T.textSecondary, fontFamily: T.fontSans }}>Drop JSON file here or click to browse</div>
+          </div>
+        )}
+      </div>
+
+      {file && (
+        <div style={{ marginBottom: 16 }}>
+          <label style={{ display: "block", fontSize: 10, fontFamily: T.fontMono, letterSpacing: 1.5, color: T.textMuted, textTransform: "uppercase", marginBottom: 6 }}>Filename</label>
+          <input type="text" value={filename} onChange={e => setFilename(e.target.value.toLowerCase().replace(/[^a-z0-9\-.]/g, "-"))}
+            style={{ width: "100%", boxSizing: "border-box", background: T.bgPanel, border: `1px solid ${T.borderMid}`, borderRadius: T.radiusSm, padding: "10px 14px", color: T.textPrimary, fontFamily: T.fontMono, fontSize: 13, outline: "none" }}
+          />
+        </div>
+      )}
+
+      {message && (
+        <div style={{ marginBottom: 16, padding: "10px 14px", borderRadius: T.radiusSm, background: `${msgColor}15`, border: `1px solid ${msgColor}40`, fontSize: 13, color: msgColor, fontFamily: T.fontSans }}>
+          {message}
+        </div>
+      )}
+
+      <button onClick={handlePublish} disabled={!file || !password || status === "loading"}
+        style={{
+          width: "100%", padding: "12px", borderRadius: T.radiusSm,
+          background: (!file || !password || status === "loading") ? T.borderMid : T.accent,
+          color: T.bgPage, border: "none", cursor: (!file || !password || status === "loading") ? "not-allowed" : "pointer",
+          fontSize: 13, fontFamily: T.fontMono, fontWeight: 600, letterSpacing: 1.5, textTransform: "uppercase",
+        }}
+      >
+        {status === "loading" ? "Publishing..." : "Publish to Library"}
+      </button>
+
+      <div style={{ marginTop: 12, fontSize: 11, color: T.textMuted, fontFamily: T.fontSans, textAlign: "center" }}>
+        Live on scriptgraph.ai in ~60 seconds after publishing
+      </div>
+    </div>
+  );
+}
+
 function deriveOverallTension(enrichedScenes, totalPages) {
   if (!enrichedScenes?.length) return Array(40).fill(5);
 
@@ -4374,174 +4503,7 @@ export default function ScriptGraph() {
         })()}
 
         {/* ════ PUBLISH STUDIO ════ */}
-        {PUBLIC_MODE && screen === "publish" && (() => {
-          const [pubPassword, setPubPassword] = useState("");
-          const [pubFile, setPubFile] = useState(null);
-          const [pubFilename, setPubFilename] = useState("");
-          const [pubStatus, setPubStatus] = useState(null); // null | "loading" | "success" | "error"
-          const [pubMessage, setPubMessage] = useState("");
-          const [pubAuthenticated, setPubAuthenticated] = useState(false);
-          const [dragOver, setDragOver] = useState(false);
-
-          const handleFile = (file) => {
-            if (!file || !file.name.endsWith(".json")) {
-              setPubMessage("Please drop a .json file");
-              setPubStatus("error");
-              return;
-            }
-            const reader = new FileReader();
-            reader.onload = (e) => {
-              try {
-                const parsed = JSON.parse(e.target.result);
-                if (!parsed.title || !parsed.scenes) throw new Error("Invalid ScriptGraph JSON");
-                const filename = file.name.toLowerCase().replace(/[^a-z0-9-\.]/g, "-");
-                setPubFile({ content: e.target.result, filename, title: parsed.title });
-                setPubFilename(filename);
-                setPubStatus(null);
-                setPubMessage("");
-              } catch {
-                setPubMessage("Invalid file — must be a ScriptGraph JSON export");
-                setPubStatus("error");
-              }
-            };
-            reader.readAsText(file);
-          };
-
-          const handlePublish = async () => {
-            if (!pubFile) return;
-            setPubStatus("loading");
-            setPubMessage("Publishing...");
-            try {
-              const res = await fetch("/api/publish", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  password: pubPassword,
-                  filename: pubFilename,
-                  content: pubFile.content,
-                }),
-              });
-              const data = await res.json();
-              if (res.ok) {
-                setPubStatus("success");
-                setPubMessage(data.message);
-                setPubFile(null);
-                setPubFilename("");
-              } else {
-                setPubStatus("error");
-                setPubMessage(data.error || "Publish failed");
-              }
-            } catch (err) {
-              setPubStatus("error");
-              setPubMessage("Network error — try again");
-            }
-          };
-
-          return (
-            <div style={{ maxWidth: 560, margin: "0 auto", padding: "60px 0" }}>
-              <div style={{ marginBottom: 32 }}>
-                <div style={{ fontSize: 11, fontFamily: T.fontMono, letterSpacing: 2, color: T.accent, marginBottom: 8, textTransform: "uppercase" }}>ScriptGraph Studio</div>
-                <h1 style={{ margin: 0, fontSize: 32, fontWeight: 800, fontFamily: T.fontDisplay, textTransform: "uppercase", color: T.textPrimary, letterSpacing: 2 }}>Publish Script</h1>
-                <p style={{ margin: "10px 0 0", fontSize: 13, color: T.textSecondary, fontFamily: T.fontSans }}>Drop a ScriptGraph JSON export to publish it to the live library.</p>
-              </div>
-
-              {/* Password */}
-              <div style={{ marginBottom: 24 }}>
-                <label style={{ display: "block", fontSize: 10, fontFamily: T.fontMono, letterSpacing: 1.5, color: T.textMuted, textTransform: "uppercase", marginBottom: 6 }}>Password</label>
-                <input
-                  type="password"
-                  value={pubPassword}
-                  onChange={e => setPubPassword(e.target.value)}
-                  placeholder="Enter publish password"
-                  style={{
-                    width: "100%", boxSizing: "border-box",
-                    background: T.bgPanel, border: `1px solid ${T.borderMid}`,
-                    borderRadius: T.radiusSm, padding: "10px 14px",
-                    color: T.textPrimary, fontFamily: T.fontSans, fontSize: 14,
-                    outline: "none",
-                  }}
-                />
-              </div>
-
-              {/* Drop zone */}
-              <div
-                onDragOver={e => { e.preventDefault(); setDragOver(true); }}
-                onDragLeave={() => setDragOver(false)}
-                onDrop={e => { e.preventDefault(); setDragOver(false); handleFile(e.dataTransfer.files[0]); }}
-                onClick={() => { const i = document.createElement("input"); i.type = "file"; i.accept = ".json"; i.onchange = ev => handleFile(ev.target.files[0]); i.click(); }}
-                style={{
-                  border: `2px dashed ${dragOver ? T.accent : pubFile ? T.colorSuccess : T.borderMid}`,
-                  borderRadius: T.radiusLg, padding: "40px 24px", textAlign: "center",
-                  cursor: "pointer", marginBottom: 20, transition: "border-color 0.15s",
-                  background: dragOver ? `${T.accent}08` : T.bgPanel,
-                }}
-              >
-                {pubFile ? (
-                  <div>
-                    <div style={{ fontSize: 13, fontFamily: T.fontMono, color: T.colorSuccess, marginBottom: 4 }}>✓ {pubFile.title}</div>
-                    <div style={{ fontSize: 11, color: T.textMuted, fontFamily: T.fontMono }}>{pubFilename}</div>
-                  </div>
-                ) : (
-                  <div>
-                    <div style={{ fontSize: 28, marginBottom: 8 }}>↓</div>
-                    <div style={{ fontSize: 13, color: T.textSecondary, fontFamily: T.fontSans }}>Drop JSON file here or click to browse</div>
-                  </div>
-                )}
-              </div>
-
-              {/* Filename override */}
-              {pubFile && (
-                <div style={{ marginBottom: 20 }}>
-                  <label style={{ display: "block", fontSize: 10, fontFamily: T.fontMono, letterSpacing: 1.5, color: T.textMuted, textTransform: "uppercase", marginBottom: 6 }}>Filename (URL slug)</label>
-                  <input
-                    type="text"
-                    value={pubFilename}
-                    onChange={e => setPubFilename(e.target.value.toLowerCase().replace(/[^a-z0-9-\.]/g, "-"))}
-                    style={{
-                      width: "100%", boxSizing: "border-box",
-                      background: T.bgPanel, border: `1px solid ${T.borderMid}`,
-                      borderRadius: T.radiusSm, padding: "10px 14px",
-                      color: T.textPrimary, fontFamily: T.fontMono, fontSize: 13,
-                      outline: "none",
-                    }}
-                  />
-                </div>
-              )}
-
-              {/* Status message */}
-              {pubMessage && (
-                <div style={{
-                  marginBottom: 20, padding: "10px 14px", borderRadius: T.radiusSm,
-                  background: pubStatus === "success" ? `${T.colorSuccess}15` : pubStatus === "error" ? `${T.colorError}15` : `${T.accent}15`,
-                  border: `1px solid ${pubStatus === "success" ? T.colorSuccess : pubStatus === "error" ? T.colorError : T.accent}40`,
-                  fontSize: 13, color: pubStatus === "success" ? T.colorSuccess : pubStatus === "error" ? T.colorError : T.accent,
-                  fontFamily: T.fontSans,
-                }}>
-                  {pubMessage}
-                </div>
-              )}
-
-              {/* Publish button */}
-              <button
-                onClick={handlePublish}
-                disabled={!pubFile || !pubPassword || pubStatus === "loading"}
-                style={{
-                  width: "100%", padding: "12px", borderRadius: T.radiusSm,
-                  background: (!pubFile || !pubPassword || pubStatus === "loading") ? T.borderMid : T.accent,
-                  color: T.bgPage, border: "none", cursor: (!pubFile || !pubPassword || pubStatus === "loading") ? "not-allowed" : "pointer",
-                  fontSize: 13, fontFamily: T.fontMono, fontWeight: 600, letterSpacing: 1.5, textTransform: "uppercase",
-                  transition: "background 0.15s",
-                }}
-              >
-                {pubStatus === "loading" ? "Publishing..." : "Publish to Library"}
-              </button>
-
-              <div style={{ marginTop: 16, fontSize: 11, color: T.textMuted, fontFamily: T.fontSans, textAlign: "center" }}>
-                Live on scriptgraph.ai in ~60 seconds after publishing
-              </div>
-            </div>
-          );
-        })()}
+        {PUBLIC_MODE && screen === "publish" && <PublishStudio T={T} />}
 
         {/* ════ DOCS ════ */}
         {!PUBLIC_MODE && screen === "docs" && (() => {
