@@ -2936,13 +2936,6 @@ function PublishStudio({ T }) {
         {publishing ? "Publishing..." : readyCount > 1 ? `Publish ${readyCount} Scripts` : "Publish to Library"}
       </button>
 
-      <div style={{ marginTop: 12, fontSize: 11, color: T.textMuted, fontFamily: T.fontSans, textAlign: "center" }}>
-        Live on scriptgraph.ai in ~60 seconds after publishing
-      </div>
-    </div>
-  );
-}
-
 function deriveOverallTension(enrichedScenes, totalPages) {
   if (!enrichedScenes?.length) return Array(40).fill(5);
 
