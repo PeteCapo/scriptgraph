@@ -2608,7 +2608,13 @@ export default function ScriptGraph() {
     return { screen: "library", entry: null };
   }
   function pushPath(path) {
-    if (window.location.pathname !== path) window.history.pushState({}, "", path);
+    if (window.location.pathname !== path) {
+      window.history.pushState({}, "", path);
+      // Track SPA route change in GA4
+      if (typeof gtag === "function") {
+        gtag("event", "page_view", { page_path: path, page_title: document.title });
+      }
+    }
   }
 
   const [screen, setScreen]               = useState("library");
