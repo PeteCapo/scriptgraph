@@ -1176,7 +1176,7 @@ async function loadLibrary() {
 async function persistLibrary(entries) {
   if (PUBLIC_MODE) return;
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(entries.slice(0, 30)));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
   } catch {}
 }
 
@@ -3320,7 +3320,7 @@ export default function ScriptGraph() {
         };
         const existingLib = await loadLibrary();
         // Replace if same title already exists, otherwise prepend
-        const updatedLib = [autoEntry, ...existingLib.filter(e => e.title !== autoEntry.title)].slice(0, 30);
+        const updatedLib = [autoEntry, ...existingLib.filter(e => e.title !== autoEntry.title)];
         await persistLibrary(updatedLib);
         setLibrary(updatedLib);
         showToast(`"${autoEntry.title}" saved to library`);
@@ -3521,7 +3521,7 @@ export default function ScriptGraph() {
           _truncated: parsed._truncated,
         };
         const existingLib = await loadLibrary();
-        const updatedLib = [autoEntry, ...existingLib.filter(e => e.title !== autoEntry.title)].slice(0, 30);
+        const updatedLib = [autoEntry, ...existingLib.filter(e => e.title !== autoEntry.title)];
         await persistLibrary(updatedLib);
         setLibrary(updatedLib);
         showToast(`"${autoEntry.title}" (outline) saved to library`);
