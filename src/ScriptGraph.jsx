@@ -4481,17 +4481,26 @@ export default function ScriptGraph() {
               const INSIGHTS = [
                 {
                   title: "The Safdie Climb",
-                  body: "Most screenplays breathe — peaks followed by release. Uncut Gems doesn't. Once it starts, the graph barely descends. It's a structural choice that explains the physiological experience of watching it.",
+                  body: "Most screenplays breathe — peaks followed by release. The Safdie films don't. Uncut Gems and Marty Supreme both start high and almost never come down. It's a structural choice that explains the physiological experience of watching them — a foot on the pedal that never lifts.",
                   films: [
-                    { slug: "uncut-gems", color: T.accent, label: "Uncut Gems" },
+                    { slug: "uncut-gems", color: T.fwColors.three_act, label: "Uncut Gems" },
+                    { slug: "marty-supreme", color: T.fwColors.story_circle, label: "Marty Supreme" },
                   ],
                 },
                 {
                   title: "Tarantino's Heartbeat",
-                  body: "Pull up Pulp Fiction, Reservoir Dogs, Jackie Brown. The peaks are sharp, the valleys deep, and the spacing between them is almost metronomic. That rhythm is a signature — you can see it before you hear a word.",
+                  body: "True Romance and Pulp Fiction were both written by Tarantino, but look at the graphs side by side. True Romance shows the signature more clearly — sharp peaks, deep valleys, almost metronomic spacing. Pulp Fiction refined it. You can see the argument that the more defined the heartbeat, the bigger the film.",
                   films: [
                     { slug: "pulp-fiction", color: T.fwColors.three_act, label: "Pulp Fiction" },
-                    { slug: "reservoir-dogs", color: T.fwColors.story_circle, label: "Reservoir Dogs" },
+                    { slug: "true-romance", color: T.fwColors.story_circle, label: "True Romance" },
+                  ],
+                },
+                {
+                  title: "Mystery vs. Slasher",
+                  body: "Get Out and Scream are both horror-comedies, both hugely successful. But the structures couldn't be more different. Scream front-loads its tension, dips in the second act, then escalates for the finale. Get Out gives you an initial thrill, then slow-burns all the way to its conclusion. It might have everything to do with mystery versus slasher — one withholds, one delivers.",
+                  films: [
+                    { slug: "get-out", color: T.fwColors.three_act, label: "Get Out" },
+                    { slug: "scream", color: T.fwColors.story_circle, label: "Scream" },
                   ],
                 },
               ];
@@ -4739,8 +4748,26 @@ export default function ScriptGraph() {
         {/* ════ COMPARE ════ */}
         {screen === "compare" && compareItems.length === 2 && (
           <div style={{ marginTop: 28 }}>
-            <div style={{ marginBottom: 22 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 22 }}>
               <SectionLabel>Structure Comparison</SectionLabel>
+              {PUBLIC_MODE && (
+                <button onClick={() => setShareCard("compare")} style={{
+                  display: "inline-flex", alignItems: "center", gap: 5,
+                  padding: "5px 14px", border: `1px solid ${T.borderMid}`,
+                  borderRadius: T.radiusSm, background: "transparent",
+                  color: T.accent, fontSize: 11, fontFamily: T.fontSans,
+                  fontWeight: 500, letterSpacing: 0.2, cursor: "pointer", transition: "all 0.12s",
+                }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = T.accent; e.currentTarget.style.background = T.accent + "0d"; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = T.borderMid; e.currentTarget.style.background = "transparent"; }}>
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                  </svg>
+                  Share Image
+                </button>
+              )}
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 22 }}>
@@ -5705,7 +5732,7 @@ export default function ScriptGraph() {
             color={compareItems.length === 2 ? T.accent : T.borderMid}
             variant={compareItems.length === 2 ? "fill" : "ghost"}
             disabled={compareItems.length < 2}
-            onClick={startCompare}
+            onClick={() => startCompare()}
           >
             Compare →
           </Btn>
