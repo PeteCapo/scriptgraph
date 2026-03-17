@@ -3680,13 +3680,12 @@ export default function ScriptGraph() {
   });
 
   // Shared layout constants — identical zones for both cards
-  const _sgSidePad  = 90;
-  const _sgYColW    = 66;
-  const _sgYGap     = 18;
-  const _sgPlotX    = _sgSidePad + _sgYColW + _sgYGap;
-  const _sgW        = 1800;
-  const _sgH        = 1800;
-  const _sgPlotW    = _sgW - _sgSidePad - _sgPlotX;
+  // Centered: equal outer pad both sides. Y-axis labels (16px left of plotX) sit within the pad.
+  const _sgOuterPad  = 132;  // (1800 - 1536) / 2 — same plotW as before, now centered
+  const _sgPlotX     = _sgOuterPad;
+  const _sgW         = 1800;
+  const _sgH         = 1800;
+  const _sgPlotW     = _sgW - _sgOuterPad * 2;
   const _sgHeaderH  = 310;
   const _sgPlotY    = _sgHeaderH + 24;
   const _sgXAxisH   = 64;
