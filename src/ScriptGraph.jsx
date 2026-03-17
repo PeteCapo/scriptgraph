@@ -2983,6 +2983,9 @@ export default function ScriptGraph() {
     return () => window.removeEventListener("popstate", onPopState);
   }, []);
 
+  // Scroll to top on every screen transition
+  useEffect(() => { window.scrollTo(0, 0); }, [screen]);
+
   function handleFile(e) {
     const file = e.target.files[0];
     if (!file) return;
