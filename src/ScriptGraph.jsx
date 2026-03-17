@@ -2862,8 +2862,18 @@ export default function ScriptGraph() {
   function screenFromPath(path, lib) {
     if (path === "/" || path === "") return { screen: "library", entry: null };
     if (path === "/about") return { screen: "about", entry: null };
-    if (path === "/compare") return { screen: "compare", entry: null };
+    if (path === "/compare") return { screen: "compare", entry: null, compareEntries: null };
     if (path === "/publish") return { screen: "publish", entry: null };
+    const compareMatch = path.match(/^\/compare\/([^/]+)\/([^/]+)$/);
+    if (compareMatch && lib) {
+      const findEntry = slug => lib.find(e =>
+        slugFromFilename(e._filename || "") === slug ||
+        slugFromFilename((e.title || "").replace(/[^a-z0-9]/gi, "-").toLowerCase()) === slug
+      );
+      const entryA = findEntry(compareMatch[1]);
+      const entryB = findEntry(compareMatch[2]);
+      if (entryA && entryB) return { screen: "compare", entry: null, compareEntries: [entryA, entryB] };
+    }
     const scriptMatch = path.match(/^\/script\/(.+)$/);
     if (scriptMatch && lib) {
       const slug = scriptMatch[1];
@@ -2932,7 +2942,7 @@ export default function ScriptGraph() {
     loadLibrary().then(lib => {
       setLibrary(lib);
       // Handle initial URL on load
-      const { screen: s, entry } = screenFromPath(window.location.pathname, lib);
+      const { screen: s, entry, compareEntries } = screenFromPath(window.location.pathname, lib);
       if (s === "results" && entry) {
         setP1({
           title: entry.title, logline: entry.logline, writer: entry.writer || "",
@@ -2951,13 +2961,17 @@ export default function ScriptGraph() {
         setActiveFw(entry.activeFramework || null);
         setTab("arc");
       }
+      if (s === "compare" && compareEntries) {
+        startCompare(compareEntries);
+        return;
+      }
       setScreen(s);
     });
 
     // Handle browser back/forward
     function onPopState() {
       loadLibrary().then(lib => {
-        const { screen: s, entry } = screenFromPath(window.location.pathname, lib);
+        const { screen: s, entry, compareEntries } = screenFromPath(window.location.pathname, lib);
         if (s === "results" && entry) {
           setP1({
             title: entry.title, logline: entry.logline, writer: entry.writer || "",
@@ -2975,6 +2989,10 @@ export default function ScriptGraph() {
           setFwBeats(entry.frameworkBeats || {});
           setActiveFw(entry.activeFramework || null);
           setTab("arc");
+        }
+        if (s === "compare" && compareEntries) {
+          startCompare(compareEntries);
+          return;
         }
         setScreen(s);
       });
@@ -3620,12 +3638,16 @@ export default function ScriptGraph() {
     });
   }
 
-  async function startCompare() {
-    if (compareItems.length < 2) return;
-    pushPath("/compare");
+  async function startCompare(itemsOverride) {
+    const items = itemsOverride || compareItems;
+    if (items.length < 2) return;
+    if (itemsOverride) setCompareItems(itemsOverride);
+    const slugA = slugFromFilename(items[0]._filename || (items[0].title || "script").replace(/[^a-z0-9]/gi, "-").toLowerCase() + ".json");
+    const slugB = slugFromFilename(items[1]._filename || (items[1].title || "script").replace(/[^a-z0-9]/gi, "-").toLowerCase() + ".json");
+    pushPath(`/compare/${slugA}/${slugB}`);
     setScreen("compare"); setComparison(null); setComparingLoading(true);
     try {
-      const result = await callClaude(buildComparisonPrompt(compareItems[0], compareItems[1]), 4000);
+      const result = await callClaude(buildComparisonPrompt(items[0], items[1]), 4000);
 
       // If truncated and key prose fields are empty, try to extract them from raw partial JSON
       let comparisonText = result.comparison || "";
@@ -4443,6 +4465,168 @@ export default function ScriptGraph() {
                 }}>— Pete Capo</p>
               </div>
             )}
+
+            {/* ── Insights strip — public only ── */}
+            {PUBLIC_MODE && (() => {
+              // ─── INSIGHTS DATA — edit here to add/update insights ───────────────
+              // Each insight needs:
+              //   title: string
+              //   body: string (2–4 sentences, your voice)
+              //   films: array of { slug, color, label }
+              //     slug must match the JSON filename in /public/library/ (without .json)
+              //     color: one of T.fwColors values or any hex
+              //     label: display name for the legend tag
+              // For solo-film cards, films has one entry → links to script detail page
+              // For multi-film cards, films has two entries → links to comparison view
+              const INSIGHTS = [
+                {
+                  title: "The Safdie Climb",
+                  body: "Most screenplays breathe — peaks followed by release. Uncut Gems doesn't. Once it starts, the graph barely descends. It's a structural choice that explains the physiological experience of watching it.",
+                  films: [
+                    { slug: "uncut-gems", color: T.accent, label: "Uncut Gems" },
+                  ],
+                },
+                {
+                  title: "Tarantino's Heartbeat",
+                  body: "Pull up Pulp Fiction, Reservoir Dogs, Jackie Brown. The peaks are sharp, the valleys deep, and the spacing between them is almost metronomic. That rhythm is a signature — you can see it before you hear a word.",
+                  films: [
+                    { slug: "pulp-fiction", color: T.fwColors.three_act, label: "Pulp Fiction" },
+                    { slug: "reservoir-dogs", color: T.fwColors.story_circle, label: "Reservoir Dogs" },
+                  ],
+                },
+              ];
+              // ────────────────────────────────────────────────────────────────────
+
+              // Resolve library entries for each insight
+              const resolvedInsights = INSIGHTS.map(insight => ({
+                ...insight,
+                resolvedFilms: insight.films.map(f => ({
+                  ...f,
+                  entry: library.find(e =>
+                    slugFromFilename(e._filename || "") === f.slug ||
+                    slugFromFilename((e.title || "").replace(/[^a-z0-9]/gi, "-").toLowerCase()) === f.slug
+                  ),
+                })),
+              }));
+
+              // Mini curve renderer — uses real tension data from library
+              const MiniInsightCurve = ({ resolvedFilms }) => {
+                const W = 320, H = 64;
+                const P = { t: 4, r: 4, b: 4, l: 4 };
+                const iw = W - P.l - P.r, ih = H - P.t - P.b;
+
+                const smooth = (arr) => arr.map((_, i) => {
+                  const lo = Math.max(0, i - 1), hi = Math.min(arr.length - 1, i + 1);
+                  const sl = arr.slice(lo, hi + 1);
+                  return sl.reduce((a, b) => a + b, 0) / sl.length;
+                });
+
+                const makePath = (tension) => {
+                  const sm = smooth(tension);
+                  return sm.map((t, i) => {
+                    const x = (P.l + (i / (sm.length - 1)) * iw).toFixed(1);
+                    const y = (P.t + ih - (t / 10) * ih).toFixed(1);
+                    return `${i === 0 ? "M" : "L"}${x},${y}`;
+                  }).join(" ");
+                };
+
+                return (
+                  <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: 64, display: "block" }} preserveAspectRatio="none">
+                    <defs>
+                      {resolvedFilms.map((f, i) => f.entry && (
+                        <linearGradient key={i} id={`ig${i}-${f.slug}`} x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor={f.color} stopOpacity="0.25" />
+                          <stop offset="100%" stopColor={f.color} stopOpacity="0.02" />
+                        </linearGradient>
+                      ))}
+                    </defs>
+                    {resolvedFilms.map((f, i) => {
+                      if (!f.entry?.overallTension) return null;
+                      const line = makePath(f.entry.overallTension);
+                      const sm = smooth(f.entry.overallTension);
+                      const last = sm[sm.length - 1];
+                      const areaClose = ` L${(P.l + iw).toFixed(1)},${(P.t + ih - (last / 10) * ih).toFixed(1)} L${(P.l + iw).toFixed(1)},${P.t + ih} L${P.l},${P.t + ih} Z`;
+                      const firstY = (P.t + ih - (sm[0] / 10) * ih).toFixed(1);
+                      const areaPath = line + ` L${(P.l + iw).toFixed(1)},${P.t + ih} L${P.l},${P.t + ih} Z`;
+                      return (
+                        <g key={i}>
+                          <path d={areaPath} fill={`url(#ig${i}-${f.slug})`} />
+                          <path d={line} fill="none" stroke={f.color} strokeWidth="1.5"
+                            strokeLinejoin="round" strokeLinecap="round"
+                            opacity={resolvedFilms.length > 1 && i > 0 ? 0.7 : 1} />
+                        </g>
+                      );
+                    })}
+                  </svg>
+                );
+              };
+
+              const handleInsightClick = (insight) => {
+                const { resolvedFilms } = insight;
+                if (resolvedFilms.length === 1) {
+                  // Solo film → script detail page
+                  if (resolvedFilms[0].entry) openEntry(resolvedFilms[0].entry);
+                } else {
+                  // Multi-film → comparison view
+                  const entries = resolvedFilms.map(f => f.entry).filter(Boolean);
+                  if (entries.length === 2) startCompare(entries);
+                }
+              };
+
+              return (
+                <div style={{ borderBottom: `1px solid ${T.borderSubtle}`, marginBottom: 40, paddingBottom: 28 }}>
+                  <div style={{ fontSize: 9, fontFamily: T.fontSans, fontWeight: 600, letterSpacing: 2.5, textTransform: "uppercase", color: T.textMuted, marginBottom: 16 }}>
+                    Director's Notes
+                  </div>
+                  <div style={{ display: "flex", gap: 14, overflowX: "auto", paddingBottom: 4, scrollbarWidth: "none" }}>
+                    {resolvedInsights.map((insight, idx) => {
+                      const hasData = insight.resolvedFilms.some(f => f.entry);
+                      return (
+                        <div key={idx}
+                          onClick={() => hasData && handleInsightClick(insight)}
+                          style={{
+                            background: T.bgPanel,
+                            border: `1px solid ${T.borderSubtle}`,
+                            borderRadius: T.radiusLg,
+                            padding: "20px 20px 18px",
+                            minWidth: 360,
+                            maxWidth: 360,
+                            flexShrink: 0,
+                            cursor: hasData ? "pointer" : "default",
+                            transition: "border-color 0.15s",
+                          }}
+                          onMouseEnter={e => { if (hasData) e.currentTarget.style.borderColor = T.accent + "40"; }}
+                          onMouseLeave={e => { e.currentTarget.style.borderColor = T.borderSubtle; }}
+                        >
+                          <div style={{ fontFamily: T.fontDisplay, fontWeight: 700, fontSize: 18, letterSpacing: 1.5, textTransform: "uppercase", color: T.textPrimary, marginBottom: 8, lineHeight: 1.2 }}>
+                            {insight.title}
+                          </div>
+                          <div style={{ fontSize: 12, color: T.textSecondary, lineHeight: 1.75, fontWeight: 300, marginBottom: 16 }}>
+                            {insight.body}
+                          </div>
+                          {/* Mini graph */}
+                          <div style={{ background: T.bgPage, border: `1px solid ${T.borderSubtle}`, borderRadius: T.radiusMd, padding: "12px 14px 10px" }}>
+                            <MiniInsightCurve resolvedFilms={insight.resolvedFilms} />
+                            {/* Film legend tags */}
+                            <div style={{ display: "flex", gap: 6, marginTop: 10, flexWrap: "wrap" }}>
+                              {insight.resolvedFilms.map((f, fi) => (
+                                <div key={fi} style={{
+                                  fontSize: 9, fontFamily: T.fontMono, letterSpacing: 1, textTransform: "uppercase",
+                                  padding: "3px 7px", borderRadius: T.radiusSm,
+                                  color: f.color, border: `1px solid ${f.color}38`, background: `${f.color}10`,
+                                }}>
+                                  {f.label}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* ── Header ── */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 28 }}>
