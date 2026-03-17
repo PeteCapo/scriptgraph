@@ -4008,40 +4008,70 @@ export default function ScriptGraph() {
   };
 
   // ── Insight Card Share Image Generator ─────────────────────────────────────
-  // Mirrors the visual design of the insight card exactly, at 1800×1800,
-  // with the scriptgraph.ai watermark added to the bottom of the graph area.
+  // Layout derived from live DOM measurements of the actual card at 360×328px.
+  // All values scaled by factor 5 (360→1800) to produce 1800×1800 output.
+  // Card screen measurements (px): padding 20/20/18, title top 21, body top 51,
+  // body lineH 21px at 12px font, graph container top 193, SVG top 206,
+  // SVG size 288×64, tags top 280. Scale factor: 1800/360 = 5.
   const generateInsightCardSVG = (insight) => {
     const W = 1800, H = 1800;
-    const pad = 132;
+    const S = 5; // scale factor: 360px card → 1800px image
+
     const bgP = T.bgPage, bgPan = T.bgPanel;
-    const textP = T.textPrimary, textS = T.textSecondary, textM = T.textMuted;
-    const bSub = T.borderSubtle, bMid = T.borderMid;
+    const textP = T.textPrimary, textS = T.textSecondary;
+    const bSub = T.borderSubtle;
     const ac = T.accent;
     const fontD = T.fontDisplay, fontS = T.fontSans, fontM = T.fontMono;
     const esc = s => (s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
-    // Layout zones
-    const cardX = pad, cardW = W - pad * 2;
-    const titleY = 180, titleSize = 96;
-    const bodyY = titleY + titleSize + 40, bodySize = 54, bodyLineH = 86;
-    const graphY = 620, graphH = 700;
-    const graphX = cardX + 80, graphW = cardW - 160;
-    const tagsY = graphY + graphH + 60;
-    const wmY = graphY + graphH - 30;
+    // Card bounds — card is 360px wide on screen, centered in 1800px with equal margins
+    const cardPad = 20 * S;          // 100px each side — card fills full width
+    const cardX = 0, cardY = 0;
+    const cardW = W, cardH = H;
 
-    // Wrap body text into lines (~52 chars per line at this size/width)
-    const wrapText = (text, maxChars = 52) => {
-      const words = text.split(" ");
-      const lines = [];
-      let cur = "";
-      words.forEach(w => {
-        if ((cur + " " + w).trim().length <= maxChars) cur = (cur + " " + w).trim();
-        else { if (cur) lines.push(cur); cur = w; }
-      });
-      if (cur) lines.push(cur);
-      return lines;
-    };
-    const bodyLines = wrapText(insight.body);
+    // Inner content starts after card padding
+    const innerX = cardPad;           // 100
+    const innerW = W - cardPad * 2;  // 1600
+
+    // Title — screen: top 21px, font 18px/700, barlow condensed, letterSpacing 1.5
+    const titleTop  = 21 * S;        // 105
+    const titleSize = 18 * S;        // 90
+    const titleY    = titleTop + titleSize * 0.85; // baseline
+
+    // Body — screen: top 51px, font 12px/300, lineH 21px, width 318px
+    const bodyTop    = 51 * S;       // 255
+    const bodySize   = 12 * S;       // 60
+    const bodyLineH  = 21 * S;       // 105
+    const bodyWidth  = 318 * S;      // 1590 — matches screen inner width
+
+    // Graph container — screen: top 193px, padding 12/14/10, inner SVG top 206, size 288×64
+    const gcTop     = 193 * S;       // 965
+    const gcPadX    = 14 * S;        // 70
+    const gcPadTop  = 12 * S;        // 60
+    const gcPadBot  = 10 * S;        // 50
+    const svgTop    = 206 * S;       // 1030 (gcTop + gcPadTop)
+    const svgW      = 288 * S;       // 1440
+    const svgH      = 64 * S;        // 320
+    const gcW       = innerW;        // same as inner
+    const gcH       = (116) * S;     // 580
+
+    // Graph coords
+    const graphX    = innerX + gcPadX;  // 170
+    const graphY    = svgTop;           // 1030
+    const graphW    = svgW;             // 1440
+    const graphH    = svgH;             // 320
+
+    // Tags — screen: top 280px, height 18px
+    const tagsTop   = 280 * S;       // 1400
+    const tagH      = 18 * S;        // 90
+    const tagFSize  = 9 * S;         // 45 — matches screen tag font
+    const tagPadX   = 7 * S;         // 35
+    const tagGap    = 6 * S;         // 30
+
+    // Watermark — bottom-right of graph
+    const wmX = graphX + graphW - 10;
+    const wmY = graphY + graphH - 12 * S;
+    const wmSize = 9 * S;            // 45
 
     // Smooth helper
     const sm = arr => arr.map((_, i) => {
@@ -4050,61 +4080,73 @@ export default function ScriptGraph() {
       return sl.reduce((a, b) => a + b, 0) / sl.length;
     });
 
-    // Build curve path for a film
+    // Word-wrap body text to fit bodyWidth at bodySize
+    // At 60px Inter 300, ~1590px wide → ~45 chars per line (avg ~35px/char)
+    const wrapText = (text, maxW, charW = 33) => {
+      const maxChars = Math.floor(maxW / charW);
+      const words = text.split(" ");
+      const lines = [];
+      let cur = "";
+      words.forEach(w => {
+        const candidate = (cur ? cur + " " + w : w);
+        if (candidate.length <= maxChars) cur = candidate;
+        else { if (cur) lines.push(cur); cur = w; }
+      });
+      if (cur) lines.push(cur);
+      return lines;
+    };
+    const bodyLines = wrapText(insight.body, bodyWidth);
+
+    // Build tension curve paths
     const makeCurve = (tension) => {
       const s = sm(tension);
       const pts = s.map((t, i) => ({
         x: graphX + (i / (s.length - 1)) * graphW,
         y: graphY + graphH - (t / 10) * graphH,
       }));
-      return {
-        line: pts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" "),
-        area: pts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ")
-          + ` L${(graphX + graphW).toFixed(1)},${(graphY + graphH).toFixed(1)} L${graphX},${(graphY + graphH).toFixed(1)} Z`,
-      };
+      const line = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+      const area = line + ` L${(graphX + graphW).toFixed(1)},${(graphY + graphH).toFixed(1)} L${graphX.toFixed(1)},${(graphY + graphH).toFixed(1)} Z`;
+      return { line, area };
     };
 
-    // Grid lines
+    // Grid lines inside graph
     const grid = [2, 4, 6, 8, 10].map(v => {
       const gy = (graphY + graphH - (v / 10) * graphH).toFixed(1);
-      return `<line x1="${graphX}" y1="${gy}" x2="${(graphX + graphW).toFixed(1)}" y2="${gy}" stroke="#ffffff09" stroke-width="2"/>`;
+      return `<line x1="${graphX}" y1="${gy}" x2="${(graphX + graphW).toFixed(1)}" y2="${gy}" stroke="#ffffff09" stroke-width="3"/>`;
     }).join("");
 
-    // Curves
+    // Gradient defs + curves
+    const defs = insight.resolvedFilms.map((f, i) =>
+      `<linearGradient id="icg${i}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${f.color}" stop-opacity="0.25"/><stop offset="100%" stop-color="${f.color}" stop-opacity="0.02"/></linearGradient>`
+    ).join("");
+
     const curves = insight.resolvedFilms.map((f, i) => {
       if (!f.entry?.overallTension) return "";
       const { line, area } = makeCurve(f.entry.overallTension);
-      const gid = `ig${i}`;
-      return `
-  <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1">
-    <stop offset="0%" stop-color="${f.color}" stop-opacity="0.25"/>
-    <stop offset="100%" stop-color="${f.color}" stop-opacity="0.02"/>
-  </linearGradient></defs>
-  <path d="${area}" fill="url(#${gid})"/>
-  <path d="${line}" fill="none" stroke="${f.color}" stroke-width="${i === 0 ? 6 : 5}" stroke-linejoin="round" stroke-linecap="round" opacity="${i > 0 ? 0.7 : 1}"/>`;
+      return `<path d="${area}" fill="url(#icg${i})"/><path d="${line}" fill="none" stroke="${f.color}" stroke-width="${i === 0 ? 7 : 6}" stroke-linejoin="round" stroke-linecap="round" opacity="${i > 0 ? 0.7 : 1}"/>`;
     }).join("");
 
     // Film legend tags
-    const tagH = 56, tagPadX = 40, tagPadY = 14, tagGap = 24;
     let tagX = graphX;
-    const tags = insight.resolvedFilms.map((f, i) => {
-      const labelW = f.label.length * 22 + tagPadX * 2;
-      const tag = `
-  <rect x="${tagX.toFixed(0)}" y="${tagsY}" width="${labelW}" height="${tagH}" rx="6" fill="${f.color}15" stroke="${f.color}" stroke-width="1.5" stroke-opacity="0.35"/>
-  <text x="${(tagX + labelW / 2).toFixed(0)}" y="${(tagsY + tagH / 2 + 1).toFixed(0)}" text-anchor="middle" dominant-baseline="central" font-family="${fontM}" font-size="28" fill="${f.color}" letter-spacing="3">${esc(f.label.toUpperCase())}</text>`;
+    const tags = insight.resolvedFilms.map((f) => {
+      const labelW = f.label.length * (tagFSize * 0.68) + tagPadX * 2;
+      const tag = `<rect x="${tagX.toFixed(0)}" y="${tagsTop}" width="${labelW.toFixed(0)}" height="${tagH}" rx="${4 * S}" fill="${f.color}15" stroke="${f.color}" stroke-width="2" stroke-opacity="0.4"/><text x="${(tagX + labelW / 2).toFixed(0)}" y="${(tagsTop + tagH * 0.62).toFixed(0)}" text-anchor="middle" font-family="${fontM}" font-size="${tagFSize}" fill="${f.color}" letter-spacing="${2 * S}">${esc(f.label.toUpperCase())}</text>`;
       tagX += labelW + tagGap;
       return tag;
     }).join("");
 
+    // Graph container background rect
+    const gcRect = `<rect x="${innerX}" y="${gcTop}" width="${gcW}" height="${gcH}" rx="${6 * S}" fill="${bgP}" stroke="${bSub}" stroke-width="2"/>`;
+
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}">
-  <rect width="${W}" height="${H}" fill="${bgP}"/>
-  <rect x="${cardX}" y="80" width="${cardW}" height="${H - 160}" rx="16" fill="${bgPan}" stroke="${bSub}" stroke-width="2"/>
-  <text x="${cardX + 80}" y="${titleY}" font-family="${fontD}" font-weight="800" font-size="${titleSize}" fill="${textP}" letter-spacing="6">${esc(insight.title.toUpperCase())}</text>
-  ${bodyLines.map((l, i) => `<text x="${cardX + 80}" y="${bodyY + i * bodyLineH}" font-family="${fontS}" font-weight="300" font-size="${bodySize}" fill="${textS}">${esc(l)}</text>`).join("\n  ")}
-  <rect x="${graphX}" y="${graphY}" width="${graphW}" height="${graphH}" rx="8" fill="${bgP}" stroke="${bSub}" stroke-width="2"/>
+  <defs>${defs}</defs>
+  <rect width="${W}" height="${H}" fill="${bgPan}"/>
+  <text x="${innerX}" y="${titleY.toFixed(0)}" font-family="${fontD}" font-weight="700" font-size="${titleSize}" fill="${textP}" letter-spacing="${1.5 * S}">${esc(insight.title.toUpperCase())}</text>
+  ${bodyLines.map((l, i) => `<text x="${innerX}" y="${(bodyTop + i * bodyLineH + bodySize).toFixed(0)}" font-family="${fontS}" font-weight="300" font-size="${bodySize}" fill="${textS}">${esc(l)}</text>`).join("\n  ")}
+  ${gcRect}
   ${grid}
   ${curves}
-  <text x="${(graphX + graphW - 20).toFixed(0)}" y="${wmY}" text-anchor="end" font-family="${fontS}" font-weight="300" font-size="36" fill="${ac}" opacity="0.35">scriptgraph.ai</text>
+  <text x="${wmX.toFixed(0)}" y="${wmY.toFixed(0)}" text-anchor="end" font-family="${fontS}" font-weight="300" font-size="${wmSize}" fill="${ac}" opacity="0.35">scriptgraph.ai</text>
   ${tags}
 </svg>`;
   };
