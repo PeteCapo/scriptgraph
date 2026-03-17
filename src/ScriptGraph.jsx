@@ -2907,6 +2907,7 @@ export default function ScriptGraph() {
   const [showPages, setShowPages]               = useState(false);
   const [toasts, setToasts]                     = useState([]);
   const [exportJson, setExportJson]             = useState(null); // { json, filename }
+  const [shareCard, setShareCard]               = useState(false); // "single" | "compare" | false
   const [libSearch, setLibSearch]               = useState("");
   const [libGenreFilter, setLibGenreFilter]     = useState(null);
   const [uploadMode, setUploadMode]             = useState("script");
@@ -3669,6 +3670,319 @@ export default function ScriptGraph() {
     ? computeStructuralRhythm(p1.overallTension, p1.naturalStructure?.actBreaks, p1.scenes, p1.keyMoments)
     : [];
 
+  // ── Share Card Generators ───────────────────────────────────────────────────
+  const generateShareCardSVG = (entry) => {
+    const W = 1200, H = 630;
+    const ac = T.accent, bgP = T.bgPage, bgPan = T.bgPanel;
+    const textP = T.textPrimary, textS = T.textSecondary, textM = T.textMuted;
+    const bSub = T.borderSubtle, bMid = T.borderMid;
+    const fontD = T.fontDisplay, fontSans = T.fontSans, fontM = T.fontMono;
+
+    const yColW = 28, yGap = 8, sidePad = 32;
+    const plotX = sidePad + yColW + yGap;
+    const plotW = W - sidePad - plotX;
+
+    const fTitle = 46, fWriter = 28, fMeta = 16, fBrand = 20, fStatN = 40;
+    const titleY = 20 + fTitle;
+    const writerY = titleY + fWriter + 10;
+    const headerH = writerY + 14;
+    const plotY = headerH + 10, xAxisH = 22, statZoneH = 130, brandH = 26;
+    const plotH = H - plotY - xAxisH - statZoneH - brandH - 6;
+    const infoY = plotY + plotH + xAxisH + 4;
+    const infoH = H - infoY - brandH - 6;
+    const brandY = H - 8;
+
+    const rawT = entry.overallTension || [];
+    const sm = rawT.map((_, i) => {
+      const lo = Math.max(0, i - 1), hi = Math.min(rawT.length - 1, i + 1);
+      const sl = rawT.slice(lo, hi + 1);
+      return sl.reduce((a, b) => a + b, 0) / sl.length;
+    });
+
+    const actBreaks = entry.naturalStructure?.actBreaks || [];
+    const midPos = entry.keyMoments?.midpoint?.position ?? null;
+
+    const pts = sm.map((t, i) => ({
+      x: plotX + (i / (sm.length - 1)) * plotW,
+      y: plotY + plotH - (t / 10) * plotH,
+    }));
+    const linePath = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+    const areaPath = `${linePath} L${(plotX + plotW).toFixed(1)},${(plotY + plotH).toFixed(1)} L${plotX},${(plotY + plotH).toFixed(1)} Z`;
+
+    const grid = [2, 4, 6, 8, 10].map(v => {
+      const gy = (plotY + plotH - (v / 10) * plotH).toFixed(1);
+      return `<line x1="${plotX}" y1="${gy}" x2="${(plotX + plotW).toFixed(1)}" y2="${gy}" stroke="#ffffff08" stroke-width="1"/>`;
+    }).join("");
+
+    const bandFills = ["#c8a0600d", "#ffffff07", "#c8a06009"];
+    const breaks = [0, ...actBreaks.map(b => b.position), 100];
+    let bands = "";
+    breaks.slice(0, -1).forEach((start, i) => {
+      const end = breaks[i + 1];
+      const bx1 = (plotX + (start / 100) * plotW).toFixed(1);
+      const bx2 = (plotX + (end / 100) * plotW).toFixed(1);
+      bands += `<rect x="${bx1}" y="${plotY}" width="${(+bx2 - +bx1).toFixed(1)}" height="${plotH}" fill="${bandFills[i % 3]}"/>`;
+      bands += `<text x="${((+bx1 + +bx2) / 2).toFixed(1)}" y="${(plotY + 14).toFixed(1)}" text-anchor="middle" font-family="${fontM}" font-size="12" fill="${textS}" letter-spacing="2">ACT ${i + 1}</text>`;
+    });
+    actBreaks.forEach(ab => {
+      const bx = (plotX + (ab.position / 100) * plotW).toFixed(1);
+      bands += `<line x1="${bx}" y1="${plotY}" x2="${bx}" y2="${(plotY + plotH).toFixed(1)}" stroke="${ac}" stroke-width="1" opacity="0.35"/>`;
+      bands += `<polygon points="${bx},${(plotY - 1).toFixed(1)} ${(+bx + 5).toFixed(1)},${(plotY + 9).toFixed(1)} ${bx},${(plotY + 19).toFixed(1)} ${(+bx - 5).toFixed(1)},${(plotY + 9).toFixed(1)}" fill="${bgPan}" stroke="${ac}" stroke-width="1.5" opacity="0.85"/>`;
+    });
+    if (midPos != null) {
+      const mx = (plotX + (midPos / 100) * plotW).toFixed(1);
+      bands += `<line x1="${mx}" y1="${plotY}" x2="${mx}" y2="${(plotY + plotH).toFixed(1)}" stroke="#e0c890" stroke-width="1" stroke-dasharray="4,3" opacity="0.3"/>`;
+    }
+
+    const labelX = (plotX - 6).toFixed(1);
+    const midY = (plotY + plotH / 2).toFixed(1);
+    const yAxisSvg = `
+      <line x1="${plotX}" y1="${plotY}" x2="${plotX}" y2="${(plotY + plotH).toFixed(1)}" stroke="${bMid}" stroke-width="1"/>
+      <line x1="${plotX}" y1="${(plotY + plotH).toFixed(1)}" x2="${(plotX + plotW).toFixed(1)}" y2="${(plotY + plotH).toFixed(1)}" stroke="${bMid}" stroke-width="1"/>
+      <text x="${labelX}" y="${(plotY + 4).toFixed(1)}" text-anchor="end" font-family="${fontM}" font-size="13" fill="${textS}">10</text>
+      <text x="${labelX}" y="${(plotY + plotH + 4).toFixed(1)}" text-anchor="end" font-family="${fontM}" font-size="13" fill="${textS}">0</text>
+      <text x="${labelX}" y="${midY}" text-anchor="middle" font-family="${fontM}" font-size="11" fill="${textS}" letter-spacing="2" transform="rotate(-90,${labelX},${midY})">TENSION</text>
+      ${[0, 25, 50, 75, 100].map(p => {
+        const px = (plotX + (p / 100) * plotW).toFixed(1);
+        return `<line x1="${px}" y1="${(plotY + plotH).toFixed(1)}" x2="${px}" y2="${(plotY + plotH + 5).toFixed(1)}" stroke="${bMid}" stroke-width="1"/>
+                <text x="${px}" y="${(plotY + plotH + 17).toFixed(1)}" text-anchor="middle" font-family="${fontSans}" font-size="13" fill="${textS}">${p}%</text>`;
+      }).join("")}
+    `;
+
+    const peakT = sm.length ? Math.max(...sm).toFixed(1) : "—";
+    const avgScLen = entry.scenes?.length
+      ? (entry.scenes.reduce((s, sc) => s + (sc.lengthPages || 1), 0) / entry.scenes.length).toFixed(1)
+      : entry.avgSceneLength || "—";
+    const stats = [
+      { val: `${entry.totalPages}p`, label: "pages" },
+      { val: `${entry.totalScenes}`, label: "scenes" },
+      { val: `${avgScLen}pp`,        label: "avg/scene" },
+      { val: `${peakT}`,             label: "peak tension" },
+    ];
+    const statW = Math.round(plotW / 4);
+    let statSvg = "";
+    stats.forEach((st, i) => {
+      const sx = plotX + i * statW;
+      if (i > 0) statSvg += `<line x1="${sx}" y1="${infoY + 6}" x2="${sx}" y2="${(infoY + infoH * 0.88).toFixed(0)}" stroke="${bMid}" stroke-width="1"/>`;
+      statSvg += `<text x="${(sx + statW / 2).toFixed(0)}" y="${(infoY + infoH * 0.52).toFixed(0)}" text-anchor="middle" font-family="${fontD}" font-weight="700" font-size="${fStatN}" fill="${textP}">${st.val}</text>`;
+      statSvg += `<text x="${(sx + statW / 2).toFixed(0)}" y="${(infoY + infoH * 0.82).toFixed(0)}" text-anchor="middle" font-family="${fontM}" font-size="${fMeta}" fill="${textS}" letter-spacing="1">${st.label}</text>`;
+    });
+
+    const esc = s => (s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+  <rect width="${W}" height="${H}" fill="${bgP}"/>
+  <rect x="${plotX}" y="0" width="${plotW}" height="4" fill="${ac}" opacity="0.75"/>
+  <text x="${plotX}" y="${titleY}" font-family="${fontD}" font-weight="800" font-size="${fTitle}" fill="${textP}" letter-spacing="0.5">${esc((entry.title || "").toUpperCase())}</text>
+  <text x="${plotX}" y="${writerY}" font-family="${fontSans}" font-weight="300" font-size="${fWriter}" fill="${textS}" letter-spacing="0.3">${esc(entry.writer || "")}</text>
+  <rect x="${plotX}" y="${plotY}" width="${plotW}" height="${plotH}" fill="#ffffff03" rx="3"/>
+  <defs>
+    <linearGradient id="scg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="${ac}" stop-opacity="0.32"/>
+      <stop offset="100%" stop-color="${ac}" stop-opacity="0.03"/>
+    </linearGradient>
+    <clipPath id="sclip"><rect x="${plotX}" y="${plotY - 2}" width="${plotW}" height="${plotH + 6}"/></clipPath>
+  </defs>
+  ${grid}
+  ${bands}
+  <path d="${areaPath}" fill="url(#scg)" clip-path="url(#sclip)"/>
+  <path d="${linePath}" fill="none" stroke="${ac}" stroke-width="2.8" stroke-linejoin="round" stroke-linecap="round" clip-path="url(#sclip)"/>
+  ${yAxisSvg}
+  <line x1="${plotX}" y1="${infoY - 4}" x2="${(plotX + plotW).toFixed(0)}" y2="${infoY - 4}" stroke="${bSub}" stroke-width="1"/>
+  ${statSvg}
+  <text x="${(plotX + plotW / 2).toFixed(0)}" y="${brandY}" text-anchor="middle" font-family="${fontD}" font-weight="800" font-size="${fBrand}" fill="${ac}" letter-spacing="3" opacity="0.5">scriptgraph.ai</text>
+</svg>`;
+  };
+
+  const generateCompareCardSVG = (s1, s2) => {
+    const W = 1200, H = 630;
+    const color1 = T.fwColors.three_act;
+    const color2 = T.fwColors.story_circle;
+    const bgP = T.bgPage, bgPan = T.bgPanel;
+    const textP = T.textPrimary, textM = T.textMuted;
+    const bSub = T.borderSubtle, bMid = T.borderMid, bStr = T.borderStrong;
+    const fontD = T.fontDisplay, fontSans = T.fontSans, fontM = T.fontMono;
+
+    const yColW = 28, yGap = 8, sidePad = 32;
+    const plotX = sidePad + yColW + yGap;
+    const plotW = W - sidePad - plotX;
+    const plotMidX = plotX + plotW / 2;
+
+    const halfW = plotW / 2 - 24;
+    const longestTitle = Math.max((s1.title || "").length, (s2.title || "").length);
+    const fTitle  = Math.min(38, Math.max(20, Math.floor(halfW / (longestTitle * 0.58))));
+    const fWriter = Math.round(fTitle * 0.58);
+    const fMeta = 16, fBrand = 20, fStatN = 38;
+
+    const headerH = Math.max(100, fTitle + fWriter + 32);
+    const titleWriterH = fTitle + 6 + fWriter;
+    const headerMidY = headerH / 2;
+    const titleY = Math.round(headerMidY - titleWriterH / 2) + fTitle;
+    const writerY = titleY + fWriter + 6;
+
+    const plotY = headerH, xAxisH = 22, statZoneH = 130, brandH = 26;
+    const plotH = H - plotY - xAxisH - statZoneH - brandH - 6;
+    const infoY = plotY + plotH + xAxisH + 4;
+    const infoH = H - infoY - brandH - 6;
+    const brandY = H - 8;
+
+    const esc = str => (str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+    const smTension = raw => (raw || []).map((_, i) => {
+      const lo = Math.max(0, i - 1), hi = Math.min(raw.length - 1, i + 1);
+      const sl = raw.slice(lo, hi + 1);
+      return sl.reduce((a, b) => a + b, 0) / sl.length;
+    });
+
+    const buildCurve = (entry, color, gradId) => {
+      const sm = smTension(entry.overallTension || []);
+      if (!sm.length) return "";
+      const pts = sm.map((t, i) => ({
+        x: plotX + (i / (sm.length - 1)) * plotW,
+        y: plotY + plotH - (t / 10) * plotH,
+      }));
+      const line = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+      const area = `${line} L${(plotX + plotW).toFixed(1)},${(plotY + plotH).toFixed(1)} L${plotX},${(plotY + plotH).toFixed(1)} Z`;
+      return `<defs>
+        <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="${color}" stop-opacity="0.28"/>
+          <stop offset="100%" stop-color="${color}" stop-opacity="0.03"/>
+        </linearGradient>
+        <clipPath id="clip${gradId}"><rect x="${plotX}" y="${plotY - 2}" width="${plotW}" height="${plotH + 6}"/></clipPath>
+      </defs>
+      <path d="${area}" fill="url(#${gradId})" clip-path="url(#clip${gradId})"/>
+      <path d="${line}" fill="none" stroke="${color}" stroke-width="2.8" stroke-linejoin="round" stroke-linecap="round" clip-path="url(#clip${gradId})"/>`;
+    };
+
+    const grid = [2, 4, 6, 8, 10].map(v => {
+      const gy = (plotY + plotH - (v / 10) * plotH).toFixed(1);
+      return `<line x1="${plotX}" y1="${gy}" x2="${(plotX + plotW).toFixed(1)}" y2="${gy}" stroke="#ffffff08" stroke-width="1"/>`;
+    }).join("");
+
+    const actBreaks1 = s1.naturalStructure?.actBreaks || [];
+    const bandFills = ["#c8a0600d", "#ffffff07", "#c8a06009"];
+    const breaks = [0, ...actBreaks1.map(b => b.position), 100];
+    let bands = "";
+    breaks.slice(0, -1).forEach((start, i) => {
+      const end = breaks[i + 1];
+      const bx1 = (plotX + (start / 100) * plotW).toFixed(1);
+      const bx2 = (plotX + (end / 100) * plotW).toFixed(1);
+      bands += `<rect x="${bx1}" y="${plotY}" width="${(+bx2 - +bx1).toFixed(1)}" height="${plotH}" fill="${bandFills[i % 3]}"/>`;
+    });
+
+    const labelX = (plotX - 6).toFixed(1);
+    const midY = (plotY + plotH / 2).toFixed(1);
+    const yAxisSvg = `
+      <line x1="${plotX}" y1="${plotY}" x2="${plotX}" y2="${(plotY + plotH).toFixed(1)}" stroke="${bMid}" stroke-width="1"/>
+      <line x1="${plotX}" y1="${(plotY + plotH).toFixed(1)}" x2="${(plotX + plotW).toFixed(1)}" y2="${(plotY + plotH).toFixed(1)}" stroke="${bMid}" stroke-width="1"/>
+      <text x="${labelX}" y="${(plotY + 4).toFixed(1)}" text-anchor="end" font-family="${fontM}" font-size="13" fill="${textM}">10</text>
+      <text x="${labelX}" y="${(plotY + plotH + 4).toFixed(1)}" text-anchor="end" font-family="${fontM}" font-size="13" fill="${textM}">0</text>
+      <text x="${labelX}" y="${midY}" text-anchor="middle" font-family="${fontM}" font-size="11" fill="${textM}" letter-spacing="2" transform="rotate(-90,${labelX},${midY})">TENSION</text>
+      ${[0, 25, 50, 75, 100].map(p => {
+        const px = (plotX + (p / 100) * plotW).toFixed(1);
+        return `<line x1="${px}" y1="${(plotY + plotH).toFixed(1)}" x2="${px}" y2="${(plotY + plotH + 5).toFixed(1)}" stroke="${bMid}" stroke-width="1"/>
+                <text x="${px}" y="${(plotY + plotH + 17).toFixed(1)}" text-anchor="middle" font-family="${fontSans}" font-size="13" fill="${textM}">${p}%</text>`;
+      }).join("")}
+    `;
+
+    const sm1 = smTension(s1.overallTension || []);
+    const sm2 = smTension(s2.overallTension || []);
+    const avg1  = sm1.length ? (sm1.reduce((a, b) => a + b, 0) / sm1.length).toFixed(1) : "—";
+    const peak1 = sm1.length ? Math.max(...sm1).toFixed(1) : "—";
+    const avg2  = sm2.length ? (sm2.reduce((a, b) => a + b, 0) / sm2.length).toFixed(1) : "—";
+    const peak2 = sm2.length ? Math.max(...sm2).toFixed(1) : "—";
+    const colW  = Math.round(plotW / 4);
+    const statDefs = [
+      { val: avg1,  label: "avg tension",  color: color1 },
+      { val: peak1, label: "peak tension", color: color1 },
+      { val: avg2,  label: "avg tension",  color: color2 },
+      { val: peak2, label: "peak tension", color: color2 },
+    ];
+    let statSvg = "";
+    statDefs.forEach((st, i) => {
+      const sx = plotX + i * colW;
+      if (i === 2) statSvg += `<line x1="${sx}" y1="${infoY + 4}" x2="${sx}" y2="${(infoY + infoH * 0.9).toFixed(0)}" stroke="${bStr}" stroke-width="1.5"/>`;
+      else if (i > 0) statSvg += `<line x1="${sx}" y1="${infoY + 6}" x2="${sx}" y2="${(infoY + infoH * 0.86).toFixed(0)}" stroke="${bMid}" stroke-width="1"/>`;
+      statSvg += `<text x="${(sx + colW / 2).toFixed(0)}" y="${(infoY + infoH * 0.52).toFixed(0)}" text-anchor="middle" font-family="${fontD}" font-weight="700" font-size="${fStatN}" fill="${st.color}">${st.val}</text>`;
+      statSvg += `<text x="${(sx + colW / 2).toFixed(0)}" y="${(infoY + infoH * 0.82).toFixed(0)}" text-anchor="middle" font-family="${fontM}" font-size="${fMeta}" fill="${st.color}" opacity="0.75" letter-spacing="1">${st.label}</text>`;
+    });
+
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+  <rect width="${W}" height="${H}" fill="${bgP}"/>
+  <rect x="${plotX}" y="0" width="${(plotMidX - plotX).toFixed(1)}" height="4" fill="${color1}" opacity="0.75"/>
+  <rect x="${plotMidX.toFixed(1)}" y="0" width="${(plotX + plotW - plotMidX).toFixed(1)}" height="4" fill="${color2}" opacity="0.75"/>
+  <text x="${plotX}" y="${titleY}" font-family="${fontD}" font-weight="800" font-size="${fTitle}" fill="${color1}" letter-spacing="0.5">${esc((s1.title || "").toUpperCase())}</text>
+  <text x="${plotX}" y="${writerY}" font-family="${fontSans}" font-weight="300" font-size="${fWriter}" fill="${color1}" opacity="0.7" letter-spacing="0.3">${esc(s1.writer || "")}</text>
+  <text x="${(plotX + plotW).toFixed(1)}" y="${titleY}" text-anchor="end" font-family="${fontD}" font-weight="800" font-size="${fTitle}" fill="${color2}" letter-spacing="0.5">${esc((s2.title || "").toUpperCase())}</text>
+  <text x="${(plotX + plotW).toFixed(1)}" y="${writerY}" text-anchor="end" font-family="${fontSans}" font-weight="300" font-size="${fWriter}" fill="${color2}" opacity="0.7" letter-spacing="0.3">${esc(s2.writer || "")}</text>
+  <rect x="${plotX}" y="${plotY}" width="${plotW}" height="${plotH}" fill="#ffffff03" rx="3"/>
+  ${grid}
+  ${bands}
+  ${buildCurve(s1, color1, "cg1")}
+  ${buildCurve(s2, color2, "cg2")}
+  ${yAxisSvg}
+  <line x1="${plotX}" y1="${infoY - 4}" x2="${(plotX + plotW).toFixed(0)}" y2="${infoY - 4}" stroke="${bSub}" stroke-width="1"/>
+  ${statSvg}
+  <text x="${(plotX + plotW / 2).toFixed(0)}" y="${brandY}" text-anchor="middle" font-family="${fontD}" font-weight="800" font-size="${fBrand}" fill="${T.accent}" letter-spacing="3" opacity="0.5">scriptgraph.ai</text>
+</svg>`;
+  };
+
+  const downloadShareCard = (mode) => {
+    const isCompare = mode === "compare";
+    const svg = isCompare
+      ? generateCompareCardSVG(compareItems[0], compareItems[1])
+      : generateShareCardSVG(p1);
+    const slugA = ((isCompare ? compareItems[0]?.title : p1?.title) || "script").replace(/[^a-z0-9]/gi, "-").toLowerCase();
+    const slugB = isCompare ? `-vs-${(compareItems[1]?.title || "script").replace(/[^a-z0-9]/gi, "-").toLowerCase()}` : "";
+    const filename = `${slugA}${slugB}-scriptgraph`;
+
+    const blob = new Blob([svg], { type: "image/svg+xml" });
+    const img = new Image();
+    const svgUrl = URL.createObjectURL(blob);
+    img.onload = () => {
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = 1200; canvas.height = 630;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, 1200, 630);
+        URL.revokeObjectURL(svgUrl);
+        canvas.toBlob(pngBlob => {
+          const pngUrl = URL.createObjectURL(pngBlob);
+          const a = document.createElement("a");
+          a.href = pngUrl;
+          a.download = `${filename}.png`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(() => URL.revokeObjectURL(pngUrl), 1000);
+          showToast("Share image downloaded");
+        }, "image/png");
+      } catch {
+        URL.revokeObjectURL(svgUrl);
+        const svgBlob = new Blob([svg], { type: "image/svg+xml" });
+        const svgFallback = URL.createObjectURL(svgBlob);
+        const a = document.createElement("a");
+        a.href = svgFallback;
+        a.download = `${filename}.svg`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(svgFallback), 1000);
+        showToast("Downloaded as SVG — open in browser to save as PNG");
+      }
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(svgUrl);
+      const a = document.createElement("a");
+      a.href = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+      a.download = `${filename}.svg`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    };
+    img.src = svgUrl;
+  };
+
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div style={{ minHeight: "100vh", background: T.bgPage, color: T.textPrimary, fontFamily: T.fontSans, paddingBottom: 100 }}>
@@ -4000,6 +4314,27 @@ export default function ScriptGraph() {
                   <div style={{ marginTop: 16, paddingTop: 14, borderTop: `1px solid ${T.borderSubtle}` }}>
                     <RhythmLegend showFormatShift={!!p1.formatTransition} />
                   </div>
+                  {/* Share Image */}
+                  {PUBLIC_MODE && (
+                    <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${T.borderSubtle}`, display: "flex", justifyContent: "flex-end" }}>
+                      <button onClick={() => setShareCard("single")} style={{
+                        display: "inline-flex", alignItems: "center", gap: 5,
+                        padding: "5px 14px", border: `1px solid ${T.borderMid}`,
+                        borderRadius: T.radiusSm, background: "transparent",
+                        color: T.accent, fontSize: 11, fontFamily: T.fontSans,
+                        fontWeight: 500, letterSpacing: 0.2, cursor: "pointer", transition: "all 0.12s",
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.borderColor = T.accent; e.currentTarget.style.background = T.accent + "0d"; }}
+                      onMouseLeave={e => { e.currentTarget.style.borderColor = T.borderMid; e.currentTarget.style.background = "transparent"; }}>
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                          <polyline points="7 10 12 15 17 10"/>
+                          <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        Share Image
+                      </button>
+                    </div>
+                  )}
                 </div>
                 {/* Disclaimer */}
                 <p style={{
@@ -4346,6 +4681,27 @@ export default function ScriptGraph() {
                   />
                 );
               })()}
+              {/* Share Image */}
+              {PUBLIC_MODE && (
+                <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${T.borderSubtle}`, display: "flex", justifyContent: "flex-end" }}>
+                  <button onClick={() => setShareCard("compare")} style={{
+                    display: "inline-flex", alignItems: "center", gap: 5,
+                    padding: "5px 14px", border: `1px solid ${T.borderMid}`,
+                    borderRadius: T.radiusSm, background: "transparent",
+                    color: T.accent, fontSize: 11, fontFamily: T.fontSans,
+                    fontWeight: 500, letterSpacing: 0.2, cursor: "pointer", transition: "all 0.12s",
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = T.accent; e.currentTarget.style.background = T.accent + "0d"; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = T.borderMid; e.currentTarget.style.background = "transparent"; }}>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                      <polyline points="7 10 12 15 17 10"/>
+                      <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    Share Image
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* ── Act Breaks + Key Moments side-by-side ── */}
@@ -5175,6 +5531,68 @@ export default function ScriptGraph() {
           }}>Clear all</button>
         </div>
       )}
+      {/* ── Share Card modal ── */}
+      {shareCard && (shareCard === "single" ? p1 : compareItems.length === 2) && (
+        <div style={{
+          position: "fixed", inset: 0, zIndex: 500,
+          background: "#00000090", display: "flex", alignItems: "center", justifyContent: "center",
+          padding: 24,
+        }} onClick={() => setShareCard(false)}>
+          <div style={{
+            background: T.bgPanel, border: `1px solid ${T.borderStrong}`,
+            borderRadius: T.radiusLg, padding: "24px",
+            width: 680, maxWidth: "100%",
+            boxShadow: "0 24px 64px #00000080",
+          }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <div style={{ fontSize: 10, fontFamily: T.fontSans, fontWeight: 600, color: T.textMuted, letterSpacing: 2.5, textTransform: "uppercase" }}>
+                {shareCard === "compare"
+                  ? `Share Image · ${compareItems[0]?.title} vs ${compareItems[1]?.title}`
+                  : `Share Image · ${p1?.title}`}
+              </div>
+              <button onClick={() => setShareCard(false)} style={{
+                padding: "3px 8px", background: "none",
+                border: `1px solid ${T.borderSubtle}`, borderRadius: T.radiusSm,
+                color: T.textMuted, fontSize: 11, fontFamily: T.fontSans,
+                fontWeight: 500, cursor: "pointer", lineHeight: 1.4,
+              }}>✕</button>
+            </div>
+            <div style={{
+              borderRadius: T.radiusMd, overflow: "hidden",
+              border: `1px solid ${T.borderMid}`, marginBottom: 16,
+              background: T.bgPage,
+            }}>
+              <div
+                style={{ width: "100%", lineHeight: 0 }}
+                dangerouslySetInnerHTML={{ __html: (() => {
+                  const svg = shareCard === "compare"
+                    ? generateCompareCardSVG(compareItems[0], compareItems[1])
+                    : generateShareCardSVG(p1);
+                  return svg.replace(/width="\d+"/, 'width="100%"');
+                })() }}
+              />
+            </div>
+            <button onClick={() => downloadShareCard(shareCard)} style={{
+              width: "100%", padding: "9px 0",
+              background: T.accent + "20", border: `1px solid ${T.accent}`,
+              borderRadius: T.radiusSm, color: T.accent,
+              fontSize: 12, fontFamily: T.fontSans, fontWeight: 500,
+              letterSpacing: 0.2, cursor: "pointer", transition: "all 0.12s",
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = T.accent + "30"}
+            onMouseLeave={e => e.currentTarget.style.background = T.accent + "20"}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              Download PNG
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* ── Export JSON overlay — reliable cross-environment fallback ── */}
       {exportJson && (
         <div style={{
