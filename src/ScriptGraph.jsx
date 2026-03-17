@@ -4007,6 +4007,154 @@ export default function ScriptGraph() {
     img.src = svgUrl;
   };
 
+  // ── Insight Card Share Image Generator ─────────────────────────────────────
+  // Mirrors the visual design of the insight card exactly, at 1800×1800,
+  // with the scriptgraph.ai watermark added to the bottom of the graph area.
+  const generateInsightCardSVG = (insight) => {
+    const W = 1800, H = 1800;
+    const pad = 132;
+    const bgP = T.bgPage, bgPan = T.bgPanel;
+    const textP = T.textPrimary, textS = T.textSecondary, textM = T.textMuted;
+    const bSub = T.borderSubtle, bMid = T.borderMid;
+    const ac = T.accent;
+    const fontD = T.fontDisplay, fontS = T.fontSans, fontM = T.fontMono;
+    const esc = s => (s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+    // Layout zones
+    const cardX = pad, cardW = W - pad * 2;
+    const titleY = 180, titleSize = 96;
+    const bodyY = titleY + titleSize + 40, bodySize = 54, bodyLineH = 86;
+    const graphY = 620, graphH = 700;
+    const graphX = cardX + 80, graphW = cardW - 160;
+    const tagsY = graphY + graphH + 60;
+    const wmY = graphY + graphH - 30;
+
+    // Wrap body text into lines (~52 chars per line at this size/width)
+    const wrapText = (text, maxChars = 52) => {
+      const words = text.split(" ");
+      const lines = [];
+      let cur = "";
+      words.forEach(w => {
+        if ((cur + " " + w).trim().length <= maxChars) cur = (cur + " " + w).trim();
+        else { if (cur) lines.push(cur); cur = w; }
+      });
+      if (cur) lines.push(cur);
+      return lines;
+    };
+    const bodyLines = wrapText(insight.body);
+
+    // Smooth helper
+    const sm = arr => arr.map((_, i) => {
+      const lo = Math.max(0, i - 1), hi = Math.min(arr.length - 1, i + 1);
+      const sl = arr.slice(lo, hi + 1);
+      return sl.reduce((a, b) => a + b, 0) / sl.length;
+    });
+
+    // Build curve path for a film
+    const makeCurve = (tension) => {
+      const s = sm(tension);
+      const pts = s.map((t, i) => ({
+        x: graphX + (i / (s.length - 1)) * graphW,
+        y: graphY + graphH - (t / 10) * graphH,
+      }));
+      return {
+        line: pts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" "),
+        area: pts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ")
+          + ` L${(graphX + graphW).toFixed(1)},${(graphY + graphH).toFixed(1)} L${graphX},${(graphY + graphH).toFixed(1)} Z`,
+      };
+    };
+
+    // Grid lines
+    const grid = [2, 4, 6, 8, 10].map(v => {
+      const gy = (graphY + graphH - (v / 10) * graphH).toFixed(1);
+      return `<line x1="${graphX}" y1="${gy}" x2="${(graphX + graphW).toFixed(1)}" y2="${gy}" stroke="#ffffff09" stroke-width="2"/>`;
+    }).join("");
+
+    // Curves
+    const curves = insight.resolvedFilms.map((f, i) => {
+      if (!f.entry?.overallTension) return "";
+      const { line, area } = makeCurve(f.entry.overallTension);
+      const gid = `ig${i}`;
+      return `
+  <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="${f.color}" stop-opacity="0.25"/>
+    <stop offset="100%" stop-color="${f.color}" stop-opacity="0.02"/>
+  </linearGradient></defs>
+  <path d="${area}" fill="url(#${gid})"/>
+  <path d="${line}" fill="none" stroke="${f.color}" stroke-width="${i === 0 ? 6 : 5}" stroke-linejoin="round" stroke-linecap="round" opacity="${i > 0 ? 0.7 : 1}"/>`;
+    }).join("");
+
+    // Film legend tags
+    const tagH = 56, tagPadX = 40, tagPadY = 14, tagGap = 24;
+    let tagX = graphX;
+    const tags = insight.resolvedFilms.map((f, i) => {
+      const labelW = f.label.length * 22 + tagPadX * 2;
+      const tag = `
+  <rect x="${tagX.toFixed(0)}" y="${tagsY}" width="${labelW}" height="${tagH}" rx="6" fill="${f.color}15" stroke="${f.color}" stroke-width="1.5" stroke-opacity="0.35"/>
+  <text x="${(tagX + labelW / 2).toFixed(0)}" y="${(tagsY + tagH / 2 + 1).toFixed(0)}" text-anchor="middle" dominant-baseline="central" font-family="${fontM}" font-size="28" fill="${f.color}" letter-spacing="3">${esc(f.label.toUpperCase())}</text>`;
+      tagX += labelW + tagGap;
+      return tag;
+    }).join("");
+
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}">
+  <rect width="${W}" height="${H}" fill="${bgP}"/>
+  <rect x="${cardX}" y="80" width="${cardW}" height="${H - 160}" rx="16" fill="${bgPan}" stroke="${bSub}" stroke-width="2"/>
+  <text x="${cardX + 80}" y="${titleY}" font-family="${fontD}" font-weight="800" font-size="${titleSize}" fill="${textP}" letter-spacing="6">${esc(insight.title.toUpperCase())}</text>
+  ${bodyLines.map((l, i) => `<text x="${cardX + 80}" y="${bodyY + i * bodyLineH}" font-family="${fontS}" font-weight="300" font-size="${bodySize}" fill="${textS}">${esc(l)}</text>`).join("\n  ")}
+  <rect x="${graphX}" y="${graphY}" width="${graphW}" height="${graphH}" rx="8" fill="${bgP}" stroke="${bSub}" stroke-width="2"/>
+  ${grid}
+  ${curves}
+  <text x="${(graphX + graphW - 20).toFixed(0)}" y="${wmY}" text-anchor="end" font-family="${fontS}" font-weight="300" font-size="36" fill="${ac}" opacity="0.35">scriptgraph.ai</text>
+  ${tags}
+</svg>`;
+  };
+
+  const downloadInsightCard = (insight) => {
+    const svg = generateInsightCardSVG(insight);
+    const filename = `${insight.title.replace(/[^a-z0-9]/gi, "-").toLowerCase()}-scriptgraph`;
+    const blob = new Blob([svg], { type: "image/svg+xml" });
+    const img = new Image();
+    const svgUrl = URL.createObjectURL(blob);
+    img.onload = () => {
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = 1800; canvas.height = 1800;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, 1800, 1800);
+        URL.revokeObjectURL(svgUrl);
+        canvas.toBlob(pngBlob => {
+          const pngUrl = URL.createObjectURL(pngBlob);
+          const a = document.createElement("a");
+          a.href = pngUrl;
+          a.download = `${filename}.png`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(() => URL.revokeObjectURL(pngUrl), 1000);
+          showToast("Share image downloaded");
+        }, "image/png");
+      } catch {
+        URL.revokeObjectURL(svgUrl);
+        const a = document.createElement("a");
+        a.href = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+        a.download = `${filename}.svg`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(svgUrl);
+      const a = document.createElement("a");
+      a.href = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+      a.download = `${filename}.svg`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    };
+    img.src = svgUrl;
+  };
+
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div style={{ minHeight: "100vh", background: T.bgPage, color: T.textPrimary, fontFamily: T.fontSans, paddingBottom: 100 }}>
@@ -4491,7 +4639,7 @@ export default function ScriptGraph() {
                 },
                 {
                   title: "Tarantino's Heartbeat",
-                  body: "True Romance and Pulp Fiction were both written by Tarantino, but look at the graphs side by side. True Romance shows the signature more clearly — sharp peaks, deep valleys, almost metronomic spacing. Pulp Fiction refined it. You can see the argument that the more defined the heartbeat, the bigger the film.",
+                  body: "Both written by Tarantino. The heartbeat is there in both — sharp peaks, deep valleys, almost metronomic. You could argue he found the signature in True Romance, his first produced script, and perfected it by Pulp Fiction.",
                   films: [
                     { slug: "pulp-fiction", color: T.fwColors.three_act, label: "Pulp Fiction" },
                     { slug: "true-romance", color: T.fwColors.story_circle, label: "True Romance" },
@@ -4604,10 +4752,33 @@ export default function ScriptGraph() {
                             flexShrink: 0,
                             cursor: hasData ? "pointer" : "default",
                             transition: "border-color 0.15s",
+                            position: "relative",
                           }}
                           onMouseEnter={e => { if (hasData) e.currentTarget.style.borderColor = T.accent + "40"; }}
                           onMouseLeave={e => { e.currentTarget.style.borderColor = T.borderSubtle; }}
                         >
+                          {/* Share icon — top right corner */}
+                          {hasData && (
+                            <button
+                              onClick={e => { e.stopPropagation(); downloadInsightCard(insight); }}
+                              title="Download share image"
+                              style={{
+                                position: "absolute", top: 14, right: 14,
+                                background: "none", border: "none", padding: 4,
+                                cursor: "pointer", color: T.textDim,
+                                lineHeight: 1, borderRadius: T.radiusSm,
+                                transition: "color 0.15s",
+                              }}
+                              onMouseEnter={e => { e.currentTarget.style.color = T.accent; }}
+                              onMouseLeave={e => { e.currentTarget.style.color = T.textDim; }}
+                            >
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="7 10 12 15 17 10"/>
+                                <line x1="12" y1="15" x2="12" y2="3"/>
+                              </svg>
+                            </button>
+                          )}
                           <div style={{ fontFamily: T.fontDisplay, fontWeight: 700, fontSize: 18, letterSpacing: 1.5, textTransform: "uppercase", color: T.textPrimary, marginBottom: 8, lineHeight: 1.2 }}>
                             {insight.title}
                           </div>
