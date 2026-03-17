@@ -4059,10 +4059,12 @@ export default function ScriptGraph() {
               if (!downloaded) setExportJson({ json: jsonStr, filename });
             }}>↓ Export JSON</Btn>
           )}
-          {PUBLIC_MODE && screen === "results" && p1 && (
+          {PUBLIC_MODE && (screen === "results" && p1 || screen === "compare" && compareItems.length === 2) && (
             <button onClick={() => {
               const url = window.location.href;
-              const title = `${p1.title} — ScriptGraph`;
+              const title = screen === "compare"
+                ? `${compareItems[0].title} vs ${compareItems[1].title} — ScriptGraph`
+                : `${p1.title} — ScriptGraph`;
               if (navigator.share) {
                 navigator.share({ title, url }).catch(() => {});
               } else {
@@ -4496,11 +4498,10 @@ export default function ScriptGraph() {
                   ],
                 },
                 {
-                  title: "Mystery vs. Slasher",
-                  body: "Get Out and Scream are both horror-comedies, both hugely successful. But the structures couldn't be more different. Scream front-loads its tension, dips in the second act, then escalates for the finale. Get Out gives you an initial thrill, then slow-burns all the way to its conclusion. It might have everything to do with mystery versus slasher — one withholds, one delivers.",
+                  title: "Tension Isn't Everything",
+                  body: "Eternal Sunshine of the Spotless Mind is one of the great films. Its graph is relatively flat — no towering peaks, no relentless climb. That's not a flaw. Some films work through accumulation, through feeling, through the weight of an idea. The direction matters too. Not every story needs to tighten a screw.",
                   films: [
-                    { slug: "get-out", color: T.fwColors.three_act, label: "Get Out" },
-                    { slug: "scream", color: T.fwColors.story_circle, label: "Scream" },
+                    { slug: "eternal-sunshine-of-the-spotless-mind", color: T.accent, label: "Eternal Sunshine" },
                   ],
                 },
               ];
@@ -4748,26 +4749,8 @@ export default function ScriptGraph() {
         {/* ════ COMPARE ════ */}
         {screen === "compare" && compareItems.length === 2 && (
           <div style={{ marginTop: 28 }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 22 }}>
+            <div style={{ marginBottom: 22 }}>
               <SectionLabel>Structure Comparison</SectionLabel>
-              {PUBLIC_MODE && (
-                <button onClick={() => setShareCard("compare")} style={{
-                  display: "inline-flex", alignItems: "center", gap: 5,
-                  padding: "5px 14px", border: `1px solid ${T.borderMid}`,
-                  borderRadius: T.radiusSm, background: "transparent",
-                  color: T.accent, fontSize: 11, fontFamily: T.fontSans,
-                  fontWeight: 500, letterSpacing: 0.2, cursor: "pointer", transition: "all 0.12s",
-                }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = T.accent; e.currentTarget.style.background = T.accent + "0d"; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = T.borderMid; e.currentTarget.style.background = "transparent"; }}>
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                    <polyline points="7 10 12 15 17 10"/>
-                    <line x1="12" y1="15" x2="12" y2="3"/>
-                  </svg>
-                  Share Image
-                </button>
-              )}
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 22 }}>
