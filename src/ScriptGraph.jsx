@@ -3670,260 +3670,260 @@ export default function ScriptGraph() {
     ? computeStructuralRhythm(p1.overallTension, p1.naturalStructure?.actBreaks, p1.scenes, p1.keyMoments)
     : [];
 
-  // ── Share Card Generators ───────────────────────────────────────────────────
-  const generateShareCardSVG = (entry) => {
-    const W = 1200, H = 630;
-    const ac = T.accent, bgP = T.bgPage, bgPan = T.bgPanel;
-    const textP = T.textPrimary, textS = T.textSecondary, textM = T.textMuted;
-    const bSub = T.borderSubtle, bMid = T.borderMid;
-    const fontD = T.fontDisplay, fontSans = T.fontSans, fontM = T.fontMono;
 
-    const yColW = 28, yGap = 8, sidePad = 32;
-    const plotX = sidePad + yColW + yGap;
-    const plotW = W - sidePad - plotX;
+  // ── Share Card Generator ────────────────────────────────────────────────────
+  // ── Share card helpers — shared by both single and compare generators ────────
+  const _sgSmooth = (t) => t.map((_, i) => {
+    const lo = Math.max(0, i - 1), hi = Math.min(t.length - 1, i + 1);
+    const sl = t.slice(lo, hi + 1);
+    return sl.reduce((a, b) => a + b, 0) / sl.length;
+  });
 
-    const fTitle = 46, fWriter = 28, fMeta = 16, fBrand = 20, fStatN = 40;
-    const titleY = 20 + fTitle;
-    const writerY = titleY + fWriter + 10;
-    const headerH = writerY + 14;
-    const plotY = headerH + 10, xAxisH = 22, statZoneH = 130, brandH = 26;
-    const plotH = H - plotY - xAxisH - statZoneH - brandH - 6;
-    const infoY = plotY + plotH + xAxisH + 4;
-    const infoH = H - infoY - brandH - 6;
-    const brandY = H - 8;
+  // Shared layout constants — identical zones for both cards
+  const _sgSidePad  = 90;
+  const _sgYColW    = 66;
+  const _sgYGap     = 18;
+  const _sgPlotX    = _sgSidePad + _sgYColW + _sgYGap;
+  const _sgW        = 1800;
+  const _sgH        = 1800;
+  const _sgPlotW    = _sgW - _sgSidePad - _sgPlotX;
+  const _sgHeaderH  = 310;
+  const _sgPlotY    = _sgHeaderH + 24;
+  const _sgXAxisH   = 64;
+  const _sgStatH    = 310;
+  const _sgBotPad   = 50;
+  const _sgPlotH    = _sgH - _sgPlotY - _sgXAxisH - _sgStatH - _sgBotPad;
+  const _sgInfoY    = _sgPlotY + _sgPlotH + _sgXAxisH + 18;
+  const _sgInfoH    = _sgH - _sgInfoY - _sgBotPad;
 
-    const rawT = entry.overallTension || [];
-    const sm = rawT.map((_, i) => {
-      const lo = Math.max(0, i - 1), hi = Math.min(rawT.length - 1, i + 1);
-      const sl = rawT.slice(lo, hi + 1);
-      return sl.reduce((a, b) => a + b, 0) / sl.length;
-    });
+  // Font sizes
+  const _sgFStat    = 96;
+  const _sgFLabel   = 44;
+  const _sgFAxis    = 34;
+  const _sgFActLbl  = 32;
+  const _sgFWmark   = 44;
 
-    const actBreaks = entry.naturalStructure?.actBreaks || [];
-    const midPos = entry.keyMoments?.midpoint?.position ?? null;
-
-    const pts = sm.map((t, i) => ({
-      x: plotX + (i / (sm.length - 1)) * plotW,
-      y: plotY + plotH - (t / 10) * plotH,
-    }));
-    const linePath = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
-    const areaPath = `${linePath} L${(plotX + plotW).toFixed(1)},${(plotY + plotH).toFixed(1)} L${plotX},${(plotY + plotH).toFixed(1)} Z`;
-
-    const grid = [2, 4, 6, 8, 10].map(v => {
-      const gy = (plotY + plotH - (v / 10) * plotH).toFixed(1);
-      return `<line x1="${plotX}" y1="${gy}" x2="${(plotX + plotW).toFixed(1)}" y2="${gy}" stroke="#ffffff08" stroke-width="1"/>`;
+  const _sgChartCore = (ten, abs, mid, col, gid) => {
+    const px = _sgPlotX, py = _sgPlotY, pw = _sgPlotW, ph = _sgPlotH;
+    const ac = T.accent, bgPan = T.bgPanel;
+    const ts = T.textSecondary, bMid = T.borderMid;
+    const fontM = T.fontMono, fontS = T.fontSans, fontD = T.fontDisplay;
+    const s = _sgSmooth(ten), iw = pw, ih = ph;
+    const pts = s.map((t, i) => ({ x: px + (i / (s.length - 1)) * iw, y: py + ih - (t / 10) * ih }));
+    const ln = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+    const ar = `${ln} L${(px + iw).toFixed(1)},${(py + ih).toFixed(1)} L${px},${(py + ih).toFixed(1)} Z`;
+    const gr = [2, 4, 6, 8, 10].map(v => {
+      const gy = (py + ih - (v / 10) * ih).toFixed(1);
+      return `<line x1="${px}" y1="${gy}" x2="${(px + iw).toFixed(1)}" y2="${gy}" stroke="#ffffff09" stroke-width="2"/>`;
     }).join("");
-
-    const bandFills = ["#c8a0600d", "#ffffff07", "#c8a06009"];
-    const breaks = [0, ...actBreaks.map(b => b.position), 100];
-    let bands = "";
-    breaks.slice(0, -1).forEach((start, i) => {
-      const end = breaks[i + 1];
-      const bx1 = (plotX + (start / 100) * plotW).toFixed(1);
-      const bx2 = (plotX + (end / 100) * plotW).toFixed(1);
-      bands += `<rect x="${bx1}" y="${plotY}" width="${(+bx2 - +bx1).toFixed(1)}" height="${plotH}" fill="${bandFills[i % 3]}"/>`;
-      bands += `<text x="${((+bx1 + +bx2) / 2).toFixed(1)}" y="${(plotY + 14).toFixed(1)}" text-anchor="middle" font-family="${fontM}" font-size="12" fill="${textS}" letter-spacing="2">ACT ${i + 1}</text>`;
+    const bf = ["#c8a0600d", "#ffffff07", "#c8a06009"];
+    const bks = [0, ...abs.map(b => b.position), 100];
+    let ba = "";
+    bks.slice(0, -1).forEach((st, i) => {
+      const en = bks[i + 1], x1 = (px + (st / 100) * iw).toFixed(1), x2 = (px + (en / 100) * iw).toFixed(1);
+      ba += `<rect x="${x1}" y="${py}" width="${(+x2 - +x1).toFixed(1)}" height="${ih}" fill="${bf[i % 3]}"/>`;
+      ba += `<text x="${((+x1 + (+x2)) / 2).toFixed(1)}" y="${(py + 38).toFixed(1)}" text-anchor="middle" font-family="${fontM}" font-size="${_sgFActLbl}" fill="${ts}" letter-spacing="5">ACT ${i + 1}</text>`;
     });
-    actBreaks.forEach(ab => {
-      const bx = (plotX + (ab.position / 100) * plotW).toFixed(1);
-      bands += `<line x1="${bx}" y1="${plotY}" x2="${bx}" y2="${(plotY + plotH).toFixed(1)}" stroke="${ac}" stroke-width="1" opacity="0.35"/>`;
-      bands += `<polygon points="${bx},${(plotY - 1).toFixed(1)} ${(+bx + 5).toFixed(1)},${(plotY + 9).toFixed(1)} ${bx},${(plotY + 19).toFixed(1)} ${(+bx - 5).toFixed(1)},${(plotY + 9).toFixed(1)}" fill="${bgPan}" stroke="${ac}" stroke-width="1.5" opacity="0.85"/>`;
+    abs.forEach(ab => {
+      const bx = (px + (ab.position / 100) * iw).toFixed(1);
+      ba += `<line x1="${bx}" y1="${py}" x2="${bx}" y2="${(py + ih).toFixed(1)}" stroke="${ac}" stroke-width="2.5" opacity="0.35"/>`;
+      ba += `<polygon points="${bx},${(py - 2).toFixed(1)} ${(+bx + 12).toFixed(1)},${(py + 22).toFixed(1)} ${bx},${(py + 46).toFixed(1)} ${(+bx - 12).toFixed(1)},${(py + 22).toFixed(1)}" fill="${bgPan}" stroke="${ac}" stroke-width="3.5" opacity="0.85"/>`;
     });
-    if (midPos != null) {
-      const mx = (plotX + (midPos / 100) * plotW).toFixed(1);
-      bands += `<line x1="${mx}" y1="${plotY}" x2="${mx}" y2="${(plotY + plotH).toFixed(1)}" stroke="#e0c890" stroke-width="1" stroke-dasharray="4,3" opacity="0.3"/>`;
+    if (mid != null) {
+      const mx = (px + (mid / 100) * iw).toFixed(1);
+      ba += `<line x1="${mx}" y1="${py}" x2="${mx}" y2="${(py + ih).toFixed(1)}" stroke="#e0c890" stroke-width="2" stroke-dasharray="10,7" opacity="0.3"/>`;
     }
+    const wx = (px + iw - 12).toFixed(1), wy = (py + ih - 26).toFixed(1);
+    return `<defs>
+    <linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="${col}" stop-opacity="0.32"/>
+      <stop offset="100%" stop-color="${col}" stop-opacity="0.03"/>
+    </linearGradient>
+    <clipPath id="cl${gid}"><rect x="${px}" y="${py - 4}" width="${iw}" height="${ih + 8}"/></clipPath>
+  </defs>
+  ${gr}${ba}
+  <path d="${ar}" fill="url(#${gid})" clip-path="url(#cl${gid})"/>
+  <path d="${ln}" fill="none" stroke="${col}" stroke-width="6" stroke-linejoin="round" stroke-linecap="round" clip-path="url(#cl${gid})"/>
+  <text x="${wx}" y="${wy}" text-anchor="end" font-family="${fontS}" font-weight="300" font-size="${_sgFWmark}" fill="${ac}" opacity="0.35">scriptgraph.ai</text>`;
+  };
 
-    const labelX = (plotX - 6).toFixed(1);
-    const midY = (plotY + plotH / 2).toFixed(1);
-    const yAxisSvg = `
-      <line x1="${plotX}" y1="${plotY}" x2="${plotX}" y2="${(plotY + plotH).toFixed(1)}" stroke="${bMid}" stroke-width="1"/>
-      <line x1="${plotX}" y1="${(plotY + plotH).toFixed(1)}" x2="${(plotX + plotW).toFixed(1)}" y2="${(plotY + plotH).toFixed(1)}" stroke="${bMid}" stroke-width="1"/>
-      <text x="${labelX}" y="${(plotY + 4).toFixed(1)}" text-anchor="end" font-family="${fontM}" font-size="13" fill="${textS}">10</text>
-      <text x="${labelX}" y="${(plotY + plotH + 4).toFixed(1)}" text-anchor="end" font-family="${fontM}" font-size="13" fill="${textS}">0</text>
-      <text x="${labelX}" y="${midY}" text-anchor="middle" font-family="${fontM}" font-size="11" fill="${textS}" letter-spacing="2" transform="rotate(-90,${labelX},${midY})">TENSION</text>
-      ${[0, 25, 50, 75, 100].map(p => {
-        const px = (plotX + (p / 100) * plotW).toFixed(1);
-        return `<line x1="${px}" y1="${(plotY + plotH).toFixed(1)}" x2="${px}" y2="${(plotY + plotH + 5).toFixed(1)}" stroke="${bMid}" stroke-width="1"/>
-                <text x="${px}" y="${(plotY + plotH + 17).toFixed(1)}" text-anchor="middle" font-family="${fontSans}" font-size="13" fill="${textS}">${p}%</text>`;
-      }).join("")}
-    `;
-
-    const peakT = sm.length ? Math.max(...sm).toFixed(1) : "—";
-    const avgScLen = entry.scenes?.length
-      ? (entry.scenes.reduce((s, sc) => s + (sc.lengthPages || 1), 0) / entry.scenes.length).toFixed(1)
-      : entry.avgSceneLength || "—";
-    const stats = [
-      { val: `${entry.totalPages}p`, label: "pages" },
-      { val: `${entry.totalScenes}`, label: "scenes" },
-      { val: `${avgScLen}pp`,        label: "avg/scene" },
-      { val: `${peakT}`,             label: "peak tension" },
-    ];
-    const statW = Math.round(plotW / 4);
-    let statSvg = "";
-    stats.forEach((st, i) => {
-      const sx = plotX + i * statW;
-      if (i > 0) statSvg += `<line x1="${sx}" y1="${infoY + 6}" x2="${sx}" y2="${(infoY + infoH * 0.88).toFixed(0)}" stroke="${bMid}" stroke-width="1"/>`;
-      statSvg += `<text x="${(sx + statW / 2).toFixed(0)}" y="${(infoY + infoH * 0.52).toFixed(0)}" text-anchor="middle" font-family="${fontD}" font-weight="700" font-size="${fStatN}" fill="${textP}">${st.val}</text>`;
-      statSvg += `<text x="${(sx + statW / 2).toFixed(0)}" y="${(infoY + infoH * 0.82).toFixed(0)}" text-anchor="middle" font-family="${fontM}" font-size="${fMeta}" fill="${textS}" letter-spacing="1">${st.label}</text>`;
+  const _sgYAxis = () => {
+    const px = _sgPlotX, py = _sgPlotY, iw = _sgPlotW, ih = _sgPlotH;
+    const ts = T.textSecondary, bMid = T.borderMid;
+    const fontM = T.fontMono, fontS = T.fontSans;
+    const lx = (px - 16).toFixed(1), my = (py + ih / 2).toFixed(1);
+    let o = `<line x1="${px}" y1="${py}" x2="${px}" y2="${(py + ih).toFixed(1)}" stroke="${bMid}" stroke-width="2"/>`;
+    o += `<line x1="${px}" y1="${(py + ih).toFixed(1)}" x2="${(px + iw).toFixed(1)}" y2="${(py + ih).toFixed(1)}" stroke="${bMid}" stroke-width="2"/>`;
+    o += `<text x="${lx}" y="${(py + 12).toFixed(1)}" text-anchor="end" font-family="${fontM}" font-size="${_sgFAxis}" fill="${ts}">10</text>`;
+    o += `<text x="${lx}" y="${(py + ih + 12).toFixed(1)}" text-anchor="end" font-family="${fontM}" font-size="${_sgFAxis}" fill="${ts}">0</text>`;
+    o += `<text x="${lx}" y="${my}" text-anchor="middle" font-family="${fontM}" font-size="${Math.round(_sgFAxis * 0.82)}" fill="${ts}" letter-spacing="4" transform="rotate(-90,${lx},${my})">TENSION</text>`;
+    [0, 25, 50, 75, 100].forEach(p => {
+      const bx = (px + (p / 100) * iw).toFixed(1);
+      o += `<line x1="${bx}" y1="${(py + ih).toFixed(1)}" x2="${bx}" y2="${(py + ih + 12).toFixed(1)}" stroke="${bMid}" stroke-width="2"/>`;
+      o += `<text x="${bx}" y="${(py + ih + 52).toFixed(1)}" text-anchor="middle" font-family="${fontS}" font-size="${_sgFAxis}" fill="${ts}">${p}%</text>`;
     });
+    return o;
+  };
+
+  const _sgStatStrip = (stats, colW) => {
+    const fontD = T.fontDisplay, fontM = T.fontMono;
+    const bMid = T.borderMid, bStr = T.borderStrong;
+    let ss = "";
+    stats.forEach((st, i) => {
+      const sx = _sgPlotX + i * colW;
+      if (i === 2) ss += `<line x1="${sx}" y1="${_sgInfoY + 8}" x2="${sx}" y2="${(_sgInfoY + _sgInfoH * 0.9).toFixed(0)}" stroke="${bStr}" stroke-width="3"/>`;
+      else if (i > 0) ss += `<line x1="${sx}" y1="${_sgInfoY + 14}" x2="${sx}" y2="${(_sgInfoY + _sgInfoH * 0.88).toFixed(0)}" stroke="${bMid}" stroke-width="2"/>`;
+      ss += `<text x="${(sx + colW / 2).toFixed(0)}" y="${(_sgInfoY + _sgInfoH * 0.50).toFixed(0)}" text-anchor="middle" font-family="${fontD}" font-weight="700" font-size="${_sgFStat}" fill="${st.c}">${st.v}</text>`;
+      ss += `<text x="${(sx + colW / 2).toFixed(0)}" y="${(_sgInfoY + _sgInfoH * 0.82).toFixed(0)}" text-anchor="middle" font-family="${fontM}" font-size="${_sgFLabel}" fill="${st.tc}" letter-spacing="2" opacity="${st.op || 1}">${st.l}</text>`;
+    });
+    return ss;
+  };
+
+  // Builds a standalone 1800×1800 square SVG social card from the current p1 data.
+  const generateShareCardSVG = (entry) => {
+    const W = _sgW, H = _sgH;
+    const ac = T.accent, bgP = T.bgPage;
+    const textP = T.textPrimary, textS = T.textSecondary;
+    const bSub = T.borderSubtle;
+    const fontD = T.fontDisplay, fontS = T.fontSans;
+    const plotX = _sgPlotX, plotW = _sgPlotW;
+
+    const fTitle  = 130;
+    const fWriter = 66;
+    const titleY  = 40 + fTitle;
+    const writerY = titleY + 14 + fWriter;
 
     const esc = s => (s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
-    return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+    const actBreaks = entry.naturalStructure?.actBreaks || [];
+    const midPos    = entry.keyMoments?.midpoint?.position ?? null;
+
+    const peakT = (() => {
+      const raw = entry.overallTension || [];
+      const sm = _sgSmooth(raw);
+      return sm.length ? Math.max(...sm).toFixed(1) : "—";
+    })();
+    const avgScLen = entry.scenes?.length
+      ? (entry.scenes.reduce((s, sc) => s + (sc.lengthPages || 1), 0) / entry.scenes.length).toFixed(1)
+      : entry.avgSceneLength || "—";
+
+    const sw = Math.round(plotW / 4);
+    const stats = [
+      { v: `${entry.totalPages}p`, l: "pages",        c: textP, tc: textS },
+      { v: `${entry.totalScenes}`, l: "scenes",        c: textP, tc: textS },
+      { v: `${avgScLen}pp`,        l: "avg/scene",     c: textP, tc: textS },
+      { v: `${peakT}`,             l: "peak tension",  c: textP, tc: textS },
+    ];
+
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}">
   <rect width="${W}" height="${H}" fill="${bgP}"/>
-  <rect x="${plotX}" y="0" width="${plotW}" height="4" fill="${ac}" opacity="0.75"/>
-  <text x="${plotX}" y="${titleY}" font-family="${fontD}" font-weight="800" font-size="${fTitle}" fill="${textP}" letter-spacing="0.5">${esc((entry.title || "").toUpperCase())}</text>
-  <text x="${plotX}" y="${writerY}" font-family="${fontSans}" font-weight="300" font-size="${fWriter}" fill="${textS}" letter-spacing="0.3">${esc(entry.writer || "")}</text>
-  <rect x="${plotX}" y="${plotY}" width="${plotW}" height="${plotH}" fill="#ffffff03" rx="3"/>
-  <defs>
-    <linearGradient id="scg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="${ac}" stop-opacity="0.32"/>
-      <stop offset="100%" stop-color="${ac}" stop-opacity="0.03"/>
-    </linearGradient>
-    <clipPath id="sclip"><rect x="${plotX}" y="${plotY - 2}" width="${plotW}" height="${plotH + 6}"/></clipPath>
-  </defs>
-  ${grid}
-  ${bands}
-  <path d="${areaPath}" fill="url(#scg)" clip-path="url(#sclip)"/>
-  <path d="${linePath}" fill="none" stroke="${ac}" stroke-width="2.8" stroke-linejoin="round" stroke-linecap="round" clip-path="url(#sclip)"/>
-  ${yAxisSvg}
-  <line x1="${plotX}" y1="${infoY - 4}" x2="${(plotX + plotW).toFixed(0)}" y2="${infoY - 4}" stroke="${bSub}" stroke-width="1"/>
-  ${statSvg}
-  <text x="${(plotX + plotW / 2).toFixed(0)}" y="${brandY}" text-anchor="middle" font-family="${fontD}" font-weight="800" font-size="${fBrand}" fill="${ac}" letter-spacing="3" opacity="0.5">scriptgraph.ai</text>
+  <rect x="${plotX}" y="0" width="${plotW}" height="8" fill="${ac}" opacity="0.75"/>
+  <text x="${plotX}" y="${titleY}" font-family="${fontD}" font-weight="800" font-size="${fTitle}" fill="${textP}" letter-spacing="1">${esc((entry.title || "").toUpperCase())}</text>
+  <text x="${plotX}" y="${writerY}" font-family="${fontS}" font-weight="300" font-size="${fWriter}" fill="${textS}">${esc(entry.writer || "")}</text>
+  <line x1="${plotX}" y1="${_sgHeaderH}" x2="${plotX + plotW}" y2="${_sgHeaderH}" stroke="${bSub}" stroke-width="1.5"/>
+  <rect x="${plotX}" y="${_sgPlotY}" width="${plotW}" height="${_sgPlotH}" fill="#ffffff03" rx="6"/>
+  ${_sgChartCore(entry.overallTension || [], actBreaks, midPos, ac, "sg")}
+  ${_sgYAxis()}
+  <line x1="${plotX}" y1="${_sgInfoY - 10}" x2="${plotX + plotW}" y2="${_sgInfoY - 10}" stroke="${bSub}" stroke-width="1.5"/>
+  ${_sgStatStrip(stats, sw)}
 </svg>`;
   };
 
+  // ── Compare Card Generator ──────────────────────────────────────────────────
   const generateCompareCardSVG = (s1, s2) => {
-    const W = 1200, H = 630;
+    const W = _sgW, H = _sgH;
     const color1 = T.fwColors.three_act;
     const color2 = T.fwColors.story_circle;
-    const bgP = T.bgPage, bgPan = T.bgPanel;
-    const textP = T.textPrimary, textM = T.textMuted;
-    const bSub = T.borderSubtle, bMid = T.borderMid, bStr = T.borderStrong;
-    const fontD = T.fontDisplay, fontSans = T.fontSans, fontM = T.fontMono;
-
-    const yColW = 28, yGap = 8, sidePad = 32;
-    const plotX = sidePad + yColW + yGap;
-    const plotW = W - sidePad - plotX;
+    const bgP = T.bgPage;
+    const bSub = T.borderSubtle, bMid = T.borderMid;
+    const fontD = T.fontDisplay, fontS = T.fontSans;
+    const plotX = _sgPlotX, plotW = _sgPlotW;
     const plotMidX = plotX + plotW / 2;
-
-    const halfW = plotW / 2 - 24;
-    const longestTitle = Math.max((s1.title || "").length, (s2.title || "").length);
-    const fTitle  = Math.min(38, Math.max(20, Math.floor(halfW / (longestTitle * 0.58))));
-    const fWriter = Math.round(fTitle * 0.58);
-    const fMeta = 16, fBrand = 20, fStatN = 38;
-
-    const headerH = Math.max(100, fTitle + fWriter + 32);
-    const titleWriterH = fTitle + 6 + fWriter;
-    const headerMidY = headerH / 2;
-    const titleY = Math.round(headerMidY - titleWriterH / 2) + fTitle;
-    const writerY = titleY + fWriter + 6;
-
-    const plotY = headerH, xAxisH = 22, statZoneH = 130, brandH = 26;
-    const plotH = H - plotY - xAxisH - statZoneH - brandH - 6;
-    const infoY = plotY + plotH + xAxisH + 4;
-    const infoH = H - infoY - brandH - 6;
-    const brandY = H - 8;
 
     const esc = str => (str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
-    const smTension = raw => (raw || []).map((_, i) => {
-      const lo = Math.max(0, i - 1), hi = Math.min(raw.length - 1, i + 1);
-      const sl = raw.slice(lo, hi + 1);
-      return sl.reduce((a, b) => a + b, 0) / sl.length;
-    });
+    // Dynamic title font — fits longest title in half the plot width
+    const hw  = plotW / 2 - 48;
+    const lng = Math.max((s1.title || "").length, (s2.title || "").length);
+    const cft = Math.min(130, Math.max(52, Math.floor(hw / (lng * 0.58))));
+    const cfw = Math.round(cft * 0.55);
 
-    const buildCurve = (entry, color, gradId) => {
-      const sm = smTension(entry.overallTension || []);
+    // Vertically center title+writer in the fixed header zone
+    const titleWriterH = cft + 12 + cfw;
+    const cTY = Math.round(_sgHeaderH / 2 - titleWriterH / 2) + cft;
+    const cWY = cTY + cfw + 12;
+
+    const smT = t => _sgSmooth(t || []);
+    const m1 = smT(s1.overallTension), m2 = smT(s2.overallTension);
+    const avg1  = m1.length ? (m1.reduce((a, b) => a + b, 0) / m1.length).toFixed(1) : "—";
+    const peak1 = m1.length ? Math.max(...m1).toFixed(1) : "—";
+    const avg2  = m2.length ? (m2.reduce((a, b) => a + b, 0) / m2.length).toFixed(1) : "—";
+    const peak2 = m2.length ? Math.max(...m2).toFixed(1) : "—";
+
+    const cw = Math.round(plotW / 4);
+    const stats = [
+      { v: avg1,  l: "avg tension",  c: color1, tc: color1, op: "0.9" },
+      { v: peak1, l: "peak tension", c: color1, tc: color1, op: "0.9" },
+      { v: avg2,  l: "avg tension",  c: color2, tc: color2, op: "0.9" },
+      { v: peak2, l: "peak tension", c: color2, tc: color2, op: "0.9" },
+    ];
+
+    const buildCurve = (entry, color, gid) => {
+      const sm = smT(entry.overallTension);
       if (!sm.length) return "";
       const pts = sm.map((t, i) => ({
         x: plotX + (i / (sm.length - 1)) * plotW,
-        y: plotY + plotH - (t / 10) * plotH,
+        y: _sgPlotY + _sgPlotH - (t / 10) * _sgPlotH,
       }));
       const line = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
-      const area = `${line} L${(plotX + plotW).toFixed(1)},${(plotY + plotH).toFixed(1)} L${plotX},${(plotY + plotH).toFixed(1)} Z`;
+      const area = `${line} L${(plotX + plotW).toFixed(1)},${(_sgPlotY + _sgPlotH).toFixed(1)} L${plotX},${(_sgPlotY + _sgPlotH).toFixed(1)} Z`;
       return `<defs>
-        <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="${color}" stop-opacity="0.28"/>
-          <stop offset="100%" stop-color="${color}" stop-opacity="0.03"/>
-        </linearGradient>
-        <clipPath id="clip${gradId}"><rect x="${plotX}" y="${plotY - 2}" width="${plotW}" height="${plotH + 6}"/></clipPath>
-      </defs>
-      <path d="${area}" fill="url(#${gradId})" clip-path="url(#clip${gradId})"/>
-      <path d="${line}" fill="none" stroke="${color}" stroke-width="2.8" stroke-linejoin="round" stroke-linecap="round" clip-path="url(#clip${gradId})"/>`;
+      <linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="${color}" stop-opacity="0.25"/>
+        <stop offset="100%" stop-color="${color}" stop-opacity="0.03"/>
+      </linearGradient>
+      <clipPath id="cl${gid}"><rect x="${plotX}" y="${_sgPlotY - 4}" width="${plotW}" height="${_sgPlotH + 8}"/></clipPath>
+    </defs>
+    <path d="${area}" fill="url(#${gid})" clip-path="url(#cl${gid})"/>
+    <path d="${line}" fill="none" stroke="${color}" stroke-width="6" stroke-linejoin="round" clip-path="url(#cl${gid})"/>`;
     };
 
     const grid = [2, 4, 6, 8, 10].map(v => {
-      const gy = (plotY + plotH - (v / 10) * plotH).toFixed(1);
-      return `<line x1="${plotX}" y1="${gy}" x2="${(plotX + plotW).toFixed(1)}" y2="${gy}" stroke="#ffffff08" stroke-width="1"/>`;
+      const gy = (_sgPlotY + _sgPlotH - (v / 10) * _sgPlotH).toFixed(1);
+      return `<line x1="${plotX}" y1="${gy}" x2="${(plotX + plotW).toFixed(1)}" y2="${gy}" stroke="#ffffff09" stroke-width="2"/>`;
     }).join("");
 
     const actBreaks1 = s1.naturalStructure?.actBreaks || [];
-    const bandFills = ["#c8a0600d", "#ffffff07", "#c8a06009"];
-    const breaks = [0, ...actBreaks1.map(b => b.position), 100];
+    const bf = ["#c8a0600d", "#ffffff07", "#c8a06009"];
+    const bks = [0, ...actBreaks1.map(b => b.position), 100];
     let bands = "";
-    breaks.slice(0, -1).forEach((start, i) => {
-      const end = breaks[i + 1];
-      const bx1 = (plotX + (start / 100) * plotW).toFixed(1);
-      const bx2 = (plotX + (end / 100) * plotW).toFixed(1);
-      bands += `<rect x="${bx1}" y="${plotY}" width="${(+bx2 - +bx1).toFixed(1)}" height="${plotH}" fill="${bandFills[i % 3]}"/>`;
+    bks.slice(0, -1).forEach((start, i) => {
+      const end = bks[i + 1];
+      const x1 = (plotX + (start / 100) * plotW).toFixed(1);
+      const x2 = (plotX + (end / 100) * plotW).toFixed(1);
+      bands += `<rect x="${x1}" y="${_sgPlotY}" width="${(+x2 - +x1).toFixed(1)}" height="${_sgPlotH}" fill="${bf[i % 3]}"/>`;
     });
 
-    const labelX = (plotX - 6).toFixed(1);
-    const midY = (plotY + plotH / 2).toFixed(1);
-    const yAxisSvg = `
-      <line x1="${plotX}" y1="${plotY}" x2="${plotX}" y2="${(plotY + plotH).toFixed(1)}" stroke="${bMid}" stroke-width="1"/>
-      <line x1="${plotX}" y1="${(plotY + plotH).toFixed(1)}" x2="${(plotX + plotW).toFixed(1)}" y2="${(plotY + plotH).toFixed(1)}" stroke="${bMid}" stroke-width="1"/>
-      <text x="${labelX}" y="${(plotY + 4).toFixed(1)}" text-anchor="end" font-family="${fontM}" font-size="13" fill="${textM}">10</text>
-      <text x="${labelX}" y="${(plotY + plotH + 4).toFixed(1)}" text-anchor="end" font-family="${fontM}" font-size="13" fill="${textM}">0</text>
-      <text x="${labelX}" y="${midY}" text-anchor="middle" font-family="${fontM}" font-size="11" fill="${textM}" letter-spacing="2" transform="rotate(-90,${labelX},${midY})">TENSION</text>
-      ${[0, 25, 50, 75, 100].map(p => {
-        const px = (plotX + (p / 100) * plotW).toFixed(1);
-        return `<line x1="${px}" y1="${(plotY + plotH).toFixed(1)}" x2="${px}" y2="${(plotY + plotH + 5).toFixed(1)}" stroke="${bMid}" stroke-width="1"/>
-                <text x="${px}" y="${(plotY + plotH + 17).toFixed(1)}" text-anchor="middle" font-family="${fontSans}" font-size="13" fill="${textM}">${p}%</text>`;
-      }).join("")}
-    `;
+    const wx = (plotX + plotW - 12).toFixed(1), wy = (_sgPlotY + _sgPlotH - 26).toFixed(1);
+    const ac = T.accent;
 
-    const sm1 = smTension(s1.overallTension || []);
-    const sm2 = smTension(s2.overallTension || []);
-    const avg1  = sm1.length ? (sm1.reduce((a, b) => a + b, 0) / sm1.length).toFixed(1) : "—";
-    const peak1 = sm1.length ? Math.max(...sm1).toFixed(1) : "—";
-    const avg2  = sm2.length ? (sm2.reduce((a, b) => a + b, 0) / sm2.length).toFixed(1) : "—";
-    const peak2 = sm2.length ? Math.max(...sm2).toFixed(1) : "—";
-    const colW  = Math.round(plotW / 4);
-    const statDefs = [
-      { val: avg1,  label: "avg tension",  color: color1 },
-      { val: peak1, label: "peak tension", color: color1 },
-      { val: avg2,  label: "avg tension",  color: color2 },
-      { val: peak2, label: "peak tension", color: color2 },
-    ];
-    let statSvg = "";
-    statDefs.forEach((st, i) => {
-      const sx = plotX + i * colW;
-      if (i === 2) statSvg += `<line x1="${sx}" y1="${infoY + 4}" x2="${sx}" y2="${(infoY + infoH * 0.9).toFixed(0)}" stroke="${bStr}" stroke-width="1.5"/>`;
-      else if (i > 0) statSvg += `<line x1="${sx}" y1="${infoY + 6}" x2="${sx}" y2="${(infoY + infoH * 0.86).toFixed(0)}" stroke="${bMid}" stroke-width="1"/>`;
-      statSvg += `<text x="${(sx + colW / 2).toFixed(0)}" y="${(infoY + infoH * 0.52).toFixed(0)}" text-anchor="middle" font-family="${fontD}" font-weight="700" font-size="${fStatN}" fill="${st.color}">${st.val}</text>`;
-      statSvg += `<text x="${(sx + colW / 2).toFixed(0)}" y="${(infoY + infoH * 0.82).toFixed(0)}" text-anchor="middle" font-family="${fontM}" font-size="${fMeta}" fill="${st.color}" opacity="0.75" letter-spacing="1">${st.label}</text>`;
-    });
-
-    return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}">
   <rect width="${W}" height="${H}" fill="${bgP}"/>
-  <rect x="${plotX}" y="0" width="${(plotMidX - plotX).toFixed(1)}" height="4" fill="${color1}" opacity="0.75"/>
-  <rect x="${plotMidX.toFixed(1)}" y="0" width="${(plotX + plotW - plotMidX).toFixed(1)}" height="4" fill="${color2}" opacity="0.75"/>
-  <text x="${plotX}" y="${titleY}" font-family="${fontD}" font-weight="800" font-size="${fTitle}" fill="${color1}" letter-spacing="0.5">${esc((s1.title || "").toUpperCase())}</text>
-  <text x="${plotX}" y="${writerY}" font-family="${fontSans}" font-weight="300" font-size="${fWriter}" fill="${color1}" opacity="0.7" letter-spacing="0.3">${esc(s1.writer || "")}</text>
-  <text x="${(plotX + plotW).toFixed(1)}" y="${titleY}" text-anchor="end" font-family="${fontD}" font-weight="800" font-size="${fTitle}" fill="${color2}" letter-spacing="0.5">${esc((s2.title || "").toUpperCase())}</text>
-  <text x="${(plotX + plotW).toFixed(1)}" y="${writerY}" text-anchor="end" font-family="${fontSans}" font-weight="300" font-size="${fWriter}" fill="${color2}" opacity="0.7" letter-spacing="0.3">${esc(s2.writer || "")}</text>
-  <rect x="${plotX}" y="${plotY}" width="${plotW}" height="${plotH}" fill="#ffffff03" rx="3"/>
-  ${grid}
-  ${bands}
+  <rect x="${plotX}" y="0" width="${(plotMidX - plotX).toFixed(1)}" height="8" fill="${color1}" opacity="0.75"/>
+  <rect x="${plotMidX.toFixed(1)}" y="0" width="${(plotX + plotW - plotMidX).toFixed(1)}" height="8" fill="${color2}" opacity="0.75"/>
+  <text x="${plotX}" y="${cTY}" font-family="${fontD}" font-weight="800" font-size="${cft}" fill="${color1}" letter-spacing="1">${esc((s1.title || "").toUpperCase())}</text>
+  <text x="${plotX}" y="${cWY}" font-family="${fontS}" font-weight="300" font-size="${cfw}" fill="${color1}" opacity="0.7">${esc(s1.writer || "")}</text>
+  <text x="${(plotX + plotW).toFixed(1)}" y="${cTY}" text-anchor="end" font-family="${fontD}" font-weight="800" font-size="${cft}" fill="${color2}" letter-spacing="1">${esc((s2.title || "").toUpperCase())}</text>
+  <text x="${(plotX + plotW).toFixed(1)}" y="${cWY}" text-anchor="end" font-family="${fontS}" font-weight="300" font-size="${cfw}" fill="${color2}" opacity="0.7">${esc(s2.writer || "")}</text>
+  <line x1="${plotX}" y1="${_sgHeaderH}" x2="${plotX + plotW}" y2="${_sgHeaderH}" stroke="${bSub}" stroke-width="1.5"/>
+  <rect x="${plotX}" y="${_sgPlotY}" width="${plotW}" height="${_sgPlotH}" fill="#ffffff03" rx="6"/>
+  ${grid}${bands}
   ${buildCurve(s1, color1, "cg1")}
   ${buildCurve(s2, color2, "cg2")}
-  ${yAxisSvg}
-  <line x1="${plotX}" y1="${infoY - 4}" x2="${(plotX + plotW).toFixed(0)}" y2="${infoY - 4}" stroke="${bSub}" stroke-width="1"/>
-  ${statSvg}
-  <text x="${(plotX + plotW / 2).toFixed(0)}" y="${brandY}" text-anchor="middle" font-family="${fontD}" font-weight="800" font-size="${fBrand}" fill="${T.accent}" letter-spacing="3" opacity="0.5">scriptgraph.ai</text>
+  <text x="${wx}" y="${wy}" text-anchor="end" font-family="${fontS}" font-weight="300" font-size="${_sgFWmark}" fill="${ac}" opacity="0.35">scriptgraph.ai</text>
+  ${_sgYAxis()}
+  <line x1="${plotX}" y1="${_sgInfoY - 10}" x2="${plotX + plotW}" y2="${_sgInfoY - 10}" stroke="${bSub}" stroke-width="1.5"/>
+  ${_sgStatStrip(stats, cw)}
 </svg>`;
   };
 
@@ -3942,9 +3942,9 @@ export default function ScriptGraph() {
     img.onload = () => {
       try {
         const canvas = document.createElement("canvas");
-        canvas.width = 1200; canvas.height = 630;
+        canvas.width = 1800; canvas.height = 1800;
         const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0, 1200, 630);
+        ctx.drawImage(img, 0, 0, 1800, 1800);
         URL.revokeObjectURL(svgUrl);
         canvas.toBlob(pngBlob => {
           const pngUrl = URL.createObjectURL(pngBlob);
