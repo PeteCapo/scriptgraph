@@ -4042,9 +4042,9 @@ export default function ScriptGraph() {
     const bodyTop   = 51 * S;    // 255
     const bodySize  = 12 * S;    // 60
     const bodyLineH = 21 * S;    // 105
-    // 288px × 5 = 1440px wide. At 60px Inter 300, avg ~34px/char → ~42 chars/line
-    const bodyMaxW  = 288 * S;   // 1440
-    const wrapText  = (text, charW = 34) => {
+    // 318px × 5 = 1590px wide. At 60px Inter 300, avg ~30px/char → ~53 chars/line
+    const bodyMaxW  = 318 * S;   // 1590 — full inner card width, matches screen
+    const wrapText  = (text, charW = 30) => {
       const maxChars = Math.floor(bodyMaxW / charW);
       const words = text.split(" ");
       const lines = [];
@@ -4834,8 +4834,8 @@ export default function ScriptGraph() {
                           <div style={{ fontSize: 12, color: T.textSecondary, lineHeight: 1.75, fontWeight: 300, marginBottom: 0 }}>
                             {insight.body}
                           </div>
-                          {/* Mini graph — pushed to bottom */}
-                          <div style={{ background: T.bgPage, border: `1px solid ${T.borderSubtle}`, borderRadius: T.radiusMd, padding: "12px 14px 10px", marginTop: 16 }}>
+                          {/* Mini graph — pushed to bottom via marginTop auto */}
+                          <div style={{ background: T.bgPage, border: `1px solid ${T.borderSubtle}`, borderRadius: T.radiusMd, padding: "12px 14px 10px", marginTop: "auto" }}>
                             <MiniInsightCurve resolvedFilms={insight.resolvedFilms} />
                             {/* Film legend tags */}
                             <div style={{ display: "flex", gap: 6, marginTop: 10, flexWrap: "wrap" }}>
