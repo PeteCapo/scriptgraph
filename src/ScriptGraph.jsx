@@ -3706,17 +3706,17 @@ export default function ScriptGraph() {
 
   // Shared layout constants — identical zones for both cards
   // Centered: equal outer pad both sides. Y-axis labels (16px left of plotX) sit within the pad.
-  // 4:5 aspect ratio: 1800×2250. Extra 450px vs square split: 190px → header, 260px → chart.
+  // 4:5 aspect ratio: 1800×2250. Chart ~43% of canvas — title/stats get more presence.
   const _sgOuterPad  = 132;  // (1800 - 1536) / 2 — same plotW as before, now centered
   const _sgPlotX     = _sgOuterPad;
   const _sgW         = 1800;
   const _sgH         = 2250;
   const _sgPlotW     = _sgW - _sgOuterPad * 2;
-  const _sgHeaderH  = 500;  // expanded: more breathing room for titles + writer wrap
+  const _sgHeaderH  = 620;  // generous header — title, writer wrap, breathing room
   const _sgPlotY    = _sgHeaderH + 24;
   const _sgXAxisH   = 64;
-  const _sgStatH    = 310;
-  const _sgBotPad   = 50;
+  const _sgStatH    = 400;  // stat numbers get more vertical room
+  const _sgBotPad   = 180;  // enough room for insight card film tags below stats
   const _sgPlotH    = _sgH - _sgPlotY - _sgXAxisH - _sgStatH - _sgBotPad;
   const _sgInfoY    = _sgPlotY + _sgPlotH + _sgXAxisH + 18;
   const _sgInfoH    = _sgH - _sgInfoY - _sgBotPad;
@@ -4138,8 +4138,8 @@ export default function ScriptGraph() {
       ];
     }
 
-    // ── Film legend tags — positioned below stat strip ──
-    const tagsY    = _sgInfoY + _sgInfoH + 30;
+    // ── Film legend tags — positioned inside _sgBotPad, below stat strip ──
+    const tagsY    = _sgH - _sgBotPad + 30;  // 30px below start of bottom pad
     const tagH     = 60;
     const tagFSize = 36;
     const tagPadH  = 30;
