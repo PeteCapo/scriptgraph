@@ -14,7 +14,7 @@ if (typeof document !== "undefined" && !document.getElementById("sg-fonts")) {
   const link = document.createElement("link");
   link.id = "sg-fonts";
   link.rel = "stylesheet";
-  link.href = "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Barlow+Condensed:wght@600;700;800&display=swap";
+  link.href = "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Barlow+Condensed:wght@200;600;700;800&display=swap";
   document.head.appendChild(link);
   const style = document.createElement("style");
   style.textContent = `
@@ -41,7 +41,7 @@ const THEME = {
   textPrimary:   "#f0ece4",
   textSecondary: "#a89e90",
   textMuted:     "#6a6258",
-  textDim:       "#38342e",
+  textDim:       "#5a5a62",
   accent:        "#c8a060",
   accentDim:     "#8a6a38",
   fwColors: {
@@ -62,7 +62,7 @@ const THEME = {
   radiusMd:      "6px",
   radiusLg:      "10px",
   appName:       "ScriptGraph",
-  appTagline:    "Structure Analyzer",
+  appTagline:    "Story Structure, Visualized.",
 };
 const T = THEME;
 
@@ -4209,10 +4209,23 @@ export default function ScriptGraph() {
       {/* Nav */}
       <div style={{ borderBottom: `1px solid ${T.borderSubtle}`, padding: "0 48px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 64, background: T.bgPage, position: "sticky", top: 0, zIndex: 100, backdropFilter: "blur(12px)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 14, cursor: "pointer" }} onClick={() => { pushPath("/"); setScreen("library"); }}>
-          <span style={{ fontSize: 20, fontWeight: 700, letterSpacing: 1, fontFamily: T.fontDisplay, textTransform: "uppercase", color: T.textPrimary }}>
-            Script<span style={{ color: fwColor, fontWeight: 600 }}>Graph</span>
+          {/* Brand mark */}
+          <svg width="26" height="23" viewBox="0 0 58 52" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
+            <path d="M22 5 L14 5 L14 47 L22 47" stroke="#c8a060" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+            <path d="M36 5 L44 5 L44 47 L36 47" stroke="#c8a060" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+            <line x1="19" y1="16" x2="34" y2="16" stroke="#3a3a42" strokeWidth="1.0" strokeLinecap="round"/>
+            <line x1="19" y1="22" x2="38" y2="22" stroke="#3a3a42" strokeWidth="1.0" strokeLinecap="round"/>
+            <line x1="19" y1="28" x2="31" y2="28" stroke="#3a3a42" strokeWidth="1.0" strokeLinecap="round"/>
+            <line x1="19" y1="34" x2="36" y2="34" stroke="#3a3a42" strokeWidth="1.0" strokeLinecap="round"/>
+            <path d="M19 38 Q24 30 28 24 Q32 17 39 11" stroke="#c8a060" strokeWidth="2.6" strokeLinecap="round" fill="none"/>
+            <circle cx="19" cy="38" r="2.4" fill="#c8a060"/>
+            <circle cx="39" cy="11" r="2.4" fill="#c8a060"/>
+          </svg>
+          {/* Mixed-weight wordmark: SCRIPT light / GRAPH bold */}
+          <span style={{ fontFamily: T.fontDisplay, textTransform: "uppercase", letterSpacing: "0.08em", fontSize: 20, lineHeight: 1, color: T.textPrimary }}>
+            <span style={{ fontWeight: 200 }}>SCRIPT</span><span style={{ fontWeight: 700 }}>GRAPH</span>
           </span>
-          <span style={{ fontSize: 9, color: T.textDim, letterSpacing: 3, fontFamily: T.fontMono, textTransform: "uppercase", paddingTop: 1 }}>{T.appTagline}</span>
+          <span style={{ fontSize: 9, color: T.textDim, letterSpacing: "0.2em", fontFamily: T.fontMono, textTransform: "uppercase", paddingTop: 1 }}>{T.appTagline}</span>
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           {!PUBLIC_MODE && screen === "results" && p1 && (
