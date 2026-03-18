@@ -3706,13 +3706,13 @@ export default function ScriptGraph() {
 
   // Shared layout constants — identical zones for both cards
   // Centered: equal outer pad both sides. Y-axis labels (16px left of plotX) sit within the pad.
-  // 4:5 aspect ratio: 1800×2250 — width stays, height gains 450px all into the plot area.
+  // 4:5 aspect ratio: 1800×2250. Extra 450px vs square split: 190px → header, 260px → chart.
   const _sgOuterPad  = 132;  // (1800 - 1536) / 2 — same plotW as before, now centered
   const _sgPlotX     = _sgOuterPad;
   const _sgW         = 1800;
   const _sgH         = 2250;
   const _sgPlotW     = _sgW - _sgOuterPad * 2;
-  const _sgHeaderH  = 310;
+  const _sgHeaderH  = 500;  // expanded: more breathing room for titles + writer wrap
   const _sgPlotY    = _sgHeaderH + 24;
   const _sgXAxisH   = 64;
   const _sgStatH    = 310;
@@ -3804,7 +3804,7 @@ export default function ScriptGraph() {
     return ss;
   };
 
-  // Builds a standalone 1800×1800 square SVG social card from the current p1 data.
+  // Builds a standalone 1800×2250 (4:5) SVG social card from the current p1 data.
   const generateShareCardSVG = (entry) => {
     const W = _sgW, H = _sgH;
     const ac = T.accent, bgP = T.bgPage;
@@ -3815,10 +3815,21 @@ export default function ScriptGraph() {
 
     const fTitle  = 130;
     const fWriter = 66;
-    const titleY  = 40 + fTitle;
-    const writerY = titleY + 14 + fWriter;
+    // Title sits lower in the expanded header — more air at top
+    const titleY  = 80 + fTitle;    // baseline ~210
+    const writerLineH = fWriter + 16;
 
     const esc = s => (s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+    // Wrap writer name at ~30 chars on word boundary
+    const wrapWriter = (name, maxChars = 30) => {
+      if (!name || name.length <= maxChars) return [name || ""];
+      const mid = name.lastIndexOf(" ", maxChars);
+      if (mid < 1) return [name];
+      return [name.slice(0, mid), name.slice(mid + 1)];
+    };
+    const writerLines = wrapWriter(entry.writer || "");
+    const writerStartY = titleY + 24 + fWriter;
 
     const actBreaks = entry.naturalStructure?.actBreaks || [];
     const midPos    = entry.keyMoments?.midpoint?.position ?? null;
@@ -3828,23 +3839,32 @@ export default function ScriptGraph() {
       const sm = _sgSmooth(raw);
       return sm.length ? Math.max(...sm).toFixed(1) : "—";
     })();
+    const avgT = (() => {
+      const raw = entry.overallTension || [];
+      const sm = _sgSmooth(raw);
+      return sm.length ? (sm.reduce((a, b) => a + b, 0) / sm.length).toFixed(1) : "—";
+    })();
     const avgScLen = entry.scenes?.length
       ? (entry.scenes.reduce((s, sc) => s + (sc.lengthPages || 1), 0) / entry.scenes.length).toFixed(1)
       : entry.avgSceneLength || "—";
 
     const sw = Math.round(plotW / 4);
     const stats = [
-      { v: `${entry.totalPages}p`, l: "pages",        c: textP, tc: textS },
-      { v: `${entry.totalScenes}`, l: "scenes",        c: textP, tc: textS },
-      { v: `${avgScLen}pp`,        l: "avg/scene",     c: textP, tc: textS },
-      { v: `${peakT}`,             l: "peak tension",  c: textP, tc: textS },
+      { v: `${entry.totalPages}p`, l: "pages",       c: textP, tc: textS },
+      { v: `${avgScLen}pp`,        l: "avg scene",    c: textP, tc: textS },
+      { v: avgT,                   l: "avg tension",  c: textP, tc: textS },
+      { v: peakT,                  l: "peak tension", c: textP, tc: textS },
     ];
+
+    const writerSVG = writerLines.map((line, i) =>
+      `<text x="${plotX}" y="${writerStartY + i * writerLineH}" font-family="${fontS}" font-weight="300" font-size="${fWriter}" fill="${textS}">${esc(line)}</text>`
+    ).join("\n  ");
 
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}">
   <rect width="${W}" height="${H}" fill="${bgP}"/>
   <rect x="${plotX}" y="0" width="${plotW}" height="8" fill="${ac}" opacity="0.75"/>
   <text x="${plotX}" y="${titleY}" font-family="${fontD}" font-weight="800" font-size="${fTitle}" fill="${textP}" letter-spacing="1">${esc((entry.title || "").toUpperCase())}</text>
-  <text x="${plotX}" y="${writerY}" font-family="${fontS}" font-weight="300" font-size="${fWriter}" fill="${textS}">${esc(entry.writer || "")}</text>
+  ${writerSVG}
   <line x1="${plotX}" y1="${_sgHeaderH}" x2="${plotX + plotW}" y2="${_sgHeaderH}" stroke="${bSub}" stroke-width="1.5"/>
   <rect x="${plotX}" y="${_sgPlotY}" width="${plotW}" height="${_sgPlotH}" fill="#ffffff03" rx="6"/>
   ${_sgChartCore(entry.overallTension || [], actBreaks, midPos, ac, "sg")}
@@ -3872,25 +3892,48 @@ export default function ScriptGraph() {
     const lng = Math.max((s1.title || "").length, (s2.title || "").length);
     const cft = Math.min(130, Math.max(52, Math.floor(hw / (lng * 0.58))));
     const cfw = Math.round(cft * 0.55);
+    const cLineH = cfw + 14; // line height for wrapped writer lines
 
-    // Vertically center title+writer in the fixed header zone
-    const titleWriterH = cft + 12 + cfw;
-    const cTY = Math.round(_sgHeaderH / 2 - titleWriterH / 2) + cft;
-    const cWY = cTY + cfw + 12;
+    // Wrap writer at ~28 chars on word boundary
+    const wrapW = (name, max = 28) => {
+      if (!name || name.length <= max) return [name || ""];
+      const mid = name.lastIndexOf(" ", max);
+      return mid > 0 ? [name.slice(0, mid), name.slice(mid + 1)] : [name];
+    };
+    const w1lines = wrapW(s1.writer || "");
+    const w2lines = wrapW(s2.writer || "");
+    const maxWriterLines = Math.max(w1lines.length, w2lines.length);
+
+    // Vertically center title block (title + all writer lines) in the header zone
+    const titleBlockH = cft + 14 + maxWriterLines * cLineH;
+    const cTY = Math.round(_sgHeaderH / 2 - titleBlockH / 2) + cft;
+    const cWY1 = cTY + 14 + cfw; // baseline of first writer line
+
+    // Build writer SVG for left (text-anchor start) and right (text-anchor end)
+    const writerLeft  = w1lines.map((l, i) =>
+      `<text x="${plotX}" y="${cWY1 + i * cLineH}" font-family="${fontS}" font-weight="300" font-size="${cfw}" fill="${color1}" opacity="0.7">${esc(l)}</text>`
+    ).join("\n  ");
+    const writerRight = w2lines.map((l, i) =>
+      `<text x="${(plotX + plotW).toFixed(1)}" y="${cWY1 + i * cLineH}" text-anchor="end" font-family="${fontS}" font-weight="300" font-size="${cfw}" fill="${color2}" opacity="0.7">${esc(l)}</text>`
+    ).join("\n  ");
 
     const smT = t => _sgSmooth(t || []);
     const m1 = smT(s1.overallTension), m2 = smT(s2.overallTension);
     const avg1  = m1.length ? (m1.reduce((a, b) => a + b, 0) / m1.length).toFixed(1) : "—";
-    const peak1 = m1.length ? Math.max(...m1).toFixed(1) : "—";
     const avg2  = m2.length ? (m2.reduce((a, b) => a + b, 0) / m2.length).toFixed(1) : "—";
-    const peak2 = m2.length ? Math.max(...m2).toFixed(1) : "—";
+    const avgSc1 = s1.scenes?.length
+      ? (s1.scenes.reduce((s, sc) => s + (sc.lengthPages || 1), 0) / s1.scenes.length).toFixed(1)
+      : s1.avgSceneLength || "—";
+    const avgSc2 = s2.scenes?.length
+      ? (s2.scenes.reduce((s, sc) => s + (sc.lengthPages || 1), 0) / s2.scenes.length).toFixed(1)
+      : s2.avgSceneLength || "—";
 
     const cw = Math.round(plotW / 4);
     const stats = [
-      { v: avg1,  l: "avg tension",  c: color1, tc: color1, op: "0.9" },
-      { v: peak1, l: "peak tension", c: color1, tc: color1, op: "0.9" },
-      { v: avg2,  l: "avg tension",  c: color2, tc: color2, op: "0.9" },
-      { v: peak2, l: "peak tension", c: color2, tc: color2, op: "0.9" },
+      { v: `${avgSc1}pp`, l: "avg scene",   c: color1, tc: color1, op: "0.9" },
+      { v: avg1,          l: "avg tension", c: color1, tc: color1, op: "0.9" },
+      { v: `${avgSc2}pp`, l: "avg scene",   c: color2, tc: color2, op: "0.9" },
+      { v: avg2,          l: "avg tension", c: color2, tc: color2, op: "0.9" },
     ];
 
     const buildCurve = (entry, color, gid) => {
@@ -3937,9 +3980,9 @@ export default function ScriptGraph() {
   <rect x="${plotX}" y="0" width="${(plotMidX - plotX).toFixed(1)}" height="8" fill="${color1}" opacity="0.75"/>
   <rect x="${plotMidX.toFixed(1)}" y="0" width="${(plotX + plotW - plotMidX).toFixed(1)}" height="8" fill="${color2}" opacity="0.75"/>
   <text x="${plotX}" y="${cTY}" font-family="${fontD}" font-weight="800" font-size="${cft}" fill="${color1}" letter-spacing="1">${esc((s1.title || "").toUpperCase())}</text>
-  <text x="${plotX}" y="${cWY}" font-family="${fontS}" font-weight="300" font-size="${cfw}" fill="${color1}" opacity="0.7">${esc(s1.writer || "")}</text>
+  ${writerLeft}
   <text x="${(plotX + plotW).toFixed(1)}" y="${cTY}" text-anchor="end" font-family="${fontD}" font-weight="800" font-size="${cft}" fill="${color2}" letter-spacing="1">${esc((s2.title || "").toUpperCase())}</text>
-  <text x="${(plotX + plotW).toFixed(1)}" y="${cWY}" text-anchor="end" font-family="${fontS}" font-weight="300" font-size="${cfw}" fill="${color2}" opacity="0.7">${esc(s2.writer || "")}</text>
+  ${writerRight}
   <line x1="${plotX}" y1="${_sgHeaderH}" x2="${plotX + plotW}" y2="${_sgHeaderH}" stroke="${bSub}" stroke-width="1.5"/>
   <rect x="${plotX}" y="${_sgPlotY}" width="${plotW}" height="${_sgPlotH}" fill="#ffffff03" rx="6"/>
   ${grid}${bands}
@@ -4009,44 +4052,28 @@ export default function ScriptGraph() {
   };
 
   // ── Insight Card Share Image Generator ─────────────────────────────────────
-  // All measurements derived from live DOM. Card on screen: 360×328px, padding 20/20/18.
-  // Scale factor S=5 maps 360px → 1800px. Content is vertically centered in 1800×1800.
-  //
-  // Screen measurements:
-  //   title:  top 21px, h 22px, font 18px/700, letterSpacing 1.5px
-  //   body:   top 51px, font 12px/300, lineH 21px, width 318px (inner)
-  //   gcont:  top 193px (Safdie — longest text), h 116px, padding 12/14/10
-  //   svg:    top 206px, 288×64px
-  //   tags:   top 280px, h 18px, font 9px, padding 3/7px, gap 6px, letterSpacing 1px
+  // Full-bleed 1800×2250 poster. Uses shared _sg* chart infrastructure so curves
+  // render identically to single/compare cards. Fixed graph height = _sgPlotH.
+  // Stats: single film → pages · avg scene · avg tension · peak tension
+  //        comparison  → film A avg scene · film A avg tension · film B avg scene · film B avg tension
   const generateInsightCardSVG = (insight) => {
-    const W = 1800, H = 2250;
-    const S = 5; // 360 → 1800
-
-    const bgP = T.bgPage, bgPan = T.bgPanel;
+    const W = _sgW, H = _sgH;
+    const bgP = T.bgPage;
     const textP = T.textPrimary, textS = T.textSecondary;
-    const bSub = T.borderSubtle;
     const ac = T.accent;
-    const fontD = T.fontDisplay, fontS = T.fontSans, fontM = T.fontMono;
+    const fontD = T.fontDisplay, fontS = T.fontSans;
+    const plotX = _sgPlotX, plotW = _sgPlotW;
     const esc = s => (s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
-    // Card inner dimensions (screen px → scaled)
-    const cardPad   = 20 * S;    // 100 — horizontal padding
-    const innerX    = cardPad;   // 100
-    const innerW    = W - cardPad * 2; // 1600 — matches 320px inner width × 5
+    // ── Header layout (mirrors single card but insight-specific) ──
+    const fTitle   = 90;   // slightly smaller than 130 — title is shorter label
+    const fBody    = 54;
+    const bodyLineH = 82;
+    const titleY   = 80 + fTitle;  // baseline ~170
 
-    // Title
-    const titleSize = 18 * S;    // 90
-    const titleTop  = 21 * S;    // 105
-    const titleY    = titleTop + titleSize * 0.78; // baseline ~175
-
-    // Body — use SVG width (288px) not full inner width, matching actual card layout
-    const bodyTop   = 51 * S;    // 255
-    const bodySize  = 12 * S;    // 60
-    const bodyLineH = 21 * S;    // 105
-    // 318px × 5 = 1590px wide. At 60px Inter 300, avg ~30px/char → ~53 chars/line
-    const bodyMaxW  = 318 * S;   // 1590 — full inner card width, matches screen
-    const wrapText  = (text, charW = 30) => {
-      const maxChars = Math.floor(bodyMaxW / charW);
+    // Body text wrap — full plot width at 54px Inter 300, ~32px/char → ~47 chars/line
+    const wrapText = (text, charW = 32) => {
+      const maxChars = Math.floor(plotW / charW);
       const words = text.split(" ");
       const lines = [];
       let cur = "";
@@ -4059,100 +4086,119 @@ export default function ScriptGraph() {
       return lines;
     };
     const bodyLines = wrapText(insight.body);
-    const bodyH     = bodyLines.length * bodyLineH;
+    const bodyStartY = titleY + 50 + fBody;
+    const bodyEndY = bodyStartY + (bodyLines.length - 1) * bodyLineH;
 
-    // Gap between body and graph container (screen: 16px marginTop)
-    const bodyGraphGap = 16 * S; // 80
+    // Divider sits where header ends — _sgHeaderH
+    // Body must fit within header. If it overflows, it will overlap chart (acceptable for short copy)
 
-    // Graph container — screen: padding 12/14/10, inner SVG 288×64
-    const gcPadTop  = 12 * S;   // 60
-    const gcPadX    = 14 * S;   // 70
-    const gcPadBot  = 10 * S;   // 50
-    const svgW      = 288 * S;  // 1440
-    const svgH      = 64 * S;   // 320
-    const gcW       = innerW;   // 1600
-    const gcH       = gcPadTop + svgH + gcPadBot + (10 * S) + (18 * S); // 60+320+50+50+90 = 570
-    // (10*S = marginTop of tags, 18*S = tag height)
-
-    // Full content height for vertical centering
-    const contentTop   = 21 * S;  // where title starts
-    const gcTop        = bodyTop + bodyH + bodyGraphGap;
-    const graphY       = gcTop + gcPadTop;
-    const graphX       = innerX + gcPadX;
-    const graphW       = svgW;
-    const graphH       = svgH;
-    const tagsTop      = graphY + graphH + (10 * S);
-    const tagH         = 18 * S; // 90
-    const contentBot   = tagsTop + tagH;
-    const totalContent = contentBot - contentTop;
-    // Center content vertically in 1800px
-    const vOffset      = Math.round((H - totalContent) / 2) - contentTop;
-
-    // Adjusted Y values
-    const aTitleY   = titleY    + vOffset;
-    const aBodyTop  = bodyTop   + vOffset;
-    const aGcTop    = gcTop     + vOffset;
-    const aGraphY   = graphY    + vOffset;
-    const aTagsTop  = tagsTop   + vOffset;
-    const aWmY      = aGraphY + graphH - (8 * S);
-
-    // Tags: font 9px, padding 3/7px, letterSpacing 1px, gap 6px — all × 5
-    const tagFontSize    = 9  * S;  // 45
-    const tagPadV        = 3  * S;  // 15
-    const tagPadH        = 7  * S;  // 35
-    const tagLetterSp    = 1  * S;  // 5
-    const tagGap         = 6  * S;  // 30
-    const tagBorderR     = 3  * S;  // 15
-    // Char width at 45px monospace ~28px/char
-    let tagX = graphX;
-    const tags = insight.resolvedFilms.map(f => {
-      const labelW = f.label.length * 28 + tagPadH * 2;
-      const tag = `
-  <rect x="${tagX.toFixed(0)}" y="${aTagsTop}" width="${labelW.toFixed(0)}" height="${tagH}" rx="${tagBorderR}" fill="${f.color}15" stroke="${f.color}" stroke-width="2" stroke-opacity="0.4"/>
-  <text x="${(tagX + labelW / 2).toFixed(0)}" y="${(aTagsTop + tagH * 0.62).toFixed(0)}" text-anchor="middle" font-family="${fontM}" font-size="${tagFontSize}" fill="${f.color}" letter-spacing="${tagLetterSp}">${esc(f.label.toUpperCase())}</text>`;
-      tagX += labelW + tagGap;
-      return tag;
-    }).join("");
-
-    // Smooth helper
+    // ── Stats ──
     const sm = arr => arr.map((_, i) => {
       const lo = Math.max(0, i - 1), hi = Math.min(arr.length - 1, i + 1);
       const sl = arr.slice(lo, hi + 1);
       return sl.reduce((a, b) => a + b, 0) / sl.length;
     });
 
-    // Curves
-    const defs = insight.resolvedFilms.map((f, i) =>
-      `<linearGradient id="icg${i}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${f.color}" stop-opacity="0.25"/><stop offset="100%" stop-color="${f.color}" stop-opacity="0.02"/></linearGradient>`
+    const isSolo = insight.resolvedFilms.length === 1;
+    const sw = Math.round(plotW / 4);
+
+    let stats;
+    if (isSolo) {
+      const entry = insight.resolvedFilms[0].entry;
+      const ten = sm(entry?.overallTension || []);
+      const avgT  = ten.length ? (ten.reduce((a, b) => a + b, 0) / ten.length).toFixed(1) : "—";
+      const peakT = ten.length ? Math.max(...ten).toFixed(1) : "—";
+      const avgSc = entry?.scenes?.length
+        ? (entry.scenes.reduce((s, sc) => s + (sc.lengthPages || 1), 0) / entry.scenes.length).toFixed(1)
+        : entry?.avgSceneLength || "—";
+      stats = [
+        { v: `${entry?.totalPages || "—"}p`, l: "pages",       c: textP,  tc: textS },
+        { v: `${avgSc}pp`,                   l: "avg scene",   c: textP,  tc: textS },
+        { v: avgT,                           l: "avg tension", c: textP,  tc: textS },
+        { v: peakT,                          l: "peak tension",c: textP,  tc: textS },
+      ];
+    } else {
+      const [f1, f2] = insight.resolvedFilms;
+      const color1 = T.fwColors.three_act, color2 = T.fwColors.story_circle;
+      const t1 = sm(f1.entry?.overallTension || []);
+      const t2 = sm(f2.entry?.overallTension || []);
+      const avg1  = t1.length ? (t1.reduce((a, b) => a + b, 0) / t1.length).toFixed(1) : "—";
+      const avg2  = t2.length ? (t2.reduce((a, b) => a + b, 0) / t2.length).toFixed(1) : "—";
+      const avgSc1 = f1.entry?.scenes?.length
+        ? (f1.entry.scenes.reduce((s, sc) => s + (sc.lengthPages || 1), 0) / f1.entry.scenes.length).toFixed(1)
+        : f1.entry?.avgSceneLength || "—";
+      const avgSc2 = f2.entry?.scenes?.length
+        ? (f2.entry.scenes.reduce((s, sc) => s + (sc.lengthPages || 1), 0) / f2.entry.scenes.length).toFixed(1)
+        : f2.entry?.avgSceneLength || "—";
+      stats = [
+        { v: `${avgSc1}pp`, l: "avg scene",   c: color1, tc: color1, op: "0.9" },
+        { v: avg1,          l: "avg tension", c: color1, tc: color1, op: "0.9" },
+        { v: `${avgSc2}pp`, l: "avg scene",   c: color2, tc: color2, op: "0.9" },
+        { v: avg2,          l: "avg tension", c: color2, tc: color2, op: "0.9" },
+      ];
+    }
+
+    // ── Film legend tags — positioned below stat strip ──
+    const tagsY    = _sgInfoY + _sgInfoH + 30;
+    const tagH     = 60;
+    const tagFSize = 36;
+    const tagPadH  = 30;
+    const tagGap   = 24;
+    const tagBR    = 12;
+    let tagX = plotX;
+    const tags = insight.resolvedFilms.map(f => {
+      const labelW = f.label.length * 22 + tagPadH * 2;
+      const tag = `
+  <rect x="${tagX.toFixed(0)}" y="${tagsY}" width="${labelW.toFixed(0)}" height="${tagH}" rx="${tagBR}" fill="${f.color}15" stroke="${f.color}" stroke-width="2" stroke-opacity="0.4"/>
+  <text x="${(tagX + labelW / 2).toFixed(0)}" y="${(tagsY + tagH * 0.63).toFixed(0)}" text-anchor="middle" font-family="${fontD}" font-weight="600" font-size="${tagFSize}" fill="${f.color}" letter-spacing="4">${esc(f.label.toUpperCase())}</text>`;
+      tagX += labelW + tagGap;
+      return tag;
+    }).join("");
+
+    // ── Build curves for each film ──
+    const color1 = T.fwColors.three_act, color2 = T.fwColors.story_circle;
+    const filmColors = insight.resolvedFilms.length === 1
+      ? [ac]
+      : [color1, color2];
+
+    const curveDefs = insight.resolvedFilms.map((f, i) =>
+      `<linearGradient id="icg${i}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${filmColors[i]}" stop-opacity="0.25"/><stop offset="100%" stop-color="${filmColors[i]}" stop-opacity="0.03"/></linearGradient>`
     ).join("");
 
     const curves = insight.resolvedFilms.map((f, i) => {
       if (!f.entry?.overallTension) return "";
       const s = sm(f.entry.overallTension);
       const pts = s.map((t, idx) => ({
-        x: graphX + (idx / (s.length - 1)) * graphW,
-        y: aGraphY + graphH - (t / 10) * graphH,
+        x: plotX + (idx / (s.length - 1)) * plotW,
+        y: _sgPlotY + _sgPlotH - (t / 10) * _sgPlotH,
       }));
       const line = pts.map((p, idx) => `${idx === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
-      const area = line + ` L${(graphX + graphW).toFixed(1)},${(aGraphY + graphH).toFixed(1)} L${graphX.toFixed(1)},${(aGraphY + graphH).toFixed(1)} Z`;
-      return `<path d="${area}" fill="url(#icg${i})"/><path d="${line}" fill="none" stroke="${f.color}" stroke-width="${i === 0 ? 7 : 6}" stroke-linejoin="round" stroke-linecap="round" opacity="${i > 0 ? 0.7 : 1}"/>`;
+      const area = line + ` L${(plotX + plotW).toFixed(1)},${(_sgPlotY + _sgPlotH).toFixed(1)} L${plotX.toFixed(1)},${(_sgPlotY + _sgPlotH).toFixed(1)} Z`;
+      return `<path d="${area}" fill="url(#icg${i})"/><path d="${line}" fill="none" stroke="${filmColors[i]}" stroke-width="6" stroke-linejoin="round" stroke-linecap="round" opacity="${i > 0 ? 0.75 : 1}"/>`;
     }).join("");
 
     // Grid lines
     const grid = [2, 4, 6, 8, 10].map(v => {
-      const gy = (aGraphY + graphH - (v / 10) * graphH).toFixed(1);
-      return `<line x1="${graphX}" y1="${gy}" x2="${(graphX + graphW).toFixed(1)}" y2="${gy}" stroke="#ffffff09" stroke-width="3"/>`;
+      const gy = (_sgPlotY + _sgPlotH - (v / 10) * _sgPlotH).toFixed(1);
+      return `<line x1="${plotX}" y1="${gy}" x2="${(plotX + plotW).toFixed(1)}" y2="${gy}" stroke="#ffffff09" stroke-width="2"/>`;
     }).join("");
 
+    const wmX = (plotX + plotW - 12).toFixed(1);
+    const wmY = (_sgPlotY + _sgPlotH - 26).toFixed(1);
+
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}">
-  <defs>${defs}</defs>
-  <rect width="${W}" height="${H}" fill="${bgPan}"/>
-  <text x="${innerX}" y="${aTitleY.toFixed(0)}" font-family="${fontD}" font-weight="700" font-size="${titleSize}" fill="${textP}" letter-spacing="${1.5 * S}">${esc(insight.title.toUpperCase())}</text>
-  ${bodyLines.map((l, i) => `<text x="${innerX}" y="${(aBodyTop + i * bodyLineH + bodySize).toFixed(0)}" font-family="${fontS}" font-weight="300" font-size="${bodySize}" fill="${textS}">${esc(l)}</text>`).join("\n  ")}
-  <rect x="${innerX}" y="${aGcTop.toFixed(0)}" width="${gcW}" height="${gcH.toFixed(0)}" rx="${6 * S}" fill="${bgP}" stroke="${bSub}" stroke-width="2"/>
+  <defs>${curveDefs}</defs>
+  <rect width="${W}" height="${H}" fill="${bgP}"/>
+  <text x="${plotX}" y="${titleY}" font-family="${fontD}" font-weight="800" font-size="${fTitle}" fill="${textP}" letter-spacing="2">${esc(insight.title.toUpperCase())}</text>
+  ${bodyLines.map((l, i) => `<text x="${plotX}" y="${(bodyStartY + i * bodyLineH).toFixed(0)}" font-family="${fontS}" font-weight="300" font-size="${fBody}" fill="${textS}">${esc(l)}</text>`).join("\n  ")}
+  <line x1="${plotX}" y1="${_sgHeaderH}" x2="${plotX + plotW}" y2="${_sgHeaderH}" stroke="${T.borderSubtle}" stroke-width="1.5"/>
+  <rect x="${plotX}" y="${_sgPlotY}" width="${plotW}" height="${_sgPlotH}" fill="#ffffff03" rx="6"/>
   ${grid}
   ${curves}
-  <text x="${(graphX + graphW - 4).toFixed(0)}" y="${aWmY.toFixed(0)}" text-anchor="end" font-family="${fontS}" font-weight="300" font-size="${9 * S}" fill="${ac}" opacity="0.35">scriptgraph.ai</text>
+  <text x="${wmX}" y="${wmY}" text-anchor="end" font-family="${fontS}" font-weight="300" font-size="${_sgFWmark}" fill="${ac}" opacity="0.35">scriptgraph.ai</text>
+  ${_sgYAxis()}
+  <line x1="${plotX}" y1="${_sgInfoY - 10}" x2="${plotX + plotW}" y2="${_sgInfoY - 10}" stroke="${T.borderSubtle}" stroke-width="1.5"/>
+  ${_sgStatStrip(stats, sw)}
   ${tags}
 </svg>`;
   };
