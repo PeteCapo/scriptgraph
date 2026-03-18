@@ -3813,10 +3813,13 @@ export default function ScriptGraph() {
     const fontD = T.fontDisplay, fontS = T.fontSans;
     const plotX = _sgPlotX, plotW = _sgPlotW;
 
-    const fTitle  = 130;
+    // Dynamic title font — shrinks to fit long titles on one line
+    // At 130px Barlow Condensed 800, ~0.52px/char factor
+    const titleLen = (entry.title || "").length;
+    const fTitle  = Math.min(130, Math.max(60, Math.floor(plotW / (titleLen * 0.52))));
     const fWriter = 66;
     // Title sits lower in the expanded header — more air at top
-    const titleY  = 80 + fTitle;    // baseline ~210
+    const titleY  = 80 + fTitle;    // baseline shifts with font size
     const writerLineH = fWriter + 16;
 
     const esc = s => (s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -4067,12 +4070,12 @@ export default function ScriptGraph() {
 
     // ── Header layout (mirrors single card but insight-specific) ──
     const fTitle   = 90;   // slightly smaller than 130 — title is shorter label
-    const fBody    = 54;
-    const bodyLineH = 82;
-    const titleY   = 80 + fTitle;  // baseline ~170
+    const fBody    = 52;
+    const bodyLineH = 74;
+    const titleY   = 60 + fTitle;  // baseline ~150
 
-    // Body text wrap — full plot width at 54px Inter 300, ~32px/char → ~47 chars/line
-    const wrapText = (text, charW = 32) => {
+    // Body text wrap — full plot width at 52px Inter 300, ~25px/char → ~61 chars/line
+    const wrapText = (text, charW = 25) => {
       const maxChars = Math.floor(plotW / charW);
       const words = text.split(" ");
       const lines = [];
