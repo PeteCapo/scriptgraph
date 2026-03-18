@@ -14,7 +14,7 @@ if (typeof document !== "undefined" && !document.getElementById("sg-fonts")) {
   const link = document.createElement("link");
   link.id = "sg-fonts";
   link.rel = "stylesheet";
-  link.href = "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Barlow+Condensed:wght@200;600;700;800&display=swap";
+  link.href = "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Barlow+Condensed:wght@600;700;800&display=swap";
   document.head.appendChild(link);
   const style = document.createElement("style");
   style.textContent = `
@@ -41,7 +41,7 @@ const THEME = {
   textPrimary:   "#f0ece4",
   textSecondary: "#a89e90",
   textMuted:     "#6a6258",
-  textDim:       "#5a5a62",
+  textDim:       "#38342e",
   accent:        "#c8a060",
   accentDim:     "#8a6a38",
   fwColors: {
@@ -62,7 +62,7 @@ const THEME = {
   radiusMd:      "6px",
   radiusLg:      "10px",
   appName:       "ScriptGraph",
-  appTagline:    "Story Structure, Visualized.",
+  appTagline:    "Structure Analyzer",
 };
 const T = THEME;
 
@@ -3706,10 +3706,11 @@ export default function ScriptGraph() {
 
   // Shared layout constants — identical zones for both cards
   // Centered: equal outer pad both sides. Y-axis labels (16px left of plotX) sit within the pad.
+  // 4:5 aspect ratio: 1800×2250 — width stays, height gains 450px all into the plot area.
   const _sgOuterPad  = 132;  // (1800 - 1536) / 2 — same plotW as before, now centered
   const _sgPlotX     = _sgOuterPad;
   const _sgW         = 1800;
-  const _sgH         = 1800;
+  const _sgH         = 2250;
   const _sgPlotW     = _sgW - _sgOuterPad * 2;
   const _sgHeaderH  = 310;
   const _sgPlotY    = _sgHeaderH + 24;
@@ -3966,9 +3967,9 @@ export default function ScriptGraph() {
     img.onload = () => {
       try {
         const canvas = document.createElement("canvas");
-        canvas.width = 1800; canvas.height = 1800;
+        canvas.width = 1800; canvas.height = 2250;
         const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0, 1800, 1800);
+        ctx.drawImage(img, 0, 0, 1800, 2250);
         URL.revokeObjectURL(svgUrl);
         canvas.toBlob(pngBlob => {
           const pngUrl = URL.createObjectURL(pngBlob);
@@ -4018,7 +4019,7 @@ export default function ScriptGraph() {
   //   svg:    top 206px, 288×64px
   //   tags:   top 280px, h 18px, font 9px, padding 3/7px, gap 6px, letterSpacing 1px
   const generateInsightCardSVG = (insight) => {
-    const W = 1800, H = 1800;
+    const W = 1800, H = 2250;
     const S = 5; // 360 → 1800
 
     const bgP = T.bgPage, bgPan = T.bgPanel;
@@ -4165,9 +4166,9 @@ export default function ScriptGraph() {
     img.onload = () => {
       try {
         const canvas = document.createElement("canvas");
-        canvas.width = 1800; canvas.height = 1800;
+        canvas.width = 1800; canvas.height = 2250;
         const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0, 1800, 1800);
+        ctx.drawImage(img, 0, 0, 1800, 2250);
         URL.revokeObjectURL(svgUrl);
         canvas.toBlob(pngBlob => {
           const pngUrl = URL.createObjectURL(pngBlob);
@@ -4208,26 +4209,11 @@ export default function ScriptGraph() {
 
       {/* Nav */}
       <div style={{ borderBottom: `1px solid ${T.borderSubtle}`, padding: "0 48px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 64, background: T.bgPage, position: "sticky", top: 0, zIndex: 100, backdropFilter: "blur(12px)" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 16, cursor: "pointer" }} onClick={() => { pushPath("/"); setScreen("library"); }}>
-          {/* Mark + wordmark grouped tightly as one lockup */}
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <svg width="30" height="27" viewBox="0 0 58 52" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
-              <path d="M22 5 L14 5 L14 47 L22 47" stroke="#c8a060" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-              <path d="M36 5 L44 5 L44 47 L36 47" stroke="#c8a060" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-              <line x1="19" y1="16" x2="34" y2="16" stroke="#3a3a42" strokeWidth="1.0" strokeLinecap="round"/>
-              <line x1="19" y1="22" x2="38" y2="22" stroke="#3a3a42" strokeWidth="1.0" strokeLinecap="round"/>
-              <line x1="19" y1="28" x2="31" y2="28" stroke="#3a3a42" strokeWidth="1.0" strokeLinecap="round"/>
-              <line x1="19" y1="34" x2="36" y2="34" stroke="#3a3a42" strokeWidth="1.0" strokeLinecap="round"/>
-              <path d="M19 38 Q24 30 28 24 Q32 17 39 11" stroke="#c8a060" strokeWidth="2.6" strokeLinecap="round" fill="none"/>
-              <circle cx="19" cy="38" r="2.4" fill="#c8a060"/>
-              <circle cx="39" cy="11" r="2.4" fill="#c8a060"/>
-            </svg>
-            {/* Mixed-weight wordmark: SCRIPT light / GRAPH bold */}
-            <span style={{ fontFamily: T.fontDisplay, textTransform: "uppercase", letterSpacing: "0.08em", fontSize: 20, lineHeight: 1, color: T.textPrimary }}>
-              <span style={{ fontWeight: 200 }}>SCRIPT</span><span style={{ fontWeight: 700 }}>GRAPH</span>
-            </span>
-          </div>
-          <span style={{ fontSize: 9, color: T.textDim, letterSpacing: "0.2em", fontFamily: T.fontMono, textTransform: "uppercase", paddingTop: 1 }}>{T.appTagline}</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 14, cursor: "pointer" }} onClick={() => { pushPath("/"); setScreen("library"); }}>
+          <span style={{ fontSize: 20, fontWeight: 700, letterSpacing: 1, fontFamily: T.fontDisplay, textTransform: "uppercase", color: T.textPrimary }}>
+            Script<span style={{ color: fwColor, fontWeight: 600 }}>Graph</span>
+          </span>
+          <span style={{ fontSize: 9, color: T.textDim, letterSpacing: 3, fontFamily: T.fontMono, textTransform: "uppercase", paddingTop: 1 }}>{T.appTagline}</span>
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           {!PUBLIC_MODE && screen === "results" && p1 && (
