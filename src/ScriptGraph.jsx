@@ -3886,12 +3886,14 @@ export default function ScriptGraph() {
     return ss;
   };
 
-  // Shared glyph renderer — ScriptGraph mark, viewBox 0 0 58 52
-  // x, y = top-left position; targetH = rendered height in px
-  const _sgGlyph = (x, y, targetH = 80) => {
-    const s = targetH / 52; // scale factor
-    const tx = x, ty = y;
-    return `<g transform="translate(${tx},${ty}) scale(${s.toFixed(4)})">
+  // Shared glyph renderer — ScriptGraph mark scaled to match title font size.
+  // Alignment: glyphTop = titleY - fontSize * 0.816
+  // This aligns the glyph's visual content top with the title's cap height.
+  // (Derived from glyph viewBox 0 0 58 52, content starting at y=5 → 9.6% top padding;
+  //  Barlow Condensed 800 cap height ≈ 72% of em: 1 - 0.096 - 0.72 = 0.184 adjustment)
+  const _sgGlyph = (x, y, size) => {
+    const s = (size / 52).toFixed(4);
+    return `<g transform="translate(${x.toFixed(1)},${y.toFixed(1)}) scale(${s})">
     <path d="M22 5 L14 5 L14 47 L22 47" stroke="#c8a060" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
     <path d="M36 5 L44 5 L44 47 L36 47" stroke="#c8a060" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
     <line x1="19" y1="16" x2="34" y2="16" stroke="#3a3a42" stroke-width="1.0" stroke-linecap="round"/>
@@ -3903,8 +3905,6 @@ export default function ScriptGraph() {
     <circle cx="39" cy="11" r="2.4" fill="#c8a060"/>
   </g>`;
   };
-
-  // Builds a standalone 1800×2250 (4:5) SVG social card from the current p1 data.
   const generateShareCardSVG = (entry) => {
     const W = _sgW, H = _sgH;
     const ac = T.accent, bgP = T.bgPage;
@@ -3913,19 +3913,19 @@ export default function ScriptGraph() {
     const fontD = T.fontDisplay, fontS = T.fontSans;
     const plotX = _sgPlotX, plotW = _sgPlotW;
 
-    // Dynamic title font — shrinks to fit long titles on one line
-    // Glyph is 89px wide at 80px height; title indented by glyph + 36px gap
-    const glyphH    = 80;
-    const glyphW    = Math.round(glyphH / 52 * 58); // ~89px
-    const glyphGap  = 36;
-    const titleIndentX = plotX + glyphW + glyphGap; // ~257
-    const titleMaxW = plotW - glyphW - glyphGap;     // ~1411
+    // Dynamic title font — shrinks to fit long titles on one line.
+    // Glyph width at fTitle height = fTitle * (58/52). Title indented by glyphW + gap.
+    const glyphGap  = 32;
     const titleLen  = (entry.title || "").length;
-    const fTitle    = Math.min(130, Math.max(60, Math.floor(titleMaxW / (titleLen * 0.52))));
+    // Calculate title font using reduced width (plotW minus glyph space)
+    const glyphWEst = Math.round(130 * 58 / 52); // ~145px at max font — use as max indent
+    const fTitle    = Math.min(130, Math.max(60, Math.floor((plotW - glyphWEst - glyphGap) / (titleLen * 0.52))));
+    const glyphW    = Math.round(fTitle * 58 / 52); // actual glyph width at fTitle
     const fWriter   = 66;
-    // Glyph top aligns at y=80, title baseline at 80+fTitle
-    const glyphTop  = 80;
-    const titleY    = glyphTop + fTitle;
+    const titleIndX = plotX + glyphW + glyphGap;
+    // Title baseline; glyph aligned so visual top matches title cap height
+    const titleY    = 80 + fTitle;
+    const glyphTop  = titleY - fTitle * 0.816; // aligns glyph visual top to cap height
     const writerLineH = fWriter + 16;
 
     const esc = s => (s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -3966,14 +3966,14 @@ export default function ScriptGraph() {
     ];
 
     const writerSVG = writerLines.map((line, i) =>
-      `<text x="${titleIndentX}" y="${writerStartY + i * writerLineH}" font-family="${fontS}" font-weight="300" font-size="${fWriter}" fill="${textS}">${esc(line)}</text>`
+      `<text x="${titleIndX}" y="${writerStartY + i * writerLineH}" font-family="${fontS}" font-weight="300" font-size="${fWriter}" fill="${textS}">${esc(line)}</text>`
     ).join("\n  ");
 
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}">
   <rect width="${W}" height="${H}" fill="${bgP}"/>
   <rect x="${plotX}" y="0" width="${plotW}" height="8" fill="${ac}" opacity="0.75"/>
-  ${_sgGlyph(plotX, glyphTop, glyphH)}
-  <text x="${titleIndentX}" y="${titleY}" font-family="${fontD}" font-weight="800" font-size="${fTitle}" fill="${textP}" letter-spacing="1">${esc((entry.title || "").toUpperCase())}</text>
+  ${_sgGlyph(plotX, glyphTop, fTitle)}
+  <text x="${titleIndX}" y="${titleY}" font-family="${fontD}" font-weight="800" font-size="${fTitle}" fill="${textP}" letter-spacing="1">${esc((entry.title || "").toUpperCase())}</text>
   ${writerSVG}
   <line x1="${plotX}" y1="${_sgHeaderH}" x2="${plotX + plotW}" y2="${_sgHeaderH}" stroke="${bSub}" stroke-width="1.5"/>
   <rect x="${plotX}" y="${_sgPlotY}" width="${plotW}" height="${_sgPlotH}" fill="#ffffff03" rx="6"/>
@@ -4014,18 +4014,15 @@ export default function ScriptGraph() {
     const w2lines = wrapW(s2.writer || "");
     const maxWriterLines = Math.max(w1lines.length, w2lines.length);
 
-    // Glyph centered above titles — vertically center glyph+gap+titleBlock as a unit
-    const glyphH        = 80;
-    const glyphW        = Math.round(glyphH / 52 * 58); // ~89px
-    const glyphGapBelow = 40;
-    const titleBlockH   = cft + 14 + maxWriterLines * cLineH;
-    const totalUnitH    = glyphH + glyphGapBelow + titleBlockH;
-    const unitTop       = Math.round((_sgHeaderH - totalUnitH) / 2);
-    const glyphTop      = unitTop;
-    const glyphLeft     = Math.round(plotX + plotW / 2 - glyphW / 2); // centered
-    const titlesTop     = unitTop + glyphH + glyphGapBelow;
-    const cTY           = titlesTop + cft; // title baseline
-    const cWY1          = cTY + 14 + cfw; // first writer line baseline
+    // Vertically center title block (title + all writer lines) in the header zone
+    const titleBlockH = cft + 14 + maxWriterLines * cLineH;
+    const cTY  = Math.round(_sgHeaderH / 2 - titleBlockH / 2) + cft;
+    const cWY1 = cTY + 14 + cfw; // baseline of first writer line
+
+    // Glyph: size = cft, centered horizontally, top aligned to title cap height
+    const cGlyphW   = Math.round(cft * 58 / 52);
+    const cGlyphTop = cTY - cft * 0.816;
+    const cGlyphX   = plotX + plotW / 2 - cGlyphW / 2;
 
     // Build writer SVG for left (text-anchor start) and right (text-anchor end)
     const writerLeft  = w1lines.map((l, i) =>
@@ -4097,7 +4094,7 @@ export default function ScriptGraph() {
   <rect width="${W}" height="${H}" fill="${bgP}"/>
   <rect x="${plotX}" y="0" width="${(plotMidX - plotX).toFixed(1)}" height="8" fill="${color1}" opacity="0.75"/>
   <rect x="${plotMidX.toFixed(1)}" y="0" width="${(plotX + plotW - plotMidX).toFixed(1)}" height="8" fill="${color2}" opacity="0.75"/>
-  ${_sgGlyph(glyphLeft, glyphTop, glyphH)}
+  ${_sgGlyph(cGlyphX, cGlyphTop, cft)}
   <text x="${plotX}" y="${cTY}" font-family="${fontD}" font-weight="800" font-size="${cft}" fill="${color1}" letter-spacing="1">${esc((s1.title || "").toUpperCase())}</text>
   ${writerLeft}
   <text x="${(plotX + plotW).toFixed(1)}" y="${cTY}" text-anchor="end" font-family="${fontD}" font-weight="800" font-size="${cft}" fill="${color2}" letter-spacing="1">${esc((s2.title || "").toUpperCase())}</text>
@@ -4107,7 +4104,7 @@ export default function ScriptGraph() {
   ${grid}${bands}
   ${buildCurve(s1, color1, "cg1")}
   ${buildCurve(s2, color2, "cg2")}
-  <text x="${wx}" y="${wy}" text-anchor="end" font-family="${fontD}" font-weight="200" font-size="${_sgFWmark}" fill="${ac}" opacity="0.35"><tspan font-weight="200">SCRIPT</tspan><tspan font-weight="700">GRAPH</tspan><tspan font-weight="200">.ai</tspan></text>
+  <text x="${wx}" y="${wy}" text-anchor="end" font-family="${fontD}" font-size="${_sgFWmark}" fill="${ac}" opacity="0.35"><tspan font-weight="200">SCRIPT</tspan><tspan font-weight="700">GRAPH</tspan><tspan font-weight="200">.ai</tspan></text>
   ${_sgYAxis()}
   <line x1="${plotX}" y1="${_sgInfoY - 10}" x2="${plotX + plotW}" y2="${_sgInfoY - 10}" stroke="${bSub}" stroke-width="1.5"/>
   ${_sgStatStrip(stats, cw)}
