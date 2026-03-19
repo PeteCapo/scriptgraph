@@ -4820,7 +4820,7 @@ export default function ScriptGraph() {
                   fontFamily: T.fontSans,
                   fontStyle: "italic",
                   fontWeight: 300,
-                }}>— Pete Capo</p>
+                }}><a href="https://petecapo.com" target="_blank" rel="noopener noreferrer" style={{ color: "inherit", textDecoration: "none", borderBottom: `1px solid ${T.textMuted}40` }}>— Pete Capo</a></p>
               </div>
             )}
 
@@ -5549,11 +5549,12 @@ export default function ScriptGraph() {
               <P>I'd always been struck by Kurt Vonnegut's idea that stories have shapes — that you could draw the arc of a narrative the way you'd draw a curve on a graph. He was making a broader point about story types, but I kept wondering whether that could be applied to actual screenplays. Whether the shape of a specific film was something you could actually see.</P>
               <P>So I built something to find out. I wanted to compare what I was writing against films I admired — to see whether my story moved the way theirs did.</P>
               <P>When you're inside a script, those patterns are hard to see. Writing is microscopic work. You're thinking about scenes, lines, beats, transitions. The overall shape disappears into the details.</P>
-              <P>I wanted a way to step back and see the structure from above — to map a screenplay the way you might map terrain. The result is a curve that shows how tension builds, releases, and turns over the course of a story.</P>
+              <P>I wanted a way to step back and see the whole thing at once. The result is a curve that shows how tension builds, releases, and turns across a story.</P>
 
               <Rule />
               <H2>What the graphs represent</H2>
-              <P>Each graph maps the dramatic intensity of a screenplay scene by scene — not based on genre, not based on where a scene falls in the story, but based on what actually happens in it. A scene where a character's life is in immediate danger scores high. So does a scene where a relationship breaks apart irreversibly, or a character finally confesses something they've been carrying for the whole film. Physical danger and emotional devastation are treated as equally valid sources of tension. A quiet drama about grief can hit the same peaks as a thriller — if the content earns it.</P>
+              <P>Each graph maps the dramatic intensity of a screenplay scene by scene — based on what actually happens in it, not where it falls in the story. Physical danger and emotional devastation are scored on the same scale. A quiet drama about grief can hit the same peaks as a thriller, if the content earns it.</P>
+              <P>Vonnegut's graphs tracked fortune — good and bad things happening to the protagonist. ScriptGraph tracks tension — the pressure an audience feels, regardless of outcome. A character can be winning while the audience is terrified it's about to collapse. A disaster can have already happened and the tension already gone. Fortune is visible from the outside; tension is what you feel watching. For understanding how a screenplay moves, tension is the more honest measure.</P>
               <P>This means the graphs are honest about what they find. A flat curve across a script is meaningful data — it means the story never genuinely escalates. A jagged, unpredictable curve reflects a script that keeps shifting the pressure. The shape is the information.</P>
               <P>Story structure is not math. Two smart readers can disagree about where a turning point really happens, and both can be right. These graphs aren't meant to declare definitive answers. They're meant to provide a consistent way of seeing how a story moves — and to make that visible in a form you can actually compare across films.</P>
               <P>For comparative purposes, every script is resolved to a three-act framework regardless of its actual form. A non-linear film, a triptych, a circular narrative — all are mapped through the same structural lens so curves can be read side by side. The structure type label on each script tells you how the story is actually organized. The act markers show you where the strongest structural pivots fall within that form.</P>
@@ -5572,7 +5573,7 @@ export default function ScriptGraph() {
               <P>All scripts analyzed here are produced films whose screenplays have been publicly released or widely circulated. All rights to the underlying works remain with their authors and rights holders. This is a non-commercial educational project.</P>
 
               <Rule />
-              <p style={{ margin: 0, fontSize: 13, color: T.textMuted, fontFamily: T.fontSans, fontStyle: "italic", fontWeight: 300 }}>— Pete Capo</p>
+              <p style={{ margin: 0, fontSize: 13, color: T.textMuted, fontFamily: T.fontSans, fontStyle: "italic", fontWeight: 300 }}><a href="https://petecapo.com" target="_blank" rel="noopener noreferrer" style={{ color: "inherit", textDecoration: "none", borderBottom: `1px solid ${T.textMuted}40` }}>— Pete Capo</a></p>
             </div>
           );
         })()}
