@@ -4869,6 +4869,14 @@ export default function ScriptGraph() {
               // For multi-film cards, films has two entries → links to comparison view
               const INSIGHTS = [
                 {
+                  title: "Genre as Trojan Horse",
+                  subtitle: "2025 Oscar Winner — Best Original Screenplay",
+                  body: "Sinners disguises itself as horror. What Coogler is actually doing — tracing the roots of American music, the theft of Black culture — takes nearly 40% of the script to build. The prologue earns that patience. You already know something terrible is coming. So the wait feels like dread, not drag.",
+                  films: [
+                    { slug: "sinners", color: T.accent, label: "Sinners" },
+                  ],
+                },
+                {
                   title: "The Safdie Climb",
                   body: "Most screenplays breathe — peaks followed by release. The Safdie films don't. Uncut Gems and Marty Supreme both start high and almost never come down. It's a structural choice that explains the physiological experience of watching them — a foot on the pedal that never lifts.",
                   films: [
@@ -4889,14 +4897,6 @@ export default function ScriptGraph() {
                   body: "It's one of my favorite films. The graph is almost flat — no towering peaks, no relentless climb. That's not a flaw. Some films work through accumulation, through feeling, through the weight of an idea. The direction matters too. Not every story needs to tighten a screw.",
                   films: [
                     { slug: "eternal-sunshine-of-the-spotless-mind", color: T.accent, label: "Eternal Sunshine" },
-                  ],
-                },
-                {
-                  title: "Genre as Trojan Horse",
-                  subtitle: "2025 Oscar Winner — Best Original Screenplay",
-                  body: "Sinners disguises itself as horror. What Coogler is actually doing — tracing the roots of American music, the theft of Black culture — takes nearly 40% of the script to build. The prologue earns that patience. You already know something terrible is coming. So the wait feels like dread, not drag.",
-                  films: [
-                    { slug: "sinners", color: T.accent, label: "Sinners" },
                   ],
                 },
               ];
