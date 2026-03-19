@@ -4891,6 +4891,14 @@ export default function ScriptGraph() {
                     { slug: "eternal-sunshine-of-the-spotless-mind", color: T.accent, label: "Eternal Sunshine" },
                   ],
                 },
+                {
+                  title: "Genre as Trojan Horse",
+                  subtitle: "2025 Oscar Winner — Best Original Screenplay",
+                  body: "Sinners disguises itself as horror. What Coogler is actually doing — tracing the roots of American music, the theft of Black culture — takes nearly 40% of the script to build. The prologue earns that patience. You already know something terrible is coming. So the wait feels like dread, not drag.",
+                  films: [
+                    { slug: "sinners", color: T.accent, label: "Sinners" },
+                  ],
+                },
               ];
               // ────────────────────────────────────────────────────────────────────
 
@@ -5020,9 +5028,14 @@ export default function ScriptGraph() {
                               </svg>
                             </button>
                           )}
-                          <div style={{ fontFamily: T.fontDisplay, fontWeight: 700, fontSize: 18, letterSpacing: 1.5, textTransform: "uppercase", color: T.textPrimary, marginBottom: 8, lineHeight: 1.2, paddingRight: 24 }}>
+                          <div style={{ fontFamily: T.fontDisplay, fontWeight: 700, fontSize: 18, letterSpacing: 1.5, textTransform: "uppercase", color: T.textPrimary, marginBottom: insight.subtitle ? 5 : 8, lineHeight: 1.2, paddingRight: 24 }}>
                             {insight.title}
                           </div>
+                          {insight.subtitle && (
+                            <div style={{ fontSize: 10, fontFamily: T.fontMono, letterSpacing: 1.5, textTransform: "uppercase", color: T.accentDim, marginBottom: 8, lineHeight: 1.4 }}>
+                              {insight.subtitle}
+                            </div>
+                          )}
                           <div style={{ fontSize: 12, color: T.textSecondary, lineHeight: 1.75, fontWeight: 300, marginBottom: 0 }}>
                             {insight.body}
                           </div>
