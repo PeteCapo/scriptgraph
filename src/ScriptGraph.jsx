@@ -3794,11 +3794,11 @@ export default function ScriptGraph() {
   const _sgW         = 1800;
   const _sgH         = 2250;
   const _sgPlotW     = _sgW - _sgOuterPad * 2;
-  const _sgHeaderH  = 620;  // generous header — title, writer wrap, breathing room
+  const _sgHeaderH  = 700;  // expanded: 82px gap between body text and chart top
   const _sgPlotY    = _sgHeaderH + 24;
   const _sgXAxisH   = 64;
   const _sgStatH    = 400;  // stat numbers get more vertical room
-  const _sgBotPad   = 180;  // enough room for insight card film tags below stats
+  const _sgBotPad   = 100;  // reduced to offset header increase — chart stays 962px
   const _sgPlotH    = _sgH - _sgPlotY - _sgXAxisH - _sgStatH - _sgBotPad;
   const _sgInfoY    = _sgPlotY + _sgPlotH + _sgXAxisH + 18;
   const _sgInfoH    = _sgH - _sgInfoY - _sgBotPad;
@@ -4157,30 +4157,28 @@ export default function ScriptGraph() {
     const bodyLineH  = 74;
     const titleY     = 60 + fTitle;  // baseline ~150
 
-    // Colored film subheader — one or two film titles between headline and body
-    // Solo: gold. Two-film: film A in red, · in muted, film B in blue.
+    // Colored film subheader — uppercase, slash separator, colors match curves
     const subheaderY = titleY + 36 + fSubheader; // baseline ~230
-    const subheaderColor1 = insight.resolvedFilms.length === 1 ? ac : T.fwColors.three_act;
-    const subheaderColor2 = T.fwColors.story_circle;
-    const subheaderDotColor = "#6a6258"; // T.textMuted
+    const subColor1  = insight.resolvedFilms.length === 1 ? ac : T.fwColors.three_act;
+    const subColor2  = T.fwColors.story_circle;
 
     const buildSubheader = () => {
       if (insight.resolvedFilms.length === 1) {
-        const title = esc(insight.resolvedFilms[0].entry?.title || insight.resolvedFilms[0].label);
-        return `<text x="${plotX}" y="${subheaderY}" font-family="${fontS}" font-weight="400" font-size="${fSubheader}" fill="${subheaderColor1}">${title}</text>`;
+        const title = esc((insight.resolvedFilms[0].entry?.title || insight.resolvedFilms[0].label).toUpperCase());
+        return `<text x="${plotX}" y="${subheaderY}" font-family="${fontS}" font-weight="400" font-size="${fSubheader}" fill="${subColor1}">${title}</text>`;
       }
-      // Two films: measure approximate widths to position each part
-      const t1 = esc(insight.resolvedFilms[0].entry?.title || insight.resolvedFilms[0].label);
-      const t2 = esc(insight.resolvedFilms[1].entry?.title || insight.resolvedFilms[1].label);
-      const charW = fSubheader * 0.52; // approx char width for Inter 400 at this size
-      const t1W = t1.length * charW;
-      const dotW = charW * 3; // " · " width
-      const x1 = plotX;
-      const xDot = x1 + t1W;
-      const x2 = xDot + dotW;
-      return `<text x="${x1}" y="${subheaderY}" font-family="${fontS}" font-weight="400" font-size="${fSubheader}" fill="${subheaderColor1}">${t1}</text>
-  <text x="${xDot.toFixed(1)}" y="${subheaderY}" font-family="${fontS}" font-weight="400" font-size="${fSubheader}" fill="${subheaderDotColor}"> · </text>
-  <text x="${x2.toFixed(1)}" y="${subheaderY}" font-family="${fontS}" font-weight="400" font-size="${fSubheader}" fill="${subheaderColor2}">${t2}</text>`;
+      // Two films: measure widths to position slash and second title
+      const t1 = esc((insight.resolvedFilms[0].entry?.title || insight.resolvedFilms[0].label).toUpperCase());
+      const t2 = esc((insight.resolvedFilms[1].entry?.title || insight.resolvedFilms[1].label).toUpperCase());
+      const charW = fSubheader * 0.50; // Inter 400 at this size ~0.50px/char
+      const t1W   = t1.length * charW;
+      const slash = " / ";
+      const slashW = slash.length * charW;
+      const xSlash = plotX + t1W;
+      const x2     = xSlash + slashW;
+      return `<text x="${plotX}" y="${subheaderY}" font-family="${fontS}" font-weight="400" font-size="${fSubheader}" fill="${subColor1}">${t1}</text>
+  <text x="${xSlash.toFixed(1)}" y="${subheaderY}" font-family="${fontS}" font-weight="400" font-size="${fSubheader}" fill="${textS}">${slash.trim()}</text>
+  <text x="${x2.toFixed(1)}" y="${subheaderY}" font-family="${fontS}" font-weight="400" font-size="${fSubheader}" fill="${subColor2}">${t2}</text>`;
     };
     const subheaderSVG = buildSubheader();
 
@@ -4199,12 +4197,9 @@ export default function ScriptGraph() {
       return lines;
     };
     const bodyLines = wrapText(insight.body);
+    const bodyStartY = subheaderY + 40 + fBody; // body starts below subheader
 
-    // Body starts below subheader
-    const bodyStartY = subheaderY + 40 + fBody;
-
-    // Divider sits where header ends — _sgHeaderH
-    // Body must fit within header. If it overflows, it will overlap chart (acceptable for short copy)
+    // Divider sits where header ends — _sgHeaderH (now 700, 82px gap above chart)
 
     // ── Stats ──
     const sm = arr => arr.map((_, i) => {
