@@ -3851,7 +3851,7 @@ export default function ScriptGraph() {
   ${gr}${ba}
   <path d="${ar}" fill="url(#${gid})" clip-path="url(#cl${gid})"/>
   <path d="${ln}" fill="none" stroke="${col}" stroke-width="6" stroke-linejoin="round" stroke-linecap="round" clip-path="url(#cl${gid})"/>
-  <text x="${wx}" y="${wy}" text-anchor="end" font-family="${fontS}" font-weight="300" font-size="${_sgFWmark}" fill="${ac}" opacity="0.35">scriptgraph.ai</text>`;
+  <text x="${wx}" y="${wy}" text-anchor="end" font-family="${fontD}" font-size="${_sgFWmark}" fill="${ac}" opacity="0.35"><tspan font-weight="200">SCRIPT</tspan><tspan font-weight="700">GRAPH</tspan><tspan font-weight="200">.ai</tspan></text>`;
   };
 
   const _sgYAxis = () => {
@@ -3886,6 +3886,24 @@ export default function ScriptGraph() {
     return ss;
   };
 
+  // Shared glyph renderer — ScriptGraph mark, viewBox 0 0 58 52
+  // x, y = top-left position; targetH = rendered height in px
+  const _sgGlyph = (x, y, targetH = 80) => {
+    const s = targetH / 52; // scale factor
+    const tx = x, ty = y;
+    return `<g transform="translate(${tx},${ty}) scale(${s.toFixed(4)})">
+    <path d="M22 5 L14 5 L14 47 L22 47" stroke="#c8a060" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <path d="M36 5 L44 5 L44 47 L36 47" stroke="#c8a060" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <line x1="19" y1="16" x2="34" y2="16" stroke="#3a3a42" stroke-width="1.0" stroke-linecap="round"/>
+    <line x1="19" y1="22" x2="38" y2="22" stroke="#3a3a42" stroke-width="1.0" stroke-linecap="round"/>
+    <line x1="19" y1="28" x2="31" y2="28" stroke="#3a3a42" stroke-width="1.0" stroke-linecap="round"/>
+    <line x1="19" y1="34" x2="36" y2="34" stroke="#3a3a42" stroke-width="1.0" stroke-linecap="round"/>
+    <path d="M19 38 Q24 30 28 24 Q32 17 39 11" stroke="#c8a060" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+    <circle cx="19" cy="38" r="2.4" fill="#c8a060"/>
+    <circle cx="39" cy="11" r="2.4" fill="#c8a060"/>
+  </g>`;
+  };
+
   // Builds a standalone 1800×2250 (4:5) SVG social card from the current p1 data.
   const generateShareCardSVG = (entry) => {
     const W = _sgW, H = _sgH;
@@ -3896,12 +3914,18 @@ export default function ScriptGraph() {
     const plotX = _sgPlotX, plotW = _sgPlotW;
 
     // Dynamic title font — shrinks to fit long titles on one line
-    // At 130px Barlow Condensed 800, ~0.52px/char factor
-    const titleLen = (entry.title || "").length;
-    const fTitle  = Math.min(130, Math.max(60, Math.floor(plotW / (titleLen * 0.52))));
-    const fWriter = 66;
-    // Title sits lower in the expanded header — more air at top
-    const titleY  = 80 + fTitle;    // baseline shifts with font size
+    // Glyph is 89px wide at 80px height; title indented by glyph + 36px gap
+    const glyphH    = 80;
+    const glyphW    = Math.round(glyphH / 52 * 58); // ~89px
+    const glyphGap  = 36;
+    const titleIndentX = plotX + glyphW + glyphGap; // ~257
+    const titleMaxW = plotW - glyphW - glyphGap;     // ~1411
+    const titleLen  = (entry.title || "").length;
+    const fTitle    = Math.min(130, Math.max(60, Math.floor(titleMaxW / (titleLen * 0.52))));
+    const fWriter   = 66;
+    // Glyph top aligns at y=80, title baseline at 80+fTitle
+    const glyphTop  = 80;
+    const titleY    = glyphTop + fTitle;
     const writerLineH = fWriter + 16;
 
     const esc = s => (s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -3942,13 +3966,14 @@ export default function ScriptGraph() {
     ];
 
     const writerSVG = writerLines.map((line, i) =>
-      `<text x="${plotX}" y="${writerStartY + i * writerLineH}" font-family="${fontS}" font-weight="300" font-size="${fWriter}" fill="${textS}">${esc(line)}</text>`
+      `<text x="${titleIndentX}" y="${writerStartY + i * writerLineH}" font-family="${fontS}" font-weight="300" font-size="${fWriter}" fill="${textS}">${esc(line)}</text>`
     ).join("\n  ");
 
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}">
   <rect width="${W}" height="${H}" fill="${bgP}"/>
   <rect x="${plotX}" y="0" width="${plotW}" height="8" fill="${ac}" opacity="0.75"/>
-  <text x="${plotX}" y="${titleY}" font-family="${fontD}" font-weight="800" font-size="${fTitle}" fill="${textP}" letter-spacing="1">${esc((entry.title || "").toUpperCase())}</text>
+  ${_sgGlyph(plotX, glyphTop, glyphH)}
+  <text x="${titleIndentX}" y="${titleY}" font-family="${fontD}" font-weight="800" font-size="${fTitle}" fill="${textP}" letter-spacing="1">${esc((entry.title || "").toUpperCase())}</text>
   ${writerSVG}
   <line x1="${plotX}" y1="${_sgHeaderH}" x2="${plotX + plotW}" y2="${_sgHeaderH}" stroke="${bSub}" stroke-width="1.5"/>
   <rect x="${plotX}" y="${_sgPlotY}" width="${plotW}" height="${_sgPlotH}" fill="#ffffff03" rx="6"/>
@@ -3989,10 +4014,18 @@ export default function ScriptGraph() {
     const w2lines = wrapW(s2.writer || "");
     const maxWriterLines = Math.max(w1lines.length, w2lines.length);
 
-    // Vertically center title block (title + all writer lines) in the header zone
-    const titleBlockH = cft + 14 + maxWriterLines * cLineH;
-    const cTY = Math.round(_sgHeaderH / 2 - titleBlockH / 2) + cft;
-    const cWY1 = cTY + 14 + cfw; // baseline of first writer line
+    // Glyph centered above titles — vertically center glyph+gap+titleBlock as a unit
+    const glyphH        = 80;
+    const glyphW        = Math.round(glyphH / 52 * 58); // ~89px
+    const glyphGapBelow = 40;
+    const titleBlockH   = cft + 14 + maxWriterLines * cLineH;
+    const totalUnitH    = glyphH + glyphGapBelow + titleBlockH;
+    const unitTop       = Math.round((_sgHeaderH - totalUnitH) / 2);
+    const glyphTop      = unitTop;
+    const glyphLeft     = Math.round(plotX + plotW / 2 - glyphW / 2); // centered
+    const titlesTop     = unitTop + glyphH + glyphGapBelow;
+    const cTY           = titlesTop + cft; // title baseline
+    const cWY1          = cTY + 14 + cfw; // first writer line baseline
 
     // Build writer SVG for left (text-anchor start) and right (text-anchor end)
     const writerLeft  = w1lines.map((l, i) =>
@@ -4064,6 +4097,7 @@ export default function ScriptGraph() {
   <rect width="${W}" height="${H}" fill="${bgP}"/>
   <rect x="${plotX}" y="0" width="${(plotMidX - plotX).toFixed(1)}" height="8" fill="${color1}" opacity="0.75"/>
   <rect x="${plotMidX.toFixed(1)}" y="0" width="${(plotX + plotW - plotMidX).toFixed(1)}" height="8" fill="${color2}" opacity="0.75"/>
+  ${_sgGlyph(glyphLeft, glyphTop, glyphH)}
   <text x="${plotX}" y="${cTY}" font-family="${fontD}" font-weight="800" font-size="${cft}" fill="${color1}" letter-spacing="1">${esc((s1.title || "").toUpperCase())}</text>
   ${writerLeft}
   <text x="${(plotX + plotW).toFixed(1)}" y="${cTY}" text-anchor="end" font-family="${fontD}" font-weight="800" font-size="${cft}" fill="${color2}" letter-spacing="1">${esc((s2.title || "").toUpperCase())}</text>
@@ -4073,7 +4107,7 @@ export default function ScriptGraph() {
   ${grid}${bands}
   ${buildCurve(s1, color1, "cg1")}
   ${buildCurve(s2, color2, "cg2")}
-  <text x="${wx}" y="${wy}" text-anchor="end" font-family="${fontS}" font-weight="300" font-size="${_sgFWmark}" fill="${ac}" opacity="0.35">scriptgraph.ai</text>
+  <text x="${wx}" y="${wy}" text-anchor="end" font-family="${fontD}" font-weight="200" font-size="${_sgFWmark}" fill="${ac}" opacity="0.35"><tspan font-weight="200">SCRIPT</tspan><tspan font-weight="700">GRAPH</tspan><tspan font-weight="200">.ai</tspan></text>
   ${_sgYAxis()}
   <line x1="${plotX}" y1="${_sgInfoY - 10}" x2="${plotX + plotW}" y2="${_sgInfoY - 10}" stroke="${bSub}" stroke-width="1.5"/>
   ${_sgStatStrip(stats, cw)}
@@ -6115,10 +6149,12 @@ export default function ScriptGraph() {
           <div style={{
             background: T.bgPanel, border: `1px solid ${T.borderStrong}`,
             borderRadius: T.radiusLg, padding: "24px",
-            width: 680, maxWidth: "100%",
+            width: 480, maxWidth: "100%",
+            maxHeight: "calc(100vh - 48px)",
+            display: "flex", flexDirection: "column",
             boxShadow: "0 24px 64px #00000080",
           }} onClick={e => e.stopPropagation()}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, flexShrink: 0 }}>
               <div style={{ fontSize: 10, fontFamily: T.fontSans, fontWeight: 600, color: T.textMuted, letterSpacing: 2.5, textTransform: "uppercase" }}>
                 {shareCard === "compare"
                   ? `Share Image · ${compareItems[0]?.title} vs ${compareItems[1]?.title}`
@@ -6134,7 +6170,7 @@ export default function ScriptGraph() {
             <div style={{
               borderRadius: T.radiusMd, overflow: "hidden",
               border: `1px solid ${T.borderMid}`, marginBottom: 16,
-              background: T.bgPage,
+              background: T.bgPage, flexShrink: 1, minHeight: 0,
             }}>
               <div
                 style={{ width: "100%", lineHeight: 0 }}
@@ -6153,6 +6189,7 @@ export default function ScriptGraph() {
               fontSize: 12, fontFamily: T.fontSans, fontWeight: 500,
               letterSpacing: 0.2, cursor: "pointer", transition: "all 0.12s",
               display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
+              flexShrink: 0,
             }}
             onMouseEnter={e => e.currentTarget.style.background = T.accent + "30"}
             onMouseLeave={e => e.currentTarget.style.background = T.accent + "20"}>
