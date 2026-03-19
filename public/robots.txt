@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /publish
+
+Sitemap: https://scriptgraph.ai/sitemap.xml
