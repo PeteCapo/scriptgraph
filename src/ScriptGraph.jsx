@@ -3004,6 +3004,88 @@ export default function ScriptGraph() {
   // Scroll to top on every screen transition
   useEffect(() => { window.scrollTo(0, 0); }, [screen]);
 
+  // ─── SEO — Dynamic titles, meta descriptions, JSON-LD ───────────────────────
+  useEffect(() => {
+    const BASE = "ScriptGraph";
+    const BASE_DESC = "A curated public library of screenplay structure analysis. Tension arcs, act breaks, and narrative shape — mapped as data for produced films.";
+    const BASE_URL = "https://scriptgraph.ai";
+
+    let title = BASE;
+    let description = BASE_DESC;
+    let jsonLd = null;
+
+    if (screen === "results" && p1) {
+      const writer = p1.writer ? ` — Written by ${p1.writer}` : "";
+      title = `${p1.title} | Screenplay Structure Analysis | ${BASE}`;
+      description = p1.logline
+        ? `${p1.logline} Tension arc, act breaks, and structural breakdown of ${p1.title}${writer}.`
+        : `Tension arc, act breaks, and structural breakdown of ${p1.title}${writer}. ${BASE_DESC}`;
+      jsonLd = {
+        "@context": "https://schema.org",
+        "@type": "Movie",
+        "name": p1.title,
+        ...(p1.writer ? { "author": { "@type": "Person", "name": p1.writer } } : {}),
+        ...(p1.genre  ? { "genre": p1.genre } : {}),
+        ...(p1.logline ? { "description": p1.logline } : {}),
+        "url": window.location.href,
+        "publisher": {
+          "@type": "Organization",
+          "name": "ScriptGraph",
+          "url": BASE_URL,
+        },
+      };
+    } else if (screen === "compare" && compareItems.length === 2) {
+      title = `${compareItems[0].title} vs ${compareItems[1].title} | Structure Comparison | ${BASE}`;
+      description = `Compare the narrative tension arcs and screenplay structure of ${compareItems[0].title} and ${compareItems[1].title} side by side.`;
+    } else if (screen === "about") {
+      title = `About | ${BASE}`;
+      description = `ScriptGraph is a public library of screenplay structure analysis, built by director Pete Capó. Learn how tension arcs and act breaks are mapped from produced films.`;
+    } else if (screen === "compare") {
+      title = `Compare Scripts | ${BASE}`;
+      description = `Overlay tension arcs and compare the narrative structure of two screenplays side by side.`;
+    }
+
+    // Apply title
+    document.title = title;
+
+    // Apply / update meta description
+    let metaDesc = document.querySelector("meta[name='description']");
+    if (!metaDesc) {
+      metaDesc = document.createElement("meta");
+      metaDesc.setAttribute("name", "description");
+      document.head.appendChild(metaDesc);
+    }
+    metaDesc.setAttribute("content", description);
+
+    // Apply / update OG tags
+    const ogTags = {
+      "og:title":       title,
+      "og:description": description,
+      "og:url":         window.location.href,
+    };
+    Object.entries(ogTags).forEach(([prop, content]) => {
+      let el = document.querySelector(`meta[property='${prop}']`);
+      if (!el) {
+        el = document.createElement("meta");
+        el.setAttribute("property", prop);
+        document.head.appendChild(el);
+      }
+      el.setAttribute("content", content);
+    });
+
+    // Apply / remove JSON-LD structured data
+    const existingLd = document.getElementById("sg-jsonld");
+    if (existingLd) existingLd.remove();
+    if (jsonLd) {
+      const script = document.createElement("script");
+      script.id = "sg-jsonld";
+      script.type = "application/ld+json";
+      script.textContent = JSON.stringify(jsonLd);
+      document.head.appendChild(script);
+    }
+  }, [screen, p1, compareItems]);
+  // ─── end SEO ─────────────────────────────────────────────────────────────────
+
   function handleFile(e) {
     const file = e.target.files[0];
     if (!file) return;
