@@ -4021,7 +4021,7 @@ export default function ScriptGraph() {
 
     // Glyph: size = cft, centered horizontally, top aligned to title cap height
     const cGlyphW   = Math.round(cft * 58 / 52);
-    const cGlyphTop = cTY - cft * 0.816;
+    const cGlyphTop = cTY - 2 * cft - 32; // above title block top, with 32px gap
     const cGlyphX   = plotX + plotW / 2 - cGlyphW / 2;
 
     // Build writer SVG for left (text-anchor start) and right (text-anchor end)
