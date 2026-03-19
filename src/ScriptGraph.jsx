@@ -4151,10 +4151,38 @@ export default function ScriptGraph() {
     const esc = s => (s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
     // ── Header layout (mirrors single card but insight-specific) ──
-    const fTitle   = 90;   // slightly smaller than 130 — title is shorter label
-    const fBody    = 52;
-    const bodyLineH = 74;
-    const titleY   = 60 + fTitle;  // baseline ~150
+    const fTitle     = 90;   // slightly smaller than 130 — title is shorter label
+    const fSubheader = 44;   // film title(s) subheader
+    const fBody      = 52;
+    const bodyLineH  = 74;
+    const titleY     = 60 + fTitle;  // baseline ~150
+
+    // Colored film subheader — one or two film titles between headline and body
+    // Solo: gold. Two-film: film A in red, · in muted, film B in blue.
+    const subheaderY = titleY + 36 + fSubheader; // baseline ~230
+    const subheaderColor1 = insight.resolvedFilms.length === 1 ? ac : T.fwColors.three_act;
+    const subheaderColor2 = T.fwColors.story_circle;
+    const subheaderDotColor = "#6a6258"; // T.textMuted
+
+    const buildSubheader = () => {
+      if (insight.resolvedFilms.length === 1) {
+        const title = esc(insight.resolvedFilms[0].entry?.title || insight.resolvedFilms[0].label);
+        return `<text x="${plotX}" y="${subheaderY}" font-family="${fontS}" font-weight="400" font-size="${fSubheader}" fill="${subheaderColor1}">${title}</text>`;
+      }
+      // Two films: measure approximate widths to position each part
+      const t1 = esc(insight.resolvedFilms[0].entry?.title || insight.resolvedFilms[0].label);
+      const t2 = esc(insight.resolvedFilms[1].entry?.title || insight.resolvedFilms[1].label);
+      const charW = fSubheader * 0.52; // approx char width for Inter 400 at this size
+      const t1W = t1.length * charW;
+      const dotW = charW * 3; // " · " width
+      const x1 = plotX;
+      const xDot = x1 + t1W;
+      const x2 = xDot + dotW;
+      return `<text x="${x1}" y="${subheaderY}" font-family="${fontS}" font-weight="400" font-size="${fSubheader}" fill="${subheaderColor1}">${t1}</text>
+  <text x="${xDot.toFixed(1)}" y="${subheaderY}" font-family="${fontS}" font-weight="400" font-size="${fSubheader}" fill="${subheaderDotColor}"> · </text>
+  <text x="${x2.toFixed(1)}" y="${subheaderY}" font-family="${fontS}" font-weight="400" font-size="${fSubheader}" fill="${subheaderColor2}">${t2}</text>`;
+    };
+    const subheaderSVG = buildSubheader();
 
     // Body text wrap — full plot width at 52px Inter 300, ~25px/char → ~61 chars/line
     const wrapText = (text, charW = 25) => {
@@ -4171,8 +4199,9 @@ export default function ScriptGraph() {
       return lines;
     };
     const bodyLines = wrapText(insight.body);
-    const bodyStartY = titleY + 50 + fBody;
-    const bodyEndY = bodyStartY + (bodyLines.length - 1) * bodyLineH;
+
+    // Body starts below subheader
+    const bodyStartY = subheaderY + 40 + fBody;
 
     // Divider sits where header ends — _sgHeaderH
     // Body must fit within header. If it overflows, it will overlap chart (acceptable for short copy)
@@ -4275,6 +4304,7 @@ export default function ScriptGraph() {
   <defs>${curveDefs}</defs>
   <rect width="${W}" height="${H}" fill="${bgP}"/>
   <text x="${plotX}" y="${titleY}" font-family="${fontD}" font-weight="800" font-size="${fTitle}" fill="${textP}" letter-spacing="2">${esc(insight.title.toUpperCase())}</text>
+  ${subheaderSVG}
   ${bodyLines.map((l, i) => `<text x="${plotX}" y="${(bodyStartY + i * bodyLineH).toFixed(0)}" font-family="${fontS}" font-weight="300" font-size="${fBody}" fill="${textS}">${esc(l)}</text>`).join("\n  ")}
   <line x1="${plotX}" y1="${_sgHeaderH}" x2="${plotX + plotW}" y2="${_sgHeaderH}" stroke="${T.borderSubtle}" stroke-width="1.5"/>
   <rect x="${plotX}" y="${_sgPlotY}" width="${plotW}" height="${_sgPlotH}" fill="#ffffff03" rx="6"/>
@@ -4284,7 +4314,6 @@ export default function ScriptGraph() {
   ${_sgYAxis()}
   <line x1="${plotX}" y1="${_sgInfoY - 10}" x2="${plotX + plotW}" y2="${_sgInfoY - 10}" stroke="${T.borderSubtle}" stroke-width="1.5"/>
   ${_sgStatStrip(stats, sw)}
-  ${tags}
 </svg>`;
   };
 
