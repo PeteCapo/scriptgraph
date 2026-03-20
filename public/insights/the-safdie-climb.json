@@ -1,0 +1,11 @@
+{
+  "id": "the-safdie-climb",
+  "title": "The Safdie Climb",
+  "subtitle": null,
+  "body": "Most screenplays breathe — peaks followed by release. The Safdie films don't. Uncut Gems and Marty Supreme both start high and almost never come down. It's a structural choice that explains the physiological experience of watching them — a foot on the pedal that never lifts.",
+  "films": [
+    { "slug": "uncut-gems",    "color": "red",  "label": "Uncut Gems" },
+    { "slug": "marty-supreme", "color": "blue", "label": "Marty Supreme" }
+  ],
+  "createdAt": "2026-03-10T00:00:00Z"
+}

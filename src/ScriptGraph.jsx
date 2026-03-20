@@ -1180,6 +1180,41 @@ async function persistLibrary(entries) {
   } catch {}
 }
 
+// Resolve color token string ("accent"|"red"|"blue") → actual theme value at render time
+function resolveInsightColor(colorToken) {
+  if (colorToken === "red")  return T.fwColors.three_act;
+  if (colorToken === "blue") return T.fwColors.story_circle;
+  return T.accent; // "accent" or any unrecognized value → gold
+}
+
+async function loadInsights() {
+  try {
+    const res = await fetch("/insights/manifest.json");
+    if (!res.ok) return [];
+    const manifest = await res.json();
+    const files = Array.isArray(manifest?.insights) ? manifest.insights : [];
+    const entries = await Promise.all(
+      files.map(async (filename) => {
+        try {
+          const r = await fetch(`/insights/${filename}`);
+          if (!r.ok) return null;
+          const data = await r.json();
+          // Resolve color tokens → theme values so downstream consumers are identical
+          // to the old hardcoded format
+          return {
+            ...data,
+            films: (data.films || []).map(f => ({
+              ...f,
+              color: resolveInsightColor(f.color),
+            })),
+          };
+        } catch { return null; }
+      })
+    );
+    return entries.filter(Boolean);
+  } catch { return []; }
+}
+
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TOAST NOTIFICATION
@@ -3193,6 +3228,7 @@ export default function ScriptGraph() {
   const [outlineFileName, setOutlineFileName]   = useState("");
   const [filmPerf, setFilmPerf]                 = useState(null);
   const [filmPerfLoading, setFilmPerfLoading]   = useState(false);
+  const [insights, setInsights]                 = useState([]);
   const outlineRef = useRef();
   const fileRef = useRef();
 
@@ -3219,6 +3255,9 @@ export default function ScriptGraph() {
   }, [screen, p1]);
 
   useEffect(() => {
+    // Load insights in parallel — independent of library routing logic
+    loadInsights().then(setInsights);
+
     loadLibrary().then(lib => {
       setLibrary(lib);
       // Handle initial URL on load
@@ -5210,55 +5249,12 @@ export default function ScriptGraph() {
 
             {/* ── Insights strip — public only ── */}
             {PUBLIC_MODE && (() => {
-              // ─── INSIGHTS DATA — edit here to add/update insights ───────────────
-              // Each insight needs:
-              //   title: string
-              //   body: string (2–4 sentences, your voice)
-              //   films: array of { slug, color, label }
-              //     slug must match the JSON filename in /public/library/ (without .json)
-              //     color: one of T.fwColors values or any hex
-              //     label: display name for the legend tag
-              // For solo-film cards, films has one entry → links to script detail page
-              // For multi-film cards, films has two entries → links to comparison view
-              // ─── INSIGHTS DATA — edit here to add/update insights ───────────────
-              // ORDERING: Newest card goes FIRST (top of array = leftmost on screen)
-              const INSIGHTS = [
-                {
-                  title: "Genre as Trojan Horse",
-                  subtitle: "2025 Oscar Winner — Best Original Screenplay",
-                  body: "Sinners disguises itself as horror. What Coogler is actually doing — tracing the roots of American music, the theft of Black culture — takes nearly 40% of the script to build. The prologue earns that patience. You already know something terrible is coming. So the wait feels like dread, not drag.",
-                  films: [
-                    { slug: "sinners", color: T.accent, label: "Sinners" },
-                  ],
-                },
-                {
-                  title: "The Safdie Climb",
-                  body: "Most screenplays breathe — peaks followed by release. The Safdie films don't. Uncut Gems and Marty Supreme both start high and almost never come down. It's a structural choice that explains the physiological experience of watching them — a foot on the pedal that never lifts.",
-                  films: [
-                    { slug: "uncut-gems", color: T.fwColors.three_act, label: "Uncut Gems" },
-                    { slug: "marty-supreme", color: T.fwColors.story_circle, label: "Marty Supreme" },
-                  ],
-                },
-                {
-                  title: "Tarantino's Heartbeat",
-                  body: "Both written by Tarantino. The heartbeat is there in both — sharp peaks, deep valleys, almost metronomic. You could argue he found the signature in True Romance, his first produced script, and perfected it by Pulp Fiction.",
-                  films: [
-                    { slug: "pulp-fiction", color: T.fwColors.three_act, label: "Pulp Fiction" },
-                    { slug: "true-romance", color: T.fwColors.story_circle, label: "True Romance" },
-                  ],
-                },
-                {
-                  title: "Tension Isn't Everything",
-                  body: "It's one of my favorite films. The graph is almost flat — no towering peaks, no relentless climb. That's not a flaw. Some films work through accumulation, through feeling, through the weight of an idea. The direction matters too. Not every story needs to tighten a screw.",
-                  films: [
-                    { slug: "eternal-sunshine-of-the-spotless-mind", color: T.accent, label: "Eternal Sunshine" },
-                  ],
-                },
-              ];
-              // ────────────────────────────────────────────────────────────────────
+              // Insights loaded from /insights/manifest.json + individual JSON files.
+              // Edit insights via scriptgraph.ai/publish → Insights tab.
+              // Color tokens ("accent"|"red"|"blue") resolved to T.* by loadInsights().
 
               // Resolve library entries for each insight
-              const resolvedInsights = INSIGHTS.map(insight => ({
+              const resolvedInsights = insights.map(insight => ({
                 ...insight,
                 resolvedFilms: insight.films.map(f => ({
                   ...f,
@@ -5970,38 +5966,7 @@ export default function ScriptGraph() {
         {PUBLIC_MODE && screen === "studio" && (
           <PublishStudio
             T={T}
-            insights={(() => {
-              const INSIGHTS = [
-                {
-                  title: "Genre as Trojan Horse",
-                  subtitle: "2025 Oscar Winner — Best Original Screenplay",
-                  body: "Sinners disguises itself as horror. What Coogler is actually doing — tracing the roots of American music, the theft of Black culture — takes nearly 40% of the script to build. The prologue earns that patience. You already know something terrible is coming. So the wait feels like dread, not drag.",
-                  films: [{ slug: "sinners", color: T.accent, label: "Sinners" }],
-                },
-                {
-                  title: "The Safdie Climb",
-                  body: "Most screenplays breathe — peaks followed by release. The Safdie films don't. Uncut Gems and Marty Supreme both start high and almost never come down. It's a structural choice that explains the physiological experience of watching them — a foot on the pedal that never lifts.",
-                  films: [
-                    { slug: "uncut-gems", color: T.fwColors.three_act, label: "Uncut Gems" },
-                    { slug: "marty-supreme", color: T.fwColors.story_circle, label: "Marty Supreme" },
-                  ],
-                },
-                {
-                  title: "Tarantino's Heartbeat",
-                  body: "Both written by Tarantino. The heartbeat is there in both — sharp peaks, deep valleys, almost metronomic. You could argue he found the signature in True Romance, his first produced script, and perfected it by Pulp Fiction.",
-                  films: [
-                    { slug: "pulp-fiction", color: T.fwColors.three_act, label: "Pulp Fiction" },
-                    { slug: "true-romance", color: T.fwColors.story_circle, label: "True Romance" },
-                  ],
-                },
-                {
-                  title: "Tension Isn't Everything",
-                  body: "It's one of my favorite films. The graph is almost flat — no towering peaks, no relentless climb. That's not a flaw. Some films work through accumulation, through feeling, through the weight of an idea. The direction matters too. Not every story needs to tighten a screw.",
-                  films: [{ slug: "eternal-sunshine-of-the-spotless-mind", color: T.accent, label: "Eternal Sunshine" }],
-                },
-              ];
-              return INSIGHTS;
-            })()}
+            insights={insights}
             onDownloadInsight={downloadInsightCard}
             library={library}
           />

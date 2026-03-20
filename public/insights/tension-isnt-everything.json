@@ -1,0 +1,10 @@
+{
+  "id": "tension-isnt-everything",
+  "title": "Tension Isn't Everything",
+  "subtitle": null,
+  "body": "It's one of my favorite films. The graph is almost flat — no towering peaks, no relentless climb. That's not a flaw. Some films work through accumulation, through feeling, through the weight of an idea. The direction matters too. Not every story needs to tighten a screw.",
+  "films": [
+    { "slug": "eternal-sunshine-of-the-spotless-mind", "color": "accent", "label": "Eternal Sunshine" }
+  ],
+  "createdAt": "2026-03-10T00:00:00Z"
+}

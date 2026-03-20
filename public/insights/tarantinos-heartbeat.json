@@ -1,0 +1,11 @@
+{
+  "id": "tarantinos-heartbeat",
+  "title": "Tarantino's Heartbeat",
+  "subtitle": null,
+  "body": "Both written by Tarantino. The heartbeat is there in both — sharp peaks, deep valleys, almost metronomic. You could argue he found the signature in True Romance, his first produced script, and perfected it by Pulp Fiction.",
+  "films": [
+    { "slug": "pulp-fiction",  "color": "red",  "label": "Pulp Fiction" },
+    { "slug": "true-romance",  "color": "blue", "label": "True Romance" }
+  ],
+  "createdAt": "2026-03-10T00:00:00Z"
+}
