@@ -3859,17 +3859,8 @@ ${_cDots(3)}
 
 // ── ZIP export ────────────────────────────────────────────────────────────────
 async function downloadCarouselZip(slides, insightTitle) {
-  // Load fflate from CDN
-  if (!window._fflate) {
-    await new Promise((res, rej) => {
-      const s = document.createElement("script");
-      s.src = "https://cdnjs.cloudflare.com/ajax/libs/fflate/0.8.2/fflate.min.js";
-      s.onload = res; s.onerror = rej;
-      document.head.appendChild(s);
-    });
-    window._fflate = true;
-  }
-  const { zipSync } = window.fflate;
+  // Load fflate via ES module dynamic import (works in modern browsers)
+  const { zipSync } = await import("https://esm.sh/fflate@0.8.2");
 
   const pngs = await Promise.all(slides.map(async (svgStr) => {
     const blob = new Blob([svgStr], { type:"image/svg+xml" });
@@ -6310,9 +6301,9 @@ export default function ScriptGraph() {
                   <div style={{ marginTop: 16, paddingTop: 14, borderTop: `1px solid ${T.borderSubtle}` }}>
                     <RhythmLegend showFormatShift={!!p1.formatTransition} />
                   </div>
-                  {/* Share Image + Carousel */}
+                  {/* Share Image */}
                   {PUBLIC_MODE && (
-                    <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${T.borderSubtle}`, display: "flex", justifyContent: "flex-end", gap: 8 }}>
+                    <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${T.borderSubtle}`, display: "flex", justifyContent: "flex-end" }}>
                       <button onClick={() => setShareCard("single")} style={{
                         display: "inline-flex", alignItems: "center", gap: 5,
                         padding: "5px 14px", border: `1px solid ${T.borderMid}`,
@@ -6328,21 +6319,6 @@ export default function ScriptGraph() {
                           <line x1="12" y1="15" x2="12" y2="3"/>
                         </svg>
                         Share Image
-                      </button>
-                      <button onClick={() => setCarousel({
-                        mode: "single",
-                        films: [{ slug: (p1._filename||"").replace(/\.json$/i,"") || (p1.title||"").toLowerCase().replace(/[^a-z0-9]+/g,"-"), color: T.accent, label: p1.title, entry: p1 }],
-                        fromInsight: null,
-                      })} style={{
-                        display: "inline-flex", alignItems: "center", gap: 5,
-                        padding: "5px 14px", border: `1px solid ${T.borderMid}`,
-                        borderRadius: T.radiusSm, background: "transparent",
-                        color: T.textSecondary, fontSize: 11, fontFamily: T.fontSans,
-                        fontWeight: 500, letterSpacing: 0.2, cursor: "pointer", transition: "all 0.12s",
-                      }}
-                      onMouseEnter={e => { e.currentTarget.style.borderColor = T.accent; e.currentTarget.style.color = T.accent; e.currentTarget.style.background = T.accent+"0d"; }}
-                      onMouseLeave={e => { e.currentTarget.style.borderColor = T.borderMid; e.currentTarget.style.color = T.textSecondary; e.currentTarget.style.background = "transparent"; }}>
-                        Carousel
                       </button>
                     </div>
                   )}
@@ -6847,9 +6823,9 @@ export default function ScriptGraph() {
                   />
                 );
               })()}
-              {/* Share Image + Carousel */}
+              {/* Share Image */}
               {PUBLIC_MODE && (
-                <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${T.borderSubtle}`, display: "flex", justifyContent: "flex-end", gap: 8 }}>
+                <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${T.borderSubtle}`, display: "flex", justifyContent: "flex-end" }}>
                   <button onClick={() => setShareCard("compare")} style={{
                     display: "inline-flex", alignItems: "center", gap: 5,
                     padding: "5px 14px", border: `1px solid ${T.borderMid}`,
@@ -6865,24 +6841,6 @@ export default function ScriptGraph() {
                       <line x1="12" y1="15" x2="12" y2="3"/>
                     </svg>
                     Share Image
-                  </button>
-                  <button onClick={() => setCarousel({
-                    mode: "compare",
-                    films: [
-                      { slug: (compareItems[0]._filename||"").replace(/\.json$/i,"") || (compareItems[0].title||"").toLowerCase().replace(/[^a-z0-9]+/g,"-"), color: T.fwColors.three_act, label: compareItems[0].title, entry: compareItems[0] },
-                      { slug: (compareItems[1]._filename||"").replace(/\.json$/i,"") || (compareItems[1].title||"").toLowerCase().replace(/[^a-z0-9]+/g,"-"), color: T.fwColors.story_circle, label: compareItems[1].title, entry: compareItems[1] },
-                    ],
-                    fromInsight: null,
-                  })} style={{
-                    display: "inline-flex", alignItems: "center", gap: 5,
-                    padding: "5px 14px", border: `1px solid ${T.borderMid}`,
-                    borderRadius: T.radiusSm, background: "transparent",
-                    color: T.textSecondary, fontSize: 11, fontFamily: T.fontSans,
-                    fontWeight: 500, letterSpacing: 0.2, cursor: "pointer", transition: "all 0.12s",
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = T.accent; e.currentTarget.style.color = T.accent; e.currentTarget.style.background = T.accent+"0d"; }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = T.borderMid; e.currentTarget.style.color = T.textSecondary; e.currentTarget.style.background = "transparent"; }}>
-                    Carousel
                   </button>
                 </div>
               )}
