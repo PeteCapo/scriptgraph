@@ -2851,6 +2851,89 @@ function deriveOverallTension(enrichedScenes, totalPages) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// FILM PERFORMANCE ENRICHMENT
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function fetchFilmPerf(title, year) {
+  const OMDB_KEY = import.meta.env.VITE_OMDB_KEY || "";
+  const TMDB_KEY = import.meta.env.VITE_TMDB_KEY || "";
+
+  const omdbUrl = `https://www.omdbapi.com/?apikey=${OMDB_KEY}&t=${encodeURIComponent(title)}${year ? `&y=${year}` : ""}&plot=short`;
+  const tmdbSearchUrl = `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${encodeURIComponent(title)}${year ? `&year=${year}` : ""}`;
+  const wikidataSparql = `
+    SELECT ?awardLabel WHERE {
+      ?film wdt:P31 wd:Q11424.
+      ?film rdfs:label "${title.replace(/"/g, '\\"')}"@en.
+      ?film wdt:P166 ?award.
+      SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+    } LIMIT 30
+  `;
+  const wikidataUrl = `https://query.wikidata.org/sparql?format=json&query=${encodeURIComponent(wikidataSparql)}`;
+
+  const results = { boxOffice: null, budget: null, rt: null, mc: null, awards: null, awardNames: [] };
+
+  const NOTABLE = [
+    "Academy Award", "Oscar", "BAFTA", "Independent Spirit", "Cannes",
+    "Palme d'Or", "Golden Globe", "Screen Actors Guild", "SAG Award",
+    "Sundance", "SXSW", "Tribeca", "Berlinale", "Golden Bear", "Venice",
+    "Golden Lion", "Gotham Award", "Critics Choice", "Spirit Award",
+  ];
+
+  try {
+    const [omdbRes, tmdbRes, wikiRes] = await Promise.allSettled([
+      fetch(omdbUrl).then(r => r.json()),
+      fetch(tmdbSearchUrl).then(r => r.json()),
+      fetch(wikidataUrl, { headers: { Accept: "application/json" } }).then(r => r.json()),
+    ]);
+
+    // ── OMDb: box office, RT score, Metacritic, awards summary ──
+    if (omdbRes.status === "fulfilled" && omdbRes.value?.Response === "True") {
+      const d = omdbRes.value;
+      if (d.BoxOffice && d.BoxOffice !== "N/A") results.boxOffice = d.BoxOffice;
+      const rt = d.Ratings?.find(r => r.Source === "Rotten Tomatoes");
+      if (rt) results.rt = rt.Value;
+      if (d.Metascore && d.Metascore !== "N/A") results.mc = d.Metascore;
+      const aw = d.Awards || "";
+      if (aw && aw !== "N/A") {
+        const wins = aw.match(/(\d+)\s+win/i);
+        const noms = aw.match(/(\d+)\s+nomination/i);
+        if (wins || noms) results.awards = { wins: wins ? parseInt(wins[1]) : 0, noms: noms ? parseInt(noms[1]) : 0 };
+      }
+    }
+
+    // ── TMDb: budget, fallback revenue if OMDb had no box office ──
+    if (tmdbRes.status === "fulfilled" && tmdbRes.value?.results?.length > 0) {
+      const movieId = tmdbRes.value.results[0].id;
+      try {
+        const detail = await fetch(`https://api.themoviedb.org/3/movie/${movieId}?api_key=${TMDB_KEY}`).then(r => r.json());
+        if (detail.budget && detail.budget > 0) {
+          const b = detail.budget;
+          results.budget = b >= 1_000_000 ? `$${(b / 1_000_000).toFixed(0)}M` : `$${(b / 1_000).toFixed(0)}K`;
+        }
+        if (!results.boxOffice && detail.revenue && detail.revenue > 0) {
+          const r = detail.revenue;
+          results.boxOffice = r >= 1_000_000 ? `$${(r / 1_000_000).toFixed(1)}M` : `$${(r / 1_000).toFixed(0)}K`;
+        }
+      } catch {}
+    }
+
+    // ── Wikidata: named notable awards ──
+    if (wikiRes.status === "fulfilled" && wikiRes.value?.results?.bindings?.length > 0) {
+      const seen = new Set();
+      wikiRes.value.results.bindings.forEach(b => {
+        const name = b.awardLabel?.value || "";
+        if (!name || seen.has(name)) return;
+        seen.add(name);
+        if (NOTABLE.some(n => name.includes(n))) results.awardNames.push(name);
+      });
+      results.awardNames = results.awardNames.slice(0, 3);
+    }
+  } catch {}
+
+  return results;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // MAIN APP
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -2925,6 +3008,8 @@ export default function ScriptGraph() {
   const [outlineText, setOutlineText]           = useState("");
   const [outlineFile, setOutlineFile]           = useState(null);
   const [outlineFileName, setOutlineFileName]   = useState("");
+  const [filmPerf, setFilmPerf]                 = useState(null);
+  const [filmPerfLoading, setFilmPerfLoading]   = useState(false);
   const outlineRef = useRef();
   const fileRef = useRef();
 
@@ -2937,6 +3022,18 @@ export default function ScriptGraph() {
 
   const naturalColor = T.accent;
   const fwColor = T.accent;
+
+  // ── Film performance enrichment — fires when a script result loads ──
+  useEffect(() => {
+    if (screen === "results" && p1 && !p1.isOutline) {
+      setFilmPerf(null);
+      setFilmPerfLoading(true);
+      fetchFilmPerf(p1.title, p1.year || null).then(data => {
+        setFilmPerf(data);
+        setFilmPerfLoading(false);
+      });
+    }
+  }, [screen, p1]);
 
   useEffect(() => {
     loadLibrary().then(lib => {
@@ -4667,6 +4764,79 @@ export default function ScriptGraph() {
               </div>
             </div>
 
+            {/* ── Film Performance Strip ── */}
+            {!p1.isOutline && (
+              <div style={{ marginBottom: 32, paddingBottom: 28, borderBottom: `1px solid ${T.borderSubtle}` }}>
+                <div style={{ fontSize: 9, fontFamily: T.fontMono, color: T.textDim, letterSpacing: 2.5, textTransform: "uppercase", marginBottom: 14 }}>
+                  Film Performance
+                </div>
+                <div style={{ display: "flex", alignItems: "flex-start" }}>
+                  {[
+                    {
+                      label: "Box Office",
+                      value: filmPerf?.boxOffice || null,
+                      sub1: "worldwide gross",
+                      sub2: filmPerf?.budget ? `${filmPerf.budget} budget` : null,
+                    },
+                    {
+                      label: "Rotten Tomatoes",
+                      value: filmPerf?.rt || null,
+                      sub1: "critics score",
+                      sub2: null,
+                    },
+                    {
+                      label: "Metacritic",
+                      value: filmPerf?.mc || null,
+                      sub1: "metascore",
+                      sub2: null,
+                    },
+                    {
+                      label: "Awards",
+                      value: filmPerf?.awards ? `${filmPerf.awards.wins} wins · ${filmPerf.awards.noms} noms` : null,
+                      sub1: filmPerf?.awardNames?.length > 0 ? filmPerf.awardNames.join(" · ") : null,
+                      sub2: null,
+                    },
+                  ].map((block, i, arr) => (
+                    <div key={block.label} style={{
+                      display: "flex", flexDirection: "column", alignItems: "flex-start",
+                      flex: 1,
+                      paddingRight: i < arr.length - 1 ? 28 : 0,
+                      marginRight: i < arr.length - 1 ? 28 : 0,
+                      borderRight: i < arr.length - 1 ? `1px solid ${T.borderSubtle}` : "none",
+                      minHeight: 72,
+                    }}>
+                      <div style={{ fontSize: 9, fontFamily: T.fontMono, color: T.textMuted, letterSpacing: 2, textTransform: "uppercase", marginBottom: 7 }}>
+                        {block.label}
+                      </div>
+                      {filmPerfLoading ? (
+                        <>
+                          <div style={{ width: 64, height: 18, background: T.borderSubtle, borderRadius: 3, marginBottom: 7 }} />
+                          <div style={{ width: 80, height: 10, background: T.bgHover, borderRadius: 3, marginBottom: 4 }} />
+                          <div style={{ width: 56, height: 10, background: T.bgHover, borderRadius: 3 }} />
+                        </>
+                      ) : (
+                        <>
+                          <div style={{ fontSize: 22, fontFamily: T.fontDisplay, fontWeight: 700, color: T.textPrimary, letterSpacing: 0.5, lineHeight: 1, marginBottom: 5 }}>
+                            {block.value || "—"}
+                          </div>
+                          {block.sub1 && (
+                            <div style={{ fontSize: 10, color: T.textMuted, lineHeight: 1.5 }}>
+                              {block.sub1}
+                            </div>
+                          )}
+                          {block.sub2 && (
+                            <div style={{ fontSize: 10, color: T.textMuted, lineHeight: 1.5 }}>
+                              {block.sub2}
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <TruncationWarning p1={p1} />
 
             {/* No framework switcher — Option B uses structural rhythm markers */}
@@ -4867,6 +5037,8 @@ export default function ScriptGraph() {
               //     label: display name for the legend tag
               // For solo-film cards, films has one entry → links to script detail page
               // For multi-film cards, films has two entries → links to comparison view
+              // ─── INSIGHTS DATA — edit here to add/update insights ───────────────
+              // ORDERING: Newest card goes FIRST (top of array = leftmost on screen)
               const INSIGHTS = [
                 {
                   title: "Genre as Trojan Horse",
