@@ -1180,41 +1180,6 @@ async function persistLibrary(entries) {
   } catch {}
 }
 
-// Resolve color token string ("accent"|"red"|"blue") → actual theme value at render time
-function resolveInsightColor(colorToken) {
-  if (colorToken === "red")  return T.fwColors.three_act;
-  if (colorToken === "blue") return T.fwColors.story_circle;
-  return T.accent; // "accent" or any unrecognized value → gold
-}
-
-async function loadInsights() {
-  try {
-    const res = await fetch("/insights/manifest.json");
-    if (!res.ok) return [];
-    const manifest = await res.json();
-    const files = Array.isArray(manifest?.insights) ? manifest.insights : [];
-    const entries = await Promise.all(
-      files.map(async (filename) => {
-        try {
-          const r = await fetch(`/insights/${filename}`);
-          if (!r.ok) return null;
-          const data = await r.json();
-          // Resolve color tokens → theme values so downstream consumers are identical
-          // to the old hardcoded format
-          return {
-            ...data,
-            films: (data.films || []).map(f => ({
-              ...f,
-              color: resolveInsightColor(f.color),
-            })),
-          };
-        } catch { return null; }
-      })
-    );
-    return entries.filter(Boolean);
-  } catch { return []; }
-}
-
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TOAST NOTIFICATION
@@ -2580,26 +2545,118 @@ function applyMidpointRulingCorrection(keyMoments, scenes) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// PUBLISH STUDIO — password-protected JSON publisher with delete
+// PUBLISH STUDIO — password-protected library manager
+// Tabs: Publish (script JSON) | Delete (scripts) | Insights (CRUD + AI drafting)
 // ═══════════════════════════════════════════════════════════════════════════════
+
+// ── AI drafting helpers (called from Insights tab) ────────────────────────────
+async function draftInsightBody({ title, films, angle, library }) {
+  const filmContext = films.map(f => {
+    const entry = library.find(e =>
+      (e._filename || "").replace(/\.json$/i, "") === f.slug ||
+      (e.title || "").toLowerCase().replace(/[^a-z0-9]+/g, "-") === f.slug
+    );
+    if (!entry) return f.label;
+    return `${entry.title} (${entry.writer || ""}, ${entry.genre || ""}, ${entry.naturalStructure?.structureType || ""})`.replace(/,\s*,/g, ",").replace(/\(\s*,?\s*\)/g, "");
+  }).join(" and ");
+
+  const prompt = `You are writing a Director's Note for ScriptGraph, a screenplay structure analysis library built by director Pete Capo.
+
+The note is titled: "${title}"
+It references: ${filmContext}
+Pete's angle: "${angle}"
+
+Write a Director's Note body in Pete's voice — a director sharing a structural discovery, not teaching a lesson. Observational, precise, specific. 2-4 sentences. 200-400 characters. No superlatives. No "excited to share." Reference the specific films by name. Make the structural observation concrete enough that a reader can test it against their own viewing.
+
+Return only the body text. No quotes, no preamble.`;
+
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: API_HEADERS,
+    body: JSON.stringify({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 300,
+      messages: [{ role: "user", content: prompt }],
+    }),
+  });
+  const data = await res.json();
+  return data.content?.[0]?.text?.trim() || "";
+}
+
+async function draftInsightTitle({ films, angle, library }) {
+  const filmNames = films.map(f => {
+    const entry = library.find(e =>
+      (e._filename || "").replace(/\.json$/i, "") === f.slug ||
+      (e.title || "").toLowerCase().replace(/[^a-z0-9]+/g, "-") === f.slug
+    );
+    return entry?.title || f.label;
+  }).join(" and ");
+
+  const prompt = `You are titling a Director's Note for ScriptGraph.
+
+Films: ${filmNames}
+Angle: "${angle}"
+
+Write a short, punchy title for this structural observation. 2-5 words. Title case. No quotes, no punctuation at end. Examples: "Genre as Trojan Horse", "The Safdie Climb", "Tension Isn't Everything".
+
+Return only the title. Nothing else.`;
+
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: API_HEADERS,
+    body: JSON.stringify({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 50,
+      messages: [{ role: "user", content: prompt }],
+    }),
+  });
+  const data = await res.json();
+  return data.content?.[0]?.text?.trim() || "";
+}
+
+// ── Main component ─────────────────────────────────────────────────────────────
 function PublishStudio({ T, insights = [], onDownloadInsight, library: appLibrary = [] }) {
   const [tab, setTab] = useState("publish");
   const [password, setPassword] = useState("");
   const [unlocked, setUnlocked] = useState(false);
   const [gateInput, setGateInput] = useState("");
   const [gateError, setGateError] = useState(false);
+
+  // ── Publish tab state ──
   const [files, setFiles] = useState([]);
   const [dragOver, setDragOver] = useState(false);
   const [publishing, setPublishing] = useState(false);
+
+  // ── Delete tab state ──
   const [manifestFiles, setManifestFiles] = useState([]);
   const [libraryLoading, setLibraryLoading] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleteStatus, setDeleteStatus] = useState(null);
   const [deleteMessage, setDeleteMessage] = useState("");
 
+  // ── Insights tab state ──
+  // insightView: "list" | "form"
+  const [insightView, setInsightView] = useState("list");
+  const [insightStatus, setInsightStatus] = useState(null); // null | "saving" | "deleting" | "success" | "error"
+  const [insightMessage, setInsightMessage] = useState("");
+  const [draftingBody, setDraftingBody] = useState(false);
+  const [draftingTitle, setDraftingTitle] = useState(false);
+
+  // Form fields — null means we're in create mode; populated = edit mode
+  const blankForm = () => ({
+    id: null, // null = new; string = editing existing
+    title: "", subtitle: "", body: "", angle: "",
+    films: [
+      { slug: "", color: "accent", label: "" },
+    ],
+    twoFilms: false,
+    createdAt: null,
+  });
+  const [form, setForm] = useState(blankForm());
+
   const reserved = ["manifest.json", "index.json", "config.json"];
 
-  // Load manifest once on mount — shared across Delete and Director's Notes tabs
+  // Load script library manifest once — for Delete tab
   useEffect(() => {
     setLibraryLoading(true);
     fetch("/library/manifest.json")
@@ -2609,8 +2666,16 @@ function PublishStudio({ T, insights = [], onDownloadInsight, library: appLibrar
       .finally(() => setLibraryLoading(false));
   }, []);
 
-  // Resolve insight cards against the app library passed in as prop
+  // ── Helpers ──────────────────────────────────────────────────────────────────
   const slugFromFilename = (filename) => filename.replace(/\.json$/i, "");
+
+  const resolveInsightColorLocal = (colorToken) => {
+    if (colorToken === "red")  return T.fwColors.three_act;
+    if (colorToken === "blue") return T.fwColors.story_circle;
+    return T.accent;
+  };
+
+  // insights prop already has colors resolved to T.* by loadInsights()
   const resolvedInsights = insights.map(insight => ({
     ...insight,
     resolvedFilms: insight.films.map(f => ({
@@ -2622,6 +2687,16 @@ function PublishStudio({ T, insights = [], onDownloadInsight, library: appLibrar
     })),
   }));
 
+  // Build slug from title
+  const slugify = (str) => str.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+  // All library scripts for the film dropdown
+  const libraryOptions = appLibrary.map(e => ({
+    slug: slugFromFilename(e._filename || slugify(e.title || "") + ".json"),
+    label: e.title || "",
+  })).sort((a, b) => a.label.localeCompare(b.label));
+
+  // ── Publish tab logic ────────────────────────────────────────────────────────
   const parseFiles = (rawFiles) => {
     const results = [];
     let pending = rawFiles.length;
@@ -2683,6 +2758,7 @@ function PublishStudio({ T, insights = [], onDownloadInsight, library: appLibrar
     setPublishing(false);
   };
 
+  // ── Delete tab logic ─────────────────────────────────────────────────────────
   const handleDelete = async () => {
     if (!deleteTarget || !password) return;
     setDeleteStatus("loading"); setDeleteMessage(`Deleting ${deleteTarget}...`);
@@ -2705,19 +2781,186 @@ function PublishStudio({ T, insights = [], onDownloadInsight, library: appLibrar
     }
   };
 
+  // ── Insights tab logic ────────────────────────────────────────────────────────
+  const openNewInsight = () => {
+    setForm(blankForm());
+    setInsightStatus(null);
+    setInsightMessage("");
+    setInsightView("form");
+  };
+
+  const openEditInsight = (insight) => {
+    // Reverse-resolve color from T.* back to token for the form select
+    const colorToken = (hexVal) => {
+      if (hexVal === T.fwColors.three_act)    return "red";
+      if (hexVal === T.fwColors.story_circle) return "blue";
+      return "accent";
+    };
+    const films = insight.films.map(f => ({
+      slug: f.slug,
+      color: colorToken(f.color),
+      label: f.label,
+    }));
+    setForm({
+      id:        insight.id,
+      title:     insight.title,
+      subtitle:  insight.subtitle || "",
+      body:      insight.body,
+      angle:     "",
+      films,
+      twoFilms:  films.length > 1,
+      createdAt: insight.createdAt || null,
+    });
+    setInsightStatus(null);
+    setInsightMessage("");
+    setInsightView("form");
+  };
+
+  const handleSaveInsight = async () => {
+    if (!form.title.trim() || !form.body.trim() || !form.films[0].slug) return;
+    if (!password) return;
+    setInsightStatus("saving");
+    setInsightMessage("Saving...");
+
+    const id = form.id || slugify(form.title);
+    const filmsToSave = [form.films[0], ...(form.twoFilms ? [form.films[1]] : [])].map(f => ({
+      slug:  f.slug,
+      color: f.color,
+      label: f.label,
+    }));
+
+    const insightPayload = {
+      id,
+      title:     form.title.trim(),
+      subtitle:  form.subtitle.trim() || null,
+      body:      form.body.trim(),
+      films:     filmsToSave,
+      createdAt: form.createdAt || undefined,
+    };
+
+    const action = form.id ? "update" : "publish";
+
+    try {
+      const res = await fetch("/api/insights", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password, action, insight: insightPayload }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setInsightStatus("success");
+        setInsightMessage(data.message || "Saved — live in ~60 seconds");
+      } else {
+        setInsightStatus("error");
+        setInsightMessage(data.error || "Save failed");
+      }
+    } catch {
+      setInsightStatus("error");
+      setInsightMessage("Network error — try again");
+    }
+  };
+
+  const handleDeleteInsight = async () => {
+    if (!form.id || !password) return;
+    if (!window.confirm(`Delete "${form.title}"? This cannot be undone.`)) return;
+    setInsightStatus("deleting");
+    setInsightMessage("Deleting...");
+    try {
+      const res = await fetch("/api/insights", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password, action: "delete", insight: { id: form.id } }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setInsightStatus("success");
+        setInsightMessage(data.message || "Deleted — live in ~60 seconds");
+        setTimeout(() => {
+          setInsightView("list");
+          setInsightStatus(null);
+          setInsightMessage("");
+        }, 2000);
+      } else {
+        setInsightStatus("error");
+        setInsightMessage(data.error || "Delete failed");
+      }
+    } catch {
+      setInsightStatus("error");
+      setInsightMessage("Network error — try again");
+    }
+  };
+
+  const handleDraftBody = async () => {
+    if (!form.angle.trim()) return;
+    setDraftingBody(true);
+    try {
+      const filmsForDraft = [form.films[0], ...(form.twoFilms ? [form.films[1]] : [])];
+      const drafted = await draftInsightBody({
+        title: form.title || "(untitled)",
+        films: filmsForDraft,
+        angle: form.angle,
+        library: appLibrary,
+      });
+      if (drafted) setForm(f => ({ ...f, body: drafted }));
+    } catch {}
+    setDraftingBody(false);
+  };
+
+  const handleDraftTitle = async () => {
+    if (!form.angle.trim()) return;
+    setDraftingTitle(true);
+    try {
+      const filmsForDraft = [form.films[0], ...(form.twoFilms ? [form.films[1]] : [])];
+      const drafted = await draftInsightTitle({
+        films: filmsForDraft,
+        angle: form.angle,
+        library: appLibrary,
+      });
+      if (drafted) setForm(f => ({ ...f, title: drafted }));
+    } catch {}
+    setDraftingTitle(false);
+  };
+
+  // ── Shared styling ────────────────────────────────────────────────────────────
   const removeFile = (filename) => setFiles(prev => prev.filter(f => f.filename !== filename));
   const readyCount = files.filter(f => f.status === "ready").length;
   const statusColor = (s) => s === "success" ? T.colorSuccess : s === "error" ? T.colorError : s === "loading" ? T.accent : T.textMuted;
   const delMsgColor = deleteStatus === "success" ? T.colorSuccess : deleteStatus === "error" ? T.colorError : T.accent;
+  const insMsgColor = insightStatus === "success" ? T.colorSuccess : insightStatus === "error" ? T.colorError : T.accent;
+
   const tabStyle = (active) => ({
     padding: "6px 16px", borderRadius: T.radiusSm, cursor: "pointer", border: "none",
     fontSize: 11, fontFamily: T.fontMono, fontWeight: 600, letterSpacing: 1.5, textTransform: "uppercase",
     background: active ? T.accent : "transparent", color: active ? T.bgPage : T.textMuted,
   });
 
+  const inputStyle = (extra = {}) => ({
+    width: "100%", boxSizing: "border-box",
+    background: T.bgPanel, border: `1px solid ${T.borderMid}`,
+    borderRadius: T.radiusSm, padding: "9px 12px",
+    color: T.textPrimary, fontFamily: T.fontSans, fontSize: 13, outline: "none",
+    ...extra,
+  });
+
+  const labelStyle = {
+    display: "block", fontSize: 10, fontFamily: T.fontMono,
+    letterSpacing: 1.5, color: T.textMuted, textTransform: "uppercase", marginBottom: 5,
+  };
+
+  const fieldWrap = { marginBottom: 18 };
+
+  const smallBtn = (disabled = false, danger = false) => ({
+    padding: "6px 14px", borderRadius: T.radiusSm, border: "none",
+    fontSize: 10, fontFamily: T.fontMono, fontWeight: 600, letterSpacing: 1.5,
+    textTransform: "uppercase", cursor: disabled ? "not-allowed" : "pointer",
+    background: disabled ? T.borderMid : danger ? T.colorError : T.bgPanel,
+    color: disabled ? T.textDim : danger ? T.bgPage : T.textSecondary,
+    border: disabled ? "none" : `1px solid ${danger ? T.colorError + "60" : T.borderMid}`,
+    transition: "all 0.12s",
+  });
+
+  // ── Gate screen ───────────────────────────────────────────────────────────────
   const handleGateSubmit = () => {
-    // Probe the publish API — 400 means auth passed but payload invalid (correct password),
-    // 401 means wrong password. No side effects either way.
     fetch("/api/publish", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -2733,7 +2976,6 @@ function PublishStudio({ T, insights = [], onDownloadInsight, library: appLibrar
         }
       })
       .catch(() => {
-        // Network error — admit and let API calls surface the real error
         setPassword(gateInput);
         setUnlocked(true);
       });
@@ -2745,7 +2987,7 @@ function PublishStudio({ T, insights = [], onDownloadInsight, library: appLibrar
         <div style={{ fontSize: 11, fontFamily: T.fontMono, letterSpacing: 2, color: T.accent, marginBottom: 8, textTransform: "uppercase" }}>ScriptGraph Studio</div>
         <h1 style={{ margin: "0 0 32px", fontSize: 32, fontWeight: 800, fontFamily: T.fontDisplay, textTransform: "uppercase", color: T.textPrimary, letterSpacing: 2 }}>Library Manager</h1>
         <div style={{ width: "100%" }}>
-          <label style={{ display: "block", fontSize: 10, fontFamily: T.fontMono, letterSpacing: 1.5, color: T.textMuted, textTransform: "uppercase", marginBottom: 6 }}>Password</label>
+          <label style={labelStyle}>Password</label>
           <input
             type="password"
             value={gateInput}
@@ -2787,6 +3029,7 @@ function PublishStudio({ T, insights = [], onDownloadInsight, library: appLibrar
     );
   }
 
+  // ── Main (unlocked) ───────────────────────────────────────────────────────────
   return (
     <div style={{ maxWidth: 560, margin: "0 auto", padding: "60px 0" }}>
       <div style={{ marginBottom: 28 }}>
@@ -2795,19 +3038,23 @@ function PublishStudio({ T, insights = [], onDownloadInsight, library: appLibrar
       </div>
 
       <div style={{ display: "flex", gap: 6, marginBottom: 28, padding: "4px", background: T.bgPanel, borderRadius: T.radiusSm, width: "fit-content" }}>
-        <button style={tabStyle(tab === "publish")} onClick={() => setTab("publish")}>Publish</button>
-        <button style={tabStyle(tab === "delete")} onClick={() => setTab("delete")}>Delete</button>
-        <button style={tabStyle(tab === "notes")} onClick={() => setTab("notes")}>Director's Notes</button>
+        <button style={tabStyle(tab === "publish")}  onClick={() => setTab("publish")}>Publish</button>
+        <button style={tabStyle(tab === "delete")}   onClick={() => setTab("delete")}>Delete</button>
+        <button style={tabStyle(tab === "insights")} onClick={() => { setTab("insights"); setInsightView("list"); }}>Insights</button>
       </div>
 
-      <div style={{ marginBottom: 20 }}>
-        <label style={{ display: "block", fontSize: 10, fontFamily: T.fontMono, letterSpacing: 1.5, color: T.textMuted, textTransform: "uppercase", marginBottom: 6 }}>Password</label>
-        <input type="password" value={password} onChange={e => setPassword(e.target.value)}
-          placeholder="Enter publish password"
-          style={{ width: "100%", boxSizing: "border-box", background: T.bgPanel, border: `1px solid ${T.borderMid}`, borderRadius: T.radiusSm, padding: "10px 14px", color: T.textPrimary, fontFamily: T.fontSans, fontSize: 14, outline: "none" }}
-        />
-      </div>
+      {/* Password field — shown on Publish and Delete tabs only; Insights uses it inline */}
+      {(tab === "publish" || tab === "delete") && (
+        <div style={{ marginBottom: 20 }}>
+          <label style={labelStyle}>Password</label>
+          <input type="password" value={password} onChange={e => setPassword(e.target.value)}
+            placeholder="Enter publish password"
+            style={inputStyle()}
+          />
+        </div>
+      )}
 
+      {/* ── PUBLISH TAB ── */}
       {tab === "publish" && (
         <>
           <div
@@ -2862,6 +3109,7 @@ function PublishStudio({ T, insights = [], onDownloadInsight, library: appLibrar
         </>
       )}
 
+      {/* ── DELETE TAB ── */}
       {tab === "delete" && (
         <>
           {libraryLoading ? (
@@ -2915,68 +3163,269 @@ function PublishStudio({ T, insights = [], onDownloadInsight, library: appLibrar
         </>
       )}
 
-      {tab === "notes" && (
-        <>
-          {resolvedInsights.length === 0 ? (
-            <div style={{ fontSize: 12, color: T.textMuted, fontFamily: T.fontSans, padding: "20px 0" }}>No Director's Notes defined.</div>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {resolvedInsights.map((insight, idx) => {
-                const hasData = insight.resolvedFilms.some(f => f.entry);
-                return (
-                  <div key={idx} style={{
-                    display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16,
-                    padding: "12px 14px", background: T.bgPanel, borderRadius: T.radiusSm,
-                    border: `1px solid ${T.borderSubtle}`,
-                  }}>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13, fontFamily: T.fontDisplay, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: T.textPrimary, lineHeight: 1.2 }}>
-                        {insight.title}
+      {/* ── INSIGHTS TAB ── */}
+      {tab === "insights" && (
+
+        /* ── LIST VIEW ── */
+        insightView === "list" ? (
+          <>
+            <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 16 }}>
+              <button onClick={openNewInsight} style={{
+                padding: "7px 18px", borderRadius: T.radiusSm, border: `1px solid ${T.accent}50`,
+                background: `${T.accent}12`, color: T.accent, cursor: "pointer",
+                fontSize: 10, fontFamily: T.fontMono, fontWeight: 600, letterSpacing: 1.5, textTransform: "uppercase",
+              }}>+ New Insight</button>
+            </div>
+
+            {resolvedInsights.length === 0 ? (
+              <div style={{ fontSize: 12, color: T.textMuted, fontFamily: T.fontSans, padding: "20px 0" }}>
+                No insights yet. Click "+ New Insight" to create the first one.
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {resolvedInsights.map((insight, idx) => {
+                  const hasData = insight.resolvedFilms.some(f => f.entry);
+                  return (
+                    <div key={idx} style={{
+                      display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
+                      padding: "12px 14px", background: T.bgPanel, borderRadius: T.radiusSm,
+                      border: `1px solid ${T.borderSubtle}`,
+                    }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 13, fontFamily: T.fontDisplay, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: T.textPrimary, lineHeight: 1.2 }}>
+                          {insight.title}
+                        </div>
+                        <div style={{ display: "flex", gap: 5, marginTop: 5, flexWrap: "wrap" }}>
+                          {insight.resolvedFilms.map((f, fi) => (
+                            <div key={fi} style={{
+                              fontSize: 9, fontFamily: T.fontMono, letterSpacing: 1, textTransform: "uppercase",
+                              padding: "2px 6px", borderRadius: T.radiusSm,
+                              color: f.color, border: `1px solid ${f.color}38`, background: `${f.color}10`,
+                            }}>{f.label}</div>
+                          ))}
+                          {!hasData && (
+                            <div style={{ fontSize: 9, fontFamily: T.fontMono, color: T.colorError, letterSpacing: 1, textTransform: "uppercase", padding: "2px 6px" }}>
+                              missing library data
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      <div style={{ display: "flex", gap: 6, marginTop: 6, flexWrap: "wrap" }}>
-                        {insight.resolvedFilms.map((f, fi) => (
-                          <div key={fi} style={{
-                            fontSize: 9, fontFamily: T.fontMono, letterSpacing: 1, textTransform: "uppercase",
-                            padding: "2px 6px", borderRadius: T.radiusSm,
-                            color: f.color, border: `1px solid ${f.color}38`, background: `${f.color}10`,
-                          }}>
-                            {f.label}
-                          </div>
-                        ))}
-                        {!hasData && (
-                          <div style={{ fontSize: 9, fontFamily: T.fontMono, color: T.colorError, letterSpacing: 1, textTransform: "uppercase", padding: "2px 6px" }}>
-                            missing library data
-                          </div>
-                        )}
+                      <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                        <button
+                          onClick={() => openEditInsight(insight)}
+                          style={smallBtn(false, false)}
+                        >Edit</button>
+                        <button
+                          onClick={() => hasData && onDownloadInsight && onDownloadInsight(insight)}
+                          disabled={!hasData}
+                          title={hasData ? "Download share image" : "Library data not loaded"}
+                          style={smallBtn(!hasData, false)}
+                        >Export</button>
                       </div>
                     </div>
-                    <button
-                      onClick={() => hasData && onDownloadInsight && onDownloadInsight(insight)}
-                      disabled={!hasData}
-                      title={hasData ? "Download share image" : "Library data not loaded"}
-                      style={{
-                        flexShrink: 0, background: "none",
-                        border: `1px solid ${hasData ? T.borderMid : T.borderSubtle}`,
-                        borderRadius: T.radiusSm, padding: "6px 14px",
-                        color: hasData ? T.textSecondary : T.textMuted,
-                        fontFamily: T.fontMono, fontSize: 10, letterSpacing: 1.5,
-                        textTransform: "uppercase", cursor: hasData ? "pointer" : "not-allowed",
-                        transition: "color 0.15s, border-color 0.15s",
-                      }}
-                      onMouseEnter={e => { if (hasData) { e.currentTarget.style.color = T.accent; e.currentTarget.style.borderColor = T.accent + "60"; } }}
-                      onMouseLeave={e => { e.currentTarget.style.color = T.textSecondary; e.currentTarget.style.borderColor = T.borderMid; }}
-                    >
-                      Export
-                    </button>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
+            )}
+          </>
+
+        ) : (
+          /* ── FORM VIEW (create / edit) ── */
+          <div>
+            {/* Back link */}
+            <button onClick={() => { setInsightView("list"); setInsightStatus(null); setInsightMessage(""); }}
+              style={{ background: "none", border: "none", cursor: "pointer", padding: 0, marginBottom: 24,
+                fontSize: 11, fontFamily: T.fontMono, letterSpacing: 1.5, color: T.textMuted,
+                textTransform: "uppercase", display: "flex", alignItems: "center", gap: 6 }}>
+              ← Back to insights
+            </button>
+
+            <div style={{ fontSize: 11, fontFamily: T.fontMono, letterSpacing: 2, color: T.accent, marginBottom: 18, textTransform: "uppercase" }}>
+              {form.id ? "Edit Insight" : "New Insight"}
             </div>
-          )}
-          <div style={{ marginTop: 16, fontSize: 11, color: T.textMuted, fontFamily: T.fontSans, textAlign: "center" }}>
-            Downloads a 1800×2250 PNG — ready for Instagram
+
+            {/* Password */}
+            <div style={fieldWrap}>
+              <label style={labelStyle}>Password</label>
+              <input type="password" value={password} onChange={e => setPassword(e.target.value)}
+                placeholder="Enter publish password" style={inputStyle()} />
+            </div>
+
+            {/* Title */}
+            <div style={fieldWrap}>
+              <label style={labelStyle}>Title *</label>
+              <input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+                placeholder="e.g. Genre as Trojan Horse" style={inputStyle()} />
+              <div style={{ display: "flex", gap: 8, marginTop: 7 }}>
+                <button onClick={handleDraftTitle} disabled={!form.angle.trim() || draftingTitle}
+                  style={smallBtn(!form.angle.trim() || draftingTitle)}>
+                  {draftingTitle ? "Drafting..." : "AI Draft Title"}
+                </button>
+                <span style={{ fontSize: 10, color: T.textDim, fontFamily: T.fontSans, alignSelf: "center" }}>
+                  Requires angle below
+                </span>
+              </div>
+            </div>
+
+            {/* Subtitle */}
+            <div style={fieldWrap}>
+              <label style={labelStyle}>Subtitle <span style={{ color: T.textDim }}>(optional)</span></label>
+              <input value={form.subtitle} onChange={e => setForm(f => ({ ...f, subtitle: e.target.value }))}
+                placeholder="e.g. 2025 Oscar Winner — Best Original Screenplay" style={inputStyle()} />
+            </div>
+
+            {/* Films */}
+            <div style={fieldWrap}>
+              <label style={labelStyle}>Films *</label>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {[0, ...(form.twoFilms ? [1] : [])].map(fi => (
+                  <div key={fi} style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                    <select
+                      value={form.films[fi]?.slug || ""}
+                      onChange={e => {
+                        const slug = e.target.value;
+                        const matched = libraryOptions.find(o => o.slug === slug);
+                        setForm(f => {
+                          const films = [...f.films];
+                          films[fi] = { ...films[fi], slug, label: matched?.label || films[fi].label };
+                          return { ...f, films };
+                        });
+                      }}
+                      style={{ ...inputStyle(), flex: 2, appearance: "none" }}
+                    >
+                      <option value="">Select script...</option>
+                      {libraryOptions.map(o => (
+                        <option key={o.slug} value={o.slug}>{o.label}</option>
+                      ))}
+                    </select>
+                    <select
+                      value={form.films[fi]?.color || "accent"}
+                      onChange={e => setForm(f => {
+                        const films = [...f.films];
+                        films[fi] = { ...films[fi], color: e.target.value };
+                        return { ...f, films };
+                      })}
+                      style={{ ...inputStyle(), flex: 1, appearance: "none",
+                        color: resolveInsightColorLocal(form.films[fi]?.color === "red" ? T.fwColors.three_act : form.films[fi]?.color === "blue" ? T.fwColors.story_circle : T.accent) }}
+                    >
+                      <option value="accent">Gold</option>
+                      <option value="red">Red</option>
+                      <option value="blue">Blue</option>
+                    </select>
+                    <input
+                      value={form.films[fi]?.label || ""}
+                      onChange={e => setForm(f => {
+                        const films = [...f.films];
+                        films[fi] = { ...films[fi], label: e.target.value };
+                        return { ...f, films };
+                      })}
+                      placeholder="Display label"
+                      style={{ ...inputStyle(), flex: 2 }}
+                    />
+                  </div>
+                ))}
+              </div>
+              <div style={{ marginTop: 8 }}>
+                {!form.twoFilms ? (
+                  <button onClick={() => setForm(f => ({
+                    ...f, twoFilms: true,
+                    films: [...f.films, { slug: "", color: "blue", label: "" }],
+                  }))} style={smallBtn(false)}>+ Add second film</button>
+                ) : (
+                  <button onClick={() => setForm(f => ({
+                    ...f, twoFilms: false, films: [f.films[0]],
+                  }))} style={smallBtn(false, false)}>× Remove second film</button>
+                )}
+              </div>
+              <div style={{ marginTop: 8, fontSize: 11, color: T.textDim, fontFamily: T.fontSans }}>
+                Single film: Gold. Comparison: Film 1 = Red, Film 2 = Blue.
+              </div>
+            </div>
+
+            {/* Angle (not saved — for AI drafting only) */}
+            <div style={fieldWrap}>
+              <label style={labelStyle}>Angle <span style={{ color: T.textDim }}>(for AI drafting — not published)</span></label>
+              <textarea
+                value={form.angle}
+                onChange={e => setForm(f => ({ ...f, angle: e.target.value }))}
+                placeholder="What's the structural observation? One sentence."
+                rows={2}
+                style={{ ...inputStyle(), resize: "vertical", lineHeight: 1.6 }}
+              />
+            </div>
+
+            {/* Body */}
+            <div style={fieldWrap}>
+              <label style={labelStyle}>Body *</label>
+              <textarea
+                value={form.body}
+                onChange={e => setForm(f => ({ ...f, body: e.target.value }))}
+                placeholder="The structural observation, in Pete's voice..."
+                rows={5}
+                style={{ ...inputStyle(), resize: "vertical", lineHeight: 1.7 }}
+              />
+              <div style={{ display: "flex", gap: 8, marginTop: 7, alignItems: "center" }}>
+                <button onClick={handleDraftBody} disabled={!form.angle.trim() || draftingBody}
+                  style={smallBtn(!form.angle.trim() || draftingBody)}>
+                  {draftingBody ? "Drafting..." : "AI Draft Body"}
+                </button>
+                <button onClick={() => setForm(f => ({ ...f, body: "" }))}
+                  style={smallBtn(false)}>Clear</button>
+                <span style={{ fontSize: 10, color: T.textDim, fontFamily: T.fontMono, marginLeft: "auto" }}>
+                  {form.body.length} chars
+                  {form.body.length > 0 && (form.body.length < 200 || form.body.length > 400)
+                    ? <span style={{ color: T.colorWarning }}> · suggest 200–400</span>
+                    : null}
+                </span>
+              </div>
+            </div>
+
+            {/* Status message */}
+            {insightMessage && (
+              <div style={{ marginBottom: 16, padding: "10px 14px", borderRadius: T.radiusSm,
+                background: `${insMsgColor}15`, border: `1px solid ${insMsgColor}40`,
+                fontSize: 13, color: insMsgColor, fontFamily: T.fontSans }}>
+                {insightMessage}
+              </div>
+            )}
+
+            {/* Actions */}
+            <div style={{ display: "flex", gap: 10 }}>
+              <button
+                onClick={handleSaveInsight}
+                disabled={!form.title.trim() || !form.body.trim() || !form.films[0].slug || !password || insightStatus === "saving"}
+                style={{
+                  flex: 1, padding: "12px", borderRadius: T.radiusSm,
+                  background: (!form.title.trim() || !form.body.trim() || !form.films[0].slug || !password || insightStatus === "saving") ? T.borderMid : T.accent,
+                  color: T.bgPage, border: "none",
+                  cursor: (!form.title.trim() || !form.body.trim() || !form.films[0].slug || !password || insightStatus === "saving") ? "not-allowed" : "pointer",
+                  fontSize: 13, fontFamily: T.fontMono, fontWeight: 600, letterSpacing: 1.5, textTransform: "uppercase",
+                }}
+              >
+                {insightStatus === "saving" ? "Saving..." : "Save Insight"}
+              </button>
+              {form.id && (
+                <button
+                  onClick={handleDeleteInsight}
+                  disabled={!password || insightStatus === "deleting"}
+                  style={{
+                    padding: "12px 20px", borderRadius: T.radiusSm,
+                    background: (!password || insightStatus === "deleting") ? T.borderMid : `${T.colorError}15`,
+                    color: (!password || insightStatus === "deleting") ? T.textDim : T.colorError,
+                    border: `1px solid ${(!password || insightStatus === "deleting") ? "transparent" : T.colorError + "40"}`,
+                    cursor: (!password || insightStatus === "deleting") ? "not-allowed" : "pointer",
+                    fontSize: 13, fontFamily: T.fontMono, fontWeight: 600, letterSpacing: 1.5, textTransform: "uppercase",
+                  }}
+                >
+                  {insightStatus === "deleting" ? "Deleting..." : "Delete"}
+                </button>
+              )}
+            </div>
+            <div style={{ marginTop: 12, fontSize: 11, color: T.textMuted, fontFamily: T.fontSans, textAlign: "center" }}>
+              Live on scriptgraph.ai in ~60 seconds
+            </div>
           </div>
-        </>
+        )
       )}
     </div>
   );
@@ -3228,7 +3677,6 @@ export default function ScriptGraph() {
   const [outlineFileName, setOutlineFileName]   = useState("");
   const [filmPerf, setFilmPerf]                 = useState(null);
   const [filmPerfLoading, setFilmPerfLoading]   = useState(false);
-  const [insights, setInsights]                 = useState([]);
   const outlineRef = useRef();
   const fileRef = useRef();
 
@@ -3255,9 +3703,6 @@ export default function ScriptGraph() {
   }, [screen, p1]);
 
   useEffect(() => {
-    // Load insights in parallel — independent of library routing logic
-    loadInsights().then(setInsights);
-
     loadLibrary().then(lib => {
       setLibrary(lib);
       // Handle initial URL on load
@@ -5249,12 +5694,55 @@ export default function ScriptGraph() {
 
             {/* ── Insights strip — public only ── */}
             {PUBLIC_MODE && (() => {
-              // Insights loaded from /insights/manifest.json + individual JSON files.
-              // Edit insights via scriptgraph.ai/publish → Insights tab.
-              // Color tokens ("accent"|"red"|"blue") resolved to T.* by loadInsights().
+              // ─── INSIGHTS DATA — edit here to add/update insights ───────────────
+              // Each insight needs:
+              //   title: string
+              //   body: string (2–4 sentences, your voice)
+              //   films: array of { slug, color, label }
+              //     slug must match the JSON filename in /public/library/ (without .json)
+              //     color: one of T.fwColors values or any hex
+              //     label: display name for the legend tag
+              // For solo-film cards, films has one entry → links to script detail page
+              // For multi-film cards, films has two entries → links to comparison view
+              // ─── INSIGHTS DATA — edit here to add/update insights ───────────────
+              // ORDERING: Newest card goes FIRST (top of array = leftmost on screen)
+              const INSIGHTS = [
+                {
+                  title: "Genre as Trojan Horse",
+                  subtitle: "2025 Oscar Winner — Best Original Screenplay",
+                  body: "Sinners disguises itself as horror. What Coogler is actually doing — tracing the roots of American music, the theft of Black culture — takes nearly 40% of the script to build. The prologue earns that patience. You already know something terrible is coming. So the wait feels like dread, not drag.",
+                  films: [
+                    { slug: "sinners", color: T.accent, label: "Sinners" },
+                  ],
+                },
+                {
+                  title: "The Safdie Climb",
+                  body: "Most screenplays breathe — peaks followed by release. The Safdie films don't. Uncut Gems and Marty Supreme both start high and almost never come down. It's a structural choice that explains the physiological experience of watching them — a foot on the pedal that never lifts.",
+                  films: [
+                    { slug: "uncut-gems", color: T.fwColors.three_act, label: "Uncut Gems" },
+                    { slug: "marty-supreme", color: T.fwColors.story_circle, label: "Marty Supreme" },
+                  ],
+                },
+                {
+                  title: "Tarantino's Heartbeat",
+                  body: "Both written by Tarantino. The heartbeat is there in both — sharp peaks, deep valleys, almost metronomic. You could argue he found the signature in True Romance, his first produced script, and perfected it by Pulp Fiction.",
+                  films: [
+                    { slug: "pulp-fiction", color: T.fwColors.three_act, label: "Pulp Fiction" },
+                    { slug: "true-romance", color: T.fwColors.story_circle, label: "True Romance" },
+                  ],
+                },
+                {
+                  title: "Tension Isn't Everything",
+                  body: "It's one of my favorite films. The graph is almost flat — no towering peaks, no relentless climb. That's not a flaw. Some films work through accumulation, through feeling, through the weight of an idea. The direction matters too. Not every story needs to tighten a screw.",
+                  films: [
+                    { slug: "eternal-sunshine-of-the-spotless-mind", color: T.accent, label: "Eternal Sunshine" },
+                  ],
+                },
+              ];
+              // ────────────────────────────────────────────────────────────────────
 
               // Resolve library entries for each insight
-              const resolvedInsights = insights.map(insight => ({
+              const resolvedInsights = INSIGHTS.map(insight => ({
                 ...insight,
                 resolvedFilms: insight.films.map(f => ({
                   ...f,
@@ -5966,7 +6454,38 @@ export default function ScriptGraph() {
         {PUBLIC_MODE && screen === "studio" && (
           <PublishStudio
             T={T}
-            insights={insights}
+            insights={(() => {
+              const INSIGHTS = [
+                {
+                  title: "Genre as Trojan Horse",
+                  subtitle: "2025 Oscar Winner — Best Original Screenplay",
+                  body: "Sinners disguises itself as horror. What Coogler is actually doing — tracing the roots of American music, the theft of Black culture — takes nearly 40% of the script to build. The prologue earns that patience. You already know something terrible is coming. So the wait feels like dread, not drag.",
+                  films: [{ slug: "sinners", color: T.accent, label: "Sinners" }],
+                },
+                {
+                  title: "The Safdie Climb",
+                  body: "Most screenplays breathe — peaks followed by release. The Safdie films don't. Uncut Gems and Marty Supreme both start high and almost never come down. It's a structural choice that explains the physiological experience of watching them — a foot on the pedal that never lifts.",
+                  films: [
+                    { slug: "uncut-gems", color: T.fwColors.three_act, label: "Uncut Gems" },
+                    { slug: "marty-supreme", color: T.fwColors.story_circle, label: "Marty Supreme" },
+                  ],
+                },
+                {
+                  title: "Tarantino's Heartbeat",
+                  body: "Both written by Tarantino. The heartbeat is there in both — sharp peaks, deep valleys, almost metronomic. You could argue he found the signature in True Romance, his first produced script, and perfected it by Pulp Fiction.",
+                  films: [
+                    { slug: "pulp-fiction", color: T.fwColors.three_act, label: "Pulp Fiction" },
+                    { slug: "true-romance", color: T.fwColors.story_circle, label: "True Romance" },
+                  ],
+                },
+                {
+                  title: "Tension Isn't Everything",
+                  body: "It's one of my favorite films. The graph is almost flat — no towering peaks, no relentless climb. That's not a flaw. Some films work through accumulation, through feeling, through the weight of an idea. The direction matters too. Not every story needs to tighten a screw.",
+                  films: [{ slug: "eternal-sunshine-of-the-spotless-mind", color: T.accent, label: "Eternal Sunshine" }],
+                },
+              ];
+              return INSIGHTS;
+            })()}
             onDownloadInsight={downloadInsightCard}
             library={library}
           />
