@@ -1180,6 +1180,38 @@ async function persistLibrary(entries) {
   } catch {}
 }
 
+function resolveInsightColor(colorToken) {
+  if (colorToken === "red")  return THEME.fwColors.three_act;
+  if (colorToken === "blue") return THEME.fwColors.story_circle;
+  return THEME.accent;
+}
+
+async function loadInsights() {
+  try {
+    const res = await fetch("/insights/manifest.json");
+    if (!res.ok) return [];
+    const manifest = await res.json();
+    const files = Array.isArray(manifest?.insights) ? manifest.insights : [];
+    const entries = await Promise.all(
+      files.map(async (filename) => {
+        try {
+          const r = await fetch(`/insights/${filename}`);
+          if (!r.ok) return null;
+          const data = await r.json();
+          return {
+            ...data,
+            films: (data.films || []).map(f => ({
+              ...f,
+              color: resolveInsightColor(f.color),
+            })),
+          };
+        } catch { return null; }
+      })
+    );
+    return entries.filter(Boolean);
+  } catch { return []; }
+}
+
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TOAST NOTIFICATION
@@ -2615,7 +2647,7 @@ Return only the title. Nothing else.`;
 }
 
 // ── Main component ─────────────────────────────────────────────────────────────
-function PublishStudio({ T, insights = [], onDownloadInsight, library: appLibrary = [] }) {
+function PublishStudio({ T, insights = [], onDownloadInsight, onOpenCarousel, library: appLibrary = [] }) {
   const [tab, setTab] = useState("publish");
   const [password, setPassword] = useState("");
   const [unlocked, setUnlocked] = useState(false);
@@ -3216,6 +3248,12 @@ function PublishStudio({ T, insights = [], onDownloadInsight, library: appLibrar
                           style={smallBtn(false, false)}
                         >Edit</button>
                         <button
+                          onClick={() => hasData && onOpenCarousel && onOpenCarousel(insight)}
+                          disabled={!hasData}
+                          title={hasData ? "Generate carousel" : "Library data not loaded"}
+                          style={smallBtn(!hasData, false)}
+                        >Carousel</button>
+                        <button
                           onClick={() => hasData && onDownloadInsight && onDownloadInsight(insight)}
                           disabled={!hasData}
                           title={hasData ? "Download share image" : "Library data not loaded"}
@@ -3427,6 +3465,710 @@ function PublishStudio({ T, insights = [], onDownloadInsight, library: appLibrar
           </div>
         )
       )}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// CAROUSEL GENERATOR — functions + modal
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// ── AI copy drafting ──────────────────────────────────────────────────────────
+async function draftCarouselCopy({ angle, films, library, mode }) {
+  const slugify = s => (s||"").toLowerCase().replace(/[^a-z0-9]+/g, "-");
+  const filmData = films.map(f => {
+    const entry = library.find(e =>
+      (e._filename||"").replace(/\.json$/i,"") === f.slug ||
+      slugify(e.title||"") === f.slug
+    );
+    if (!entry) return { name: f.label };
+    const tension = entry.overallTension || [];
+    const avg = tension.length ? (tension.reduce((a,b)=>a+b,0)/tension.length).toFixed(1) : null;
+    const peak = tension.length ? Math.max(...tension).toFixed(1) : null;
+    return { name: entry.title, writer: entry.writer, avg, peak, structure: entry.naturalStructure?.structureType||"linear" };
+  });
+  const isCompare = mode === "compare";
+  const prompt = `You are writing copy for a ScriptGraph Instagram carousel.
+${isCompare
+  ? `This is a structural comparison between ${filmData.map(f=>f.name).join(" and ")}.`
+  : `This is a Director's Note about ${filmData[0].name}${filmData[0].writer ? ` directed by ${filmData[0].writer}` : ""}.`}
+
+Pete's angle: "${angle}"
+
+${filmData.map(f=>`${f.name}: avg tension ${f.avg}/10, peak ${f.peak}/10, structure type: ${f.structure}`).join("\n")}
+
+Generate two pieces of copy:
+
+SLIDE_2_CONTEXT: Exactly 3 short lines that set up what the graph shows.
+- Line 1: The setup — name the film(s) or the pattern being observed
+- Line 2: The surprising or specific thing the graph reveals
+- Line 3: The implication or the question it raises
+- Each line max 45 characters
+- Tone: analytical, precise. A frame, not a summary.
+
+SLIDE_3_LINES: 4–5 punchy lines that deliver the structural insight.
+- Lines 1–2: The observation stated plainly. Barlow light.
+- Line 3: The sharpest phrase — the pivot. Mark as GOLD. Barlow bold.
+- Lines 4–5 (optional): Closing analytical beat. Inter light. Smaller register.
+- Each line max 38 characters for mobile readability.
+- Voice: Pete Capó. A director sharing a discovery. Not teaching. Not promoting.
+- Reference the specific films by name.
+
+Return JSON only — no preamble, no markdown:
+{
+  "slide2_context": ["line1", "line2", "line3"],
+  "slide3_lines": [
+    { "text": "...", "style": "barlow_light" },
+    { "text": "...", "style": "barlow_light" },
+    { "text": "...", "style": "barlow_bold_gold" },
+    { "text": "...", "style": "inter_light" }
+  ]
+}`;
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: API_HEADERS,
+    body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 600, messages: [{ role:"user", content: prompt }] }),
+  });
+  const data = await res.json();
+  const raw = data.content?.[0]?.text?.trim() || "{}";
+  try { return JSON.parse(raw); } catch { return { slide2_context:[], slide3_lines:[] }; }
+}
+
+// ── SVG constants (carousel-specific — different canvas than share cards) ─────
+const _cCW  = 1080;
+const _cCH  = 1350;
+const _cPAD = 80;
+const _cPW  = _cCW - _cPAD * 2;   // 920
+
+// Smooth helper reused from share card logic
+function _cSmooth(arr) {
+  return arr.map((_,i) => {
+    const lo = Math.max(0,i-1), hi = Math.min(arr.length-1,i+1);
+    const sl = arr.slice(lo, hi+1);
+    return sl.reduce((a,b)=>a+b,0)/sl.length;
+  });
+}
+
+// Swipe dots — active = slide index 0-3
+function _cDots(active) {
+  const centers = [509,528,547,566];
+  return centers.map((cx,i) => {
+    const isActive = i === active;
+    return `<circle cx="${cx}" cy="1330" r="${isActive?5:4}" fill="${isActive?THEME.accent:"#3a3a42"}" opacity="${isActive?0.9:0.6}"/>`;
+  }).join("");
+}
+
+// Watermark — bottom right, inside canvas
+function _cWatermark(y=1318) {
+  return `<text x="${_cPAD+_cPW}" y="${y}" text-anchor="end" font-family="${THEME.fontDisplay}" font-size="26" fill="${THEME.accent}" opacity="0.3"><tspan font-weight="200">SCRIPT</tspan><tspan font-weight="700">GRAPH</tspan><tspan font-weight="200">.ai</tspan></text>`;
+}
+
+// Top bar — single=gold, compare=red|blue split
+function _cTopBar(mode) {
+  if (mode === "compare") {
+    return `<rect x="0" y="0" width="540" height="5" fill="${THEME.fwColors.three_act}" opacity="0.7"/>
+<rect x="540" y="0" width="540" height="5" fill="${THEME.fwColors.story_circle}" opacity="0.7"/>`;
+  }
+  return `<rect x="0" y="0" width="${_cCW}" height="5" fill="${THEME.accent}" opacity="0.7"/>`;
+}
+
+// ScriptGraph glyph — self-contained, scaled to given size
+function _cGlyph(x, y, size) {
+  const s = (size/52).toFixed(4);
+  return `<g transform="translate(${x},${y}) scale(${s})">
+<path d="M22 5 L14 5 L14 47 L22 47" stroke="#c8a060" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+<path d="M36 5 L44 5 L44 47 L36 47" stroke="#c8a060" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+<line x1="19" y1="16" x2="34" y2="16" stroke="#3a3a42" stroke-width="1.0" stroke-linecap="round"/>
+<line x1="19" y1="22" x2="38" y2="22" stroke="#3a3a42" stroke-width="1.0" stroke-linecap="round"/>
+<line x1="19" y1="28" x2="31" y2="28" stroke="#3a3a42" stroke-width="1.0" stroke-linecap="round"/>
+<line x1="19" y1="34" x2="36" y2="34" stroke="#3a3a42" stroke-width="1.0" stroke-linecap="round"/>
+<path d="M19 38 Q24 30 28 24 Q32 17 39 11" stroke="#c8a060" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+<circle cx="19" cy="38" r="2.4" fill="#c8a060"/>
+<circle cx="39" cy="11" r="2.4" fill="#c8a060"/>
+</g>`;
+}
+
+// ── Slide 1 — The Hook ────────────────────────────────────────────────────────
+function generateCarouselSlide1({ mode, films, headline, imageDataUrl }) {
+  const BG=THEME.bgPage, CREAM=THEME.textPrimary, GOLD=THEME.accent;
+  const RED=THEME.fwColors.three_act, BLUE=THEME.fwColors.story_circle;
+  const EDGE=THEME.borderSubtle;
+  const isSingle = mode !== "compare";
+  const s1 = films[0]?.entry, s2 = films[1]?.entry;
+
+  // Headline sizing
+  const lines = (headline||"").toUpperCase().trim().split(/\n|\\n/).slice(0,3);
+  const maxLen = Math.max(...lines.map(l=>l.length), 1);
+  const fs = maxLen<=8?148:maxLen<=14?132:maxLen<=20?108:88;
+  const lh = fs+8;
+
+  // Film still zone
+  let stillZone = "";
+  if (imageDataUrl) {
+    stillZone = `<image href="${imageDataUrl}" x="0" y="0" width="${_cCW}" height="600" preserveAspectRatio="xMidYMid slice"/>`;
+  } else {
+    stillZone = `<rect x="0" y="0" width="${_cCW}" height="600" fill="#0d0d0f"/>
+<rect x="0" y="0" width="${_cCW}" height="600" fill="#121210" opacity="0.8"/>`;
+    if (!isSingle) {
+      stillZone += `<line x1="540" y1="5" x2="540" y2="580" stroke="#1e1e22" opacity="0.35"/>
+<text x="270" y="320" text-anchor="middle" font-family="${THEME.fontMono}" font-size="22" fill="#1e1e22" letter-spacing="6">FILM A</text>
+<text x="810" y="320" text-anchor="middle" font-family="${THEME.fontMono}" font-size="22" fill="#1e1e22" letter-spacing="6">FILM B</text>`;
+    }
+  }
+
+  // Headline lines — build from bottom of zone up or just stack from y=630
+  let headlineY = 640;
+  let headlineSvg = "";
+  lines.forEach(line => {
+    headlineSvg += `<text x="${_cPAD}" y="${headlineY}" font-family="${THEME.fontDisplay}" font-weight="800" font-size="${fs}" fill="${CREAM}" letter-spacing="2" text-anchor="start">${line}</text>`;
+    headlineY += lh;
+  });
+  const lastBaseline = headlineY - lh;
+  const creditRuleY = lastBaseline + 48;
+
+  // Credit
+  let creditSvg = `<line x1="${_cPAD}" y1="${creditRuleY}" x2="${_cPAD+180}" y2="${creditRuleY}" stroke="${GOLD}" stroke-width="2" opacity="0.5"/>`;
+  if (isSingle) {
+    const label = [s1?.title, s1?.writer].filter(Boolean).join(" — ");
+    creditSvg += `<text x="${_cPAD}" y="${creditRuleY+64}" font-family="${THEME.fontDisplay}" font-weight="300" font-size="34" fill="#b8b0a4">${label}</text>`;
+  } else {
+    const lA = [s1?.title, s1?.writer].filter(Boolean).join(" — ");
+    const lB = [s2?.title, s2?.writer].filter(Boolean).join(" — ");
+    creditSvg += `<text x="${_cPAD}" y="${creditRuleY+58}" font-family="${THEME.fontDisplay}" font-weight="400" font-size="34" fill="${RED}">${lA}</text>`;
+    creditSvg += `<text x="${_cPAD}" y="${creditRuleY+106}" font-family="${THEME.fontDisplay}" font-weight="400" font-size="34" fill="${BLUE}">${lB}</text>`;
+  }
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${_cCW}" height="${_cCH}" viewBox="0 0 ${_cCW} ${_cCH}">
+<rect width="${_cCW}" height="${_cCH}" fill="${BG}"/>
+${stillZone}
+<rect x="0" y="380" width="${_cCW}" height="220" fill="#0d0d0f" opacity="0.7"/>
+${_cTopBar(mode)}
+<line x1="${_cPAD}" y1="600" x2="${_cPAD+_cPW}" y2="600" stroke="${EDGE}" stroke-width="1.5"/>
+${headlineSvg}
+${creditSvg}
+${_cWatermark()}
+${_cDots(0)}
+</svg>`;
+}
+
+// ── Slide 2 — The Graph ───────────────────────────────────────────────────────
+function generateCarouselSlide2({ mode, films, contextLines, title, year }) {
+  const BG=THEME.bgPage, GOLD=THEME.accent;
+  const RED=THEME.fwColors.three_act, BLUE=THEME.fwColors.story_circle;
+  const MUTED=THEME.textMuted, DIM=THEME.textDim, EDGE=THEME.borderSubtle;
+  const isSingle = mode !== "compare";
+  const s1 = films[0]?.entry, s2 = films[1]?.entry;
+
+  // Graph dimensions — bottom-anchored
+  const plotBottom = 1149, plotH = 620, plotTop = plotBottom - plotH; // 529
+  const plotX = _cPAD, plotW = _cPW;
+
+  // Tension data
+  const ten1 = _cSmooth(s1?.overallTension || Array(40).fill(5));
+  const ten2 = isSingle ? [] : _cSmooth(s2?.overallTension || Array(40).fill(5));
+
+  // Build curve path
+  const curvePath = (ten, col, gid, sw, gradOpacity) => {
+    const pts = ten.map((t,i) => ({ x: plotX+(i/(ten.length-1))*plotW, y: plotTop+(plotH-(t/10)*plotH) }));
+    const ln = pts.map((p,i)=>`${i===0?"M":"L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+    const ar = `${ln} L${(plotX+plotW).toFixed(1)},${plotBottom} L${plotX},${plotBottom} Z`;
+    return `<defs>
+<linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1">
+  <stop offset="0%" stop-color="${col}" stop-opacity="${gradOpacity}"/>
+  <stop offset="100%" stop-color="${col}" stop-opacity="0.02"/>
+</linearGradient>
+<clipPath id="cl${gid}"><rect x="${plotX}" y="${plotTop-4}" width="${plotW}" height="${plotH+8}"/></clipPath>
+</defs>
+<path d="${ar}" fill="url(#${gid})" clip-path="url(#cl${gid})"/>
+<path d="${ln}" fill="none" stroke="${col}" stroke-width="${sw}" stroke-linejoin="round" stroke-linecap="round" clip-path="url(#cl${gid})"/>`;
+  };
+
+  // Grid lines
+  const grid = [2,4,6,8,10].map(v => {
+    const gy = (plotTop + plotH - (v/10)*plotH).toFixed(1);
+    return `<line x1="${plotX}" y1="${gy}" x2="${plotX+plotW}" y2="${gy}" stroke="#ffffff08" stroke-width="1.5"/>`;
+  }).join("");
+
+  // Act bands + breaks
+  let bands = "", breaks1 = "", breaks2 = "";
+  if (isSingle && s1) {
+    const abs = s1.naturalStructure?.actBreaks || [];
+    const bfs = ["#c8a0600d","#ffffff06","#c8a06009"];
+    const bks = [0,...abs.map(b=>b.position),100];
+    bks.slice(0,-1).forEach((st,i) => {
+      const en = bks[i+1];
+      const x1 = (plotX+(st/100)*plotW).toFixed(1), x2 = (plotX+(en/100)*plotW).toFixed(1);
+      bands += `<rect x="${x1}" y="${plotTop}" width="${(+x2-+x1).toFixed(1)}" height="${plotH}" fill="${bfs[i%3]}"/>`;
+      bands += `<text x="${((+x1+(+x2))/2).toFixed(1)}" y="${(plotTop+34).toFixed(1)}" text-anchor="middle" font-family="${THEME.fontMono}" font-size="22" fill="#2e2e36" letter-spacing="5">ACT ${i+1}</text>`;
+    });
+    abs.forEach(ab => {
+      const bx = (plotX+(ab.position/100)*plotW).toFixed(1);
+      breaks1 += `<line x1="${bx}" y1="${plotTop}" x2="${bx}" y2="${plotBottom}" stroke="${GOLD}" stroke-width="2" opacity="0.3"/>`;
+      breaks1 += `<polygon points="${bx},${plotTop} ${+bx+13},${plotTop+24} ${bx},${plotTop+48} ${+bx-13},${plotTop+24}" fill="#131316" stroke="${GOLD}" stroke-width="2.5" opacity="0.85"/>`;
+    });
+    const mid = s1.keyMoments?.midpoint;
+    if (mid != null) {
+      const mx = (plotX+(mid/100)*plotW).toFixed(1);
+      breaks1 += `<line x1="${mx}" y1="${plotTop}" x2="${mx}" y2="${plotBottom}" stroke="#e0c890" stroke-width="2" stroke-dasharray="10,7" opacity="0.3"/>`;
+    }
+  } else if (!isSingle && s1 && s2) {
+    // Comparison — subtle bands only, dashed act breaks, no labels
+    const abs1 = s1.naturalStructure?.actBreaks || [];
+    const bks1 = [0,...abs1.map(b=>b.position),100];
+    bks1.slice(0,-1).forEach((st,i) => {
+      const en = bks1[i+1];
+      const x1 = (plotX+(st/100)*plotW).toFixed(1), x2 = (plotX+(en/100)*plotW).toFixed(1);
+      bands += `<rect x="${x1}" y="${plotTop}" width="${(+x2-+x1).toFixed(1)}" height="${plotH}" fill="${i%2===0?"#ffffff04":"#ffffff06"}"/>`;
+    });
+    abs1.forEach(ab => {
+      const bx = (plotX+(ab.position/100)*plotW).toFixed(1);
+      breaks1 += `<line x1="${bx}" y1="${plotTop}" x2="${bx}" y2="${plotBottom}" stroke="#ffffff" stroke-width="1.5" stroke-dasharray="8 6" opacity="0.08"/>`;
+    });
+  }
+
+  // Y-axis + X-axis
+  const axes = `
+<line x1="${plotX}" y1="${plotTop}" x2="${plotX}" y2="${plotBottom}" stroke="${EDGE}" stroke-width="1.5"/>
+<line x1="${plotX}" y1="${plotBottom}" x2="${plotX+plotW}" y2="${plotBottom}" stroke="${EDGE}" stroke-width="1.5"/>
+<text x="${plotX-18}" y="${plotTop+12}" text-anchor="end" font-family="${THEME.fontMono}" font-size="22" fill="${DIM}">10</text>
+<text x="${plotX-18}" y="${plotBottom+12}" text-anchor="end" font-family="${THEME.fontMono}" font-size="22" fill="${DIM}">0</text>
+${[0,25,50,75,100].map(p=>{
+  const bx=(plotX+(p/100)*plotW).toFixed(1);
+  return `<line x1="${bx}" y1="${plotBottom}" x2="${bx}" y2="${plotBottom+15}" stroke="${EDGE}" stroke-width="1.5"/>
+<text x="${bx}" y="${1201}" text-anchor="middle" font-family="${THEME.fontSans}" font-size="22" fill="${DIM}">${p}%</text>`;
+}).join("")}`;
+
+  // Pill strip y=1226
+  let pills = "";
+  if (isSingle && s1) {
+    const label = s1.title + (s1.writer ? ` — ${s1.writer}` : "");
+    pills = `<rect x="${_cPAD}" y="1226" width="${_cPW}" height="64" rx="4" fill="${GOLD}14" stroke="${GOLD}" stroke-width="1.5" opacity="0.8"/>
+<text x="${_cPAD+_cPW/2}" y="1268" text-anchor="middle" font-family="${THEME.fontDisplay}" font-weight="400" font-size="28" fill="${GOLD}">${label}</text>`;
+  } else if (!isSingle && s1 && s2) {
+    const pillW = (_cPW-24)/2;
+    const t1 = (s1.title||"").substring(0,22), t2 = (s2.title||"").substring(0,22);
+    pills = `<rect x="${_cPAD}" y="1226" width="${pillW}" height="64" rx="4" fill="${RED}12" stroke="${RED}" stroke-width="1.5" opacity="0.8"/>
+<text x="${_cPAD+pillW/2}" y="1268" text-anchor="middle" font-family="${THEME.fontDisplay}" font-weight="400" font-size="26" fill="${RED}">${t1}</text>
+<rect x="${_cPAD+pillW+24}" y="1226" width="${pillW}" height="64" rx="4" fill="${BLUE}12" stroke="${BLUE}" stroke-width="1.5" opacity="0.8"/>
+<text x="${_cPAD+pillW+24+pillW/2}" y="1268" text-anchor="middle" font-family="${THEME.fontDisplay}" font-weight="400" font-size="26" fill="${BLUE}">${t2}</text>`;
+  }
+
+  // Context text zone
+  const eyebrow = isSingle
+    ? `DIRECTOR'S NOTE · ${(title||s1?.title||"").toUpperCase()}${year?` · ${year}`:""}`
+    : `STRUCTURAL COMPARISON · ${(title||"").toUpperCase()}`;
+  const ctxLines = (contextLines||[]).slice(0,3);
+  const ctxSvg = [158,212,266].slice(0,ctxLines.length).map((y,i) =>
+    `<text x="${_cPAD}" y="${y}" font-family="${THEME.fontSans}" font-weight="300" font-size="42" fill="${i<2?MUTED:DIM}" line-height="54">${ctxLines[i]||""}</text>`
+  ).join("");
+
+  // Curves — compare draws B first (underneath), then A on top
+  const curves = isSingle
+    ? curvePath(ten1, GOLD, "cg1", 5, 0.28)
+    : curvePath(ten2, BLUE, "cg2", 4.5, 0.20) + curvePath(ten1, RED, "cg1", 4.5, 0.20);
+
+  // Graph watermark inside plot
+  const gwm = `<text x="${plotX+plotW-8}" y="${plotBottom-8}" text-anchor="end" font-family="${THEME.fontDisplay}" font-size="24" fill="${GOLD}" opacity="0.3"><tspan font-weight="200">SCRIPT</tspan><tspan font-weight="700">GRAPH</tspan><tspan font-weight="200">.ai</tspan></text>`;
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${_cCW}" height="${_cCH}" viewBox="0 0 ${_cCW} ${_cCH}">
+<rect width="${_cCW}" height="${_cCH}" fill="${BG}"/>
+<text x="${_cPAD}" y="80" font-family="${THEME.fontDisplay}" font-weight="600" font-size="21" fill="${GOLD}" letter-spacing="6" opacity="0.7">${eyebrow}</text>
+${ctxSvg}
+<line x1="${_cPAD}" y1="505" x2="${_cPAD+_cPW}" y2="505" stroke="${EDGE}" stroke-width="1.5"/>
+<rect x="${_cPAD}" y="${plotTop}" width="${_cPW}" height="${plotH}" fill="#ffffff02"/>
+${bands}
+${grid}
+${curves}
+${breaks1}
+${axes}
+${gwm}
+${pills}
+${_cDots(1)}
+</svg>`;
+}
+
+// ── Slide 3 — The Observation ─────────────────────────────────────────────────
+function generateCarouselSlide3({ mode, films, slide3Lines, title, year }) {
+  const BG=THEME.bgPage, CREAM=THEME.textPrimary, GOLD=THEME.accent;
+  const MUTED=THEME.textMuted, EDGE=THEME.borderSubtle;
+  const isSingle = mode !== "compare";
+  const s1 = films[0]?.entry;
+
+  const eyebrow = isSingle
+    ? `${(s1?.title||title||"").toUpperCase()} · ${(s1?.writer||"").toUpperCase()}${year?` · ${year}`:""}`
+    : (title||"").toUpperCase();
+
+  const lines = (slide3Lines||[]).slice(0,5);
+  let y = 300;
+  let lastBarlowY = null;
+  let hasInter = false;
+  let observationSvg = "";
+
+  lines.forEach((line, i) => {
+    const text = line.text || "";
+    const style = line.style || "barlow_light";
+    const isInter = style === "inter_light";
+
+    // Insert separator between last barlow and first inter
+    if (isInter && !hasInter && lastBarlowY !== null) {
+      const sepY = lastBarlowY + 36;
+      observationSvg += `<line x1="${_cPAD}" y1="${sepY}" x2="${_cPAD+100}" y2="${sepY}" stroke="${EDGE}" stroke-width="1.5"/>`;
+      y = Math.max(y, sepY + 32);
+      hasInter = true;
+    }
+
+    if (!isInter) {
+      const fillColor = style === "barlow_bold_gold" ? GOLD : CREAM;
+      const weight = style === "barlow_bold_gold" ? 700 : 300;
+      observationSvg += `<text x="${_cPAD}" y="${y}" font-family="${THEME.fontDisplay}" font-weight="${weight}" font-size="88" fill="${fillColor}" letter-spacing="1">${text}</text>`;
+      lastBarlowY = y;
+      y += 100;
+    } else {
+      observationSvg += `<text x="${_cPAD}" y="${y}" font-family="${THEME.fontSans}" font-weight="300" font-size="42" fill="${MUTED}">${text}</text>`;
+      y += 58;
+    }
+  });
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${_cCW}" height="${_cCH}" viewBox="0 0 ${_cCW} ${_cCH}">
+<rect width="${_cCW}" height="${_cCH}" fill="${BG}"/>
+${_cTopBar(mode)}
+<text x="${_cPAD}" y="80" font-family="${THEME.fontDisplay}" font-weight="600" font-size="21" fill="${GOLD}" letter-spacing="6" opacity="0.7">${eyebrow}</text>
+<line x1="${_cPAD}" y1="162" x2="${_cPAD+160}" y2="162" stroke="${GOLD}" stroke-width="2" opacity="0.5"/>
+${observationSvg}
+${_cWatermark()}
+${_cDots(2)}
+</svg>`;
+}
+
+// ── Slide 4 — The Invitation ──────────────────────────────────────────────────
+function generateCarouselSlide4() {
+  const BG=THEME.bgPage, CREAM=THEME.textPrimary, GOLD=THEME.accent;
+  const DIM=THEME.textDim, EDGE=THEME.borderSubtle;
+  const glyphScale = 52*3.2;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${_cCW}" height="${_cCH}" viewBox="0 0 ${_cCW} ${_cCH}">
+<rect width="${_cCW}" height="${_cCH}" fill="${BG}"/>
+<rect x="0" y="0" width="${_cCW}" height="5" fill="${GOLD}" opacity="0.7"/>
+${_cGlyph(447, 440, glyphScale)}
+<text x="${_cCW/2}" y="740" text-anchor="middle" font-family="${THEME.fontDisplay}" font-size="108" letter-spacing="6"><tspan font-weight="200" fill="${CREAM}">SCRIPT</tspan><tspan font-weight="700" fill="${CREAM}">GRAPH</tspan></text>
+<line x1="400" y1="778" x2="680" y2="778" stroke="${EDGE}" stroke-width="1.5"/>
+<text x="${_cCW/2}" y="840" text-anchor="middle" font-family="${THEME.fontDisplay}" font-weight="300" font-size="40" fill="${DIM}" letter-spacing="6">scriptgraph.ai</text>
+<text x="${_cCW/2}" y="916" text-anchor="middle" font-family="${THEME.fontSans}" font-weight="300" font-size="32" fill="#3a3a42" letter-spacing="2">Story Structure, Visualized.</text>
+${_cDots(3)}
+</svg>`;
+}
+
+// ── ZIP export ────────────────────────────────────────────────────────────────
+async function downloadCarouselZip(slides, insightTitle) {
+  // Load fflate from CDN
+  if (!window._fflate) {
+    await new Promise((res, rej) => {
+      const s = document.createElement("script");
+      s.src = "https://cdnjs.cloudflare.com/ajax/libs/fflate/0.8.2/fflate.min.js";
+      s.onload = res; s.onerror = rej;
+      document.head.appendChild(s);
+    });
+    window._fflate = true;
+  }
+  const { zipSync } = window.fflate;
+
+  const pngs = await Promise.all(slides.map(async (svgStr) => {
+    const blob = new Blob([svgStr], { type:"image/svg+xml" });
+    const url  = URL.createObjectURL(blob);
+    const img  = await new Promise((res, rej) => {
+      const im = new Image();
+      im.onload = () => res(im);
+      im.onerror = rej;
+      im.src = url;
+    });
+    const canvas = document.createElement("canvas");
+    canvas.width = _cCW; canvas.height = _cCH;
+    canvas.getContext("2d").drawImage(img, 0, 0, _cCW, _cCH);
+    URL.revokeObjectURL(url);
+    return new Promise(res => canvas.toBlob(res, "image/png"));
+  }));
+
+  const slug = (insightTitle||"carousel").toLowerCase().replace(/[^a-z0-9]+/g,"-");
+  const files = {
+    [`${slug}-01-hook.png`]:        new Uint8Array(await pngs[0].arrayBuffer()),
+    [`${slug}-02-graph.png`]:       new Uint8Array(await pngs[1].arrayBuffer()),
+    [`${slug}-03-observation.png`]: new Uint8Array(await pngs[2].arrayBuffer()),
+    [`${slug}-04-invitation.png`]:  new Uint8Array(await pngs[3].arrayBuffer()),
+  };
+  const zipped = zipSync(files);
+  const zipBlob = new Blob([zipped], { type:"application/zip" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(zipBlob);
+  a.download = `scriptgraph-carousel-${slug}.zip`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+// ── CarouselModal component ───────────────────────────────────────────────────
+function CarouselModal({ T, carousel, library, onClose, onSaveInsight, password }) {
+  const { mode, films, fromInsight } = carousel;
+  const isSingle = mode !== "compare";
+
+  // Form state
+  const [headline,     setHeadline]     = useState(fromInsight?.title || "");
+  const [angle,        setAngle]        = useState(fromInsight?.body  || "");
+  const [ctx,          setCtx]          = useState(["","",""]);
+  const [slide3Lines,  setSlide3Lines]  = useState([
+    { text:"", style:"barlow_light" },
+    { text:"", style:"barlow_light" },
+    { text:"", style:"barlow_bold_gold" },
+    { text:"", style:"inter_light" },
+  ]);
+  const [imageDataUrl, setImageDataUrl] = useState(null);
+  const [drafting,     setDrafting]     = useState(false);
+  const [downloading,  setDownloading]  = useState(false);
+  const [dlStatus,     setDlStatus]     = useState(null); // null | "success" | "error"
+  const [dlMsg,        setDlMsg]        = useState("");
+  const [saving,       setSaving]       = useState(false);
+  const [saveMsg,      setSaveMsg]      = useState("");
+
+  // Debounced preview ref — we regenerate SVG strings on each render (fast, pure JS)
+  const slides = [
+    generateCarouselSlide1({ mode, films, headline, imageDataUrl }),
+    generateCarouselSlide2({ mode, films, contextLines: ctx, title: fromInsight?.title || headline }),
+    generateCarouselSlide3({ mode, films, slide3Lines, title: fromInsight?.title || headline }),
+    generateCarouselSlide4(),
+  ];
+
+  const handleDraftAll = async () => {
+    if (!angle.trim()) return;
+    setDrafting(true);
+    try {
+      const result = await draftCarouselCopy({ angle, films, library, mode });
+      if (result.slide2_context?.length) setCtx(result.slide2_context.slice(0,3).concat(["","",""]).slice(0,3));
+      if (result.slide3_lines?.length)   setSlide3Lines(result.slide3_lines.slice(0,5));
+    } catch {}
+    setDrafting(false);
+  };
+
+  const handleDownloadZip = async () => {
+    setDownloading(true); setDlStatus(null); setDlMsg("");
+    try {
+      await downloadCarouselZip(slides, fromInsight?.title || headline || "carousel");
+      setDlStatus("success"); setDlMsg("ZIP downloaded.");
+    } catch (e) {
+      setDlStatus("error"); setDlMsg("Export failed — " + (e?.message || "try again"));
+    }
+    setDownloading(false);
+  };
+
+  const handleSaveAsInsight = async () => {
+    if (!headline.trim() || !password) return;
+    setSaving(true); setSaveMsg("Saving...");
+    const slugify = s => s.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+    const id = slugify(headline);
+    const filmsPayload = films.map((f,i) => ({
+      slug: f.slug,
+      color: isSingle ? "accent" : i===0 ? "red" : "blue",
+      label: f.label,
+    }));
+    try {
+      const res = await fetch("/api/insights", {
+        method: "POST",
+        headers: { "Content-Type":"application/json" },
+        body: JSON.stringify({
+          password,
+          action: "publish",
+          insight: { id, title: headline, body: angle, films: filmsPayload },
+        }),
+      });
+      const data = await res.json();
+      setSaveMsg(res.ok ? (data.message||"Saved — live in ~60 seconds") : (data.error||"Save failed"));
+    } catch { setSaveMsg("Network error — try again"); }
+    setSaving(false);
+  };
+
+  // Shared style helpers
+  const inputS = (extra={}) => ({
+    width:"100%", boxSizing:"border-box",
+    background:T.bgPanel, border:`1px solid ${T.borderMid}`,
+    borderRadius:T.radiusSm, padding:"8px 12px",
+    color:T.textPrimary, fontFamily:T.fontSans, fontSize:13, outline:"none",
+    ...extra,
+  });
+  const labelS = {
+    display:"block", fontSize:10, fontFamily:T.fontMono,
+    letterSpacing:1.5, color:T.textMuted, textTransform:"uppercase", marginBottom:5,
+  };
+  const sectionS = { marginBottom:20 };
+  const smBtn = (disabled=false) => ({
+    padding:"5px 12px", borderRadius:T.radiusSm, border:`1px solid ${T.borderMid}`,
+    background:"none", color: disabled ? T.textDim : T.textSecondary,
+    fontSize:10, fontFamily:T.fontMono, fontWeight:600, letterSpacing:1.5,
+    textTransform:"uppercase", cursor: disabled?"not-allowed":"pointer",
+  });
+
+  const STYLE_OPTIONS = [
+    { value:"barlow_light",    label:"Barlow Light" },
+    { value:"barlow_bold_gold",label:"Barlow Bold Gold" },
+    { value:"inter_light",     label:"Inter Light" },
+  ];
+
+  return (
+    <div style={{
+      position:"fixed", inset:0, zIndex:600,
+      background:"#00000092", display:"flex", alignItems:"center", justifyContent:"center", padding:16,
+    }} onClick={onClose}>
+      <div style={{
+        background:T.bgPanel, border:`1px solid ${T.borderStrong}`,
+        borderRadius:T.radiusLg, width:900, maxWidth:"100%",
+        maxHeight:"calc(100vh - 32px)", display:"flex", flexDirection:"column",
+        boxShadow:"0 24px 64px #00000080", overflow:"hidden",
+      }} onClick={e=>e.stopPropagation()}>
+
+        {/* Header */}
+        <div style={{ padding:"18px 24px 14px", borderBottom:`1px solid ${T.borderSubtle}`, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+          <div>
+            <div style={{ fontSize:11, fontFamily:T.fontMono, color:T.accent, letterSpacing:2, textTransform:"uppercase", marginBottom:4 }}>Carousel Generator</div>
+            <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+              <span style={{ fontSize:9, fontFamily:T.fontMono, letterSpacing:1.5, color:T.textDim, textTransform:"uppercase",
+                background:T.bgCard, border:`1px solid ${T.borderSubtle}`, borderRadius:T.radiusSm, padding:"2px 7px" }}>
+                {isSingle?"SINGLE FILM":"COMPARISON"}
+              </span>
+              {films.map((f,i)=>(
+                <span key={i} style={{ fontSize:12, fontFamily:T.fontDisplay, fontWeight:600, color:f.color||T.accent }}>
+                  {f.label}
+                </span>
+              ))}
+            </div>
+          </div>
+          <button onClick={onClose} style={{ padding:"3px 8px", background:"none", border:`1px solid ${T.borderSubtle}`,
+            borderRadius:T.radiusSm, color:T.textMuted, fontSize:11, cursor:"pointer" }}>✕</button>
+        </div>
+
+        {/* Body — scrollable split */}
+        <div style={{ display:"flex", flex:1, overflow:"hidden", minHeight:0 }}>
+
+          {/* Left — form */}
+          <div style={{ flex:"0 0 400px", overflowY:"auto", padding:"20px 24px", borderRight:`1px solid ${T.borderSubtle}` }}>
+
+            {/* Angle */}
+            <div style={sectionS}>
+              <label style={labelS}>Your Angle <span style={{color:T.textDim}}>(seeds AI draft — not exported)</span></label>
+              <textarea value={angle} onChange={e=>setAngle(e.target.value)}
+                placeholder="The blues sequence accumulates rather than escalates..."
+                rows={2} style={{ ...inputS(), resize:"vertical", lineHeight:1.6 }}/>
+              <div style={{ marginTop:8, display:"flex", gap:8, alignItems:"center" }}>
+                <button onClick={handleDraftAll} disabled={!angle.trim()||drafting} style={smBtn(!angle.trim()||drafting)}>
+                  {drafting?"Drafting...":"AI Draft Slides 2 + 3"}
+                </button>
+              </div>
+            </div>
+
+            {/* Headline (Slide 1) */}
+            <div style={sectionS}>
+              <label style={labelS}>Slide 1 — Headline</label>
+              <input value={headline} onChange={e=>setHeadline(e.target.value)}
+                placeholder="THE HOOK. ALL CAPS." style={inputS()}/>
+              <div style={{ fontSize:10, color:T.textDim, fontFamily:T.fontSans, marginTop:4 }}>1–3 lines. This is the hook.</div>
+            </div>
+
+            {/* Slide 2 context */}
+            <div style={sectionS}>
+              <label style={labelS}>Slide 2 — Graph Context</label>
+              {[0,1,2].map(i => (
+                <div key={i} style={{ marginBottom:6 }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                    <input value={ctx[i]||""} onChange={e=>setCtx(prev=>{const n=[...prev];n[i]=e.target.value;return n;})}
+                      placeholder={`Line ${i+1}`} style={{ ...inputS(), flex:1 }}/>
+                    <span style={{ fontSize:10, fontFamily:T.fontMono, color:(ctx[i]||"").length>45?T.colorWarning:T.textDim, flexShrink:0 }}>
+                      {(ctx[i]||"").length}/45
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Slide 3 lines */}
+            <div style={sectionS}>
+              <label style={labelS}>Slide 3 — The Observation</label>
+              {slide3Lines.map((line,i) => (
+                <div key={i} style={{ marginBottom:8, display:"flex", gap:6, alignItems:"center" }}>
+                  <input value={line.text} onChange={e=>setSlide3Lines(prev=>{const n=[...prev];n[i]={...n[i],text:e.target.value};return n;})}
+                    placeholder={`Line ${i+1}`} style={{ ...inputS(), flex:1 }}/>
+                  <select value={line.style} onChange={e=>setSlide3Lines(prev=>{const n=[...prev];n[i]={...n[i],style:e.target.value};return n;})}
+                    style={{ ...inputS({ width:"auto", padding:"8px 8px", fontSize:11, appearance:"none", flexShrink:0 }) }}>
+                    {STYLE_OPTIONS.map(o=><option key={o.value} value={o.value}>{o.label}</option>)}
+                  </select>
+                </div>
+              ))}
+              <button onClick={()=>setSlide3Lines(prev=>[...prev,{text:"",style:"barlow_light"}])}
+                disabled={slide3Lines.length>=5} style={{ ...smBtn(slide3Lines.length>=5), fontSize:9 }}>+ Line</button>
+            </div>
+
+            {/* Film still */}
+            <div style={sectionS}>
+              <label style={labelS}>Film Still — Slide 1 <span style={{color:T.textDim}}>(optional)</span></label>
+              <input type="file" accept="image/jpeg,image/png,image/webp"
+                onChange={e=>{
+                  const f=e.target.files?.[0];
+                  if(!f) return;
+                  const reader=new FileReader();
+                  reader.onload=ev=>setImageDataUrl(ev.target.result);
+                  reader.readAsDataURL(f);
+                }}
+                style={{ fontSize:11, fontFamily:T.fontSans, color:T.textSecondary }}/>
+              {imageDataUrl && (
+                <button onClick={()=>setImageDataUrl(null)} style={{ ...smBtn(), marginTop:6, fontSize:9 }}>Remove still</button>
+              )}
+              <div style={{ fontSize:10, color:T.textDim, fontFamily:T.fontSans, marginTop:4 }}>If none, dark cinematic placeholder renders.</div>
+            </div>
+
+            {/* Save as insight (from detail/compare only) */}
+            {!fromInsight && (
+              <div style={{ marginTop:4, paddingTop:16, borderTop:`1px solid ${T.borderSubtle}` }}>
+                <div style={{ fontSize:10, color:T.textDim, fontFamily:T.fontSans, marginBottom:8 }}>Save to insights library:</div>
+                <button onClick={handleSaveAsInsight} disabled={!headline.trim()||!password||saving}
+                  style={{ ...smBtn(!headline.trim()||!password||saving), width:"100%", padding:"8px" }}>
+                  {saving?"Saving...":"Save as Insight"}
+                </button>
+                {saveMsg && <div style={{ marginTop:6, fontSize:11, color:T.textMuted, fontFamily:T.fontSans }}>{saveMsg}</div>}
+                {!password && <div style={{ marginTop:4, fontSize:10, color:T.colorWarning, fontFamily:T.fontSans }}>Enter password in Studio to save.</div>}
+              </div>
+            )}
+          </div>
+
+          {/* Right — preview */}
+          <div style={{ flex:1, overflowY:"auto", padding:"20px 24px", background:T.bgCard }}>
+            <div style={{ fontSize:10, fontFamily:T.fontMono, letterSpacing:1.5, color:T.textMuted, textTransform:"uppercase", marginBottom:14 }}>Preview</div>
+            <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+              {slides.map((svg,i) => (
+                <div key={i}>
+                  <div style={{ fontSize:9, fontFamily:T.fontMono, color:T.textDim, letterSpacing:1.5, textTransform:"uppercase", marginBottom:5 }}>
+                    {["Hook","Graph","Observation","Invitation"][i]}
+                  </div>
+                  <div style={{
+                    borderRadius:T.radiusMd, overflow:"hidden",
+                    border:`1px solid ${T.borderMid}`, background:T.bgPage, lineHeight:0,
+                  }}
+                    dangerouslySetInnerHTML={{ __html: svg.replace(/width="\d+"/, 'width="100%"') }}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div style={{ padding:"14px 24px", borderTop:`1px solid ${T.borderSubtle}`, flexShrink:0,
+          display:"flex", gap:10, alignItems:"center", justifyContent:"flex-end" }}>
+          {dlMsg && <span style={{ fontSize:11, color:dlStatus==="error"?T.colorError:T.colorSuccess, fontFamily:T.fontSans, flex:1 }}>{dlMsg}</span>}
+          <button onClick={onClose} style={smBtn()}>Cancel</button>
+          <button onClick={handleDownloadZip} disabled={downloading}
+            style={{
+              padding:"8px 20px", borderRadius:T.radiusSm, border:"none",
+              background: downloading ? T.borderMid : T.accent,
+              color: T.bgPage, fontSize:12, fontFamily:T.fontMono, fontWeight:600,
+              letterSpacing:1.5, textTransform:"uppercase", cursor: downloading?"not-allowed":"pointer",
+            }}>
+            {downloading?"Exporting...":"Download ZIP"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -3668,6 +4410,7 @@ export default function ScriptGraph() {
   const [toasts, setToasts]                     = useState([]);
   const [exportJson, setExportJson]             = useState(null); // { json, filename }
   const [shareCard, setShareCard]               = useState(false); // "single" | "compare" | false
+  const [carousel, setCarousel]                 = useState(null);  // null | { mode, films, fromInsight }
   const [libSearch, setLibSearch]               = useState("");
   const [libGenreFilter, setLibGenreFilter]     = useState(null);
   const [uploadMode, setUploadMode]             = useState("script");
@@ -3677,6 +4420,7 @@ export default function ScriptGraph() {
   const [outlineFileName, setOutlineFileName]   = useState("");
   const [filmPerf, setFilmPerf]                 = useState(null);
   const [filmPerfLoading, setFilmPerfLoading]   = useState(false);
+  const [insights, setInsights]                 = useState([]);
   const outlineRef = useRef();
   const fileRef = useRef();
 
@@ -3703,6 +4447,8 @@ export default function ScriptGraph() {
   }, [screen, p1]);
 
   useEffect(() => {
+    loadInsights().then(setInsights);
+
     loadLibrary().then(lib => {
       setLibrary(lib);
       // Handle initial URL on load
@@ -5564,9 +6310,9 @@ export default function ScriptGraph() {
                   <div style={{ marginTop: 16, paddingTop: 14, borderTop: `1px solid ${T.borderSubtle}` }}>
                     <RhythmLegend showFormatShift={!!p1.formatTransition} />
                   </div>
-                  {/* Share Image */}
+                  {/* Share Image + Carousel */}
                   {PUBLIC_MODE && (
-                    <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${T.borderSubtle}`, display: "flex", justifyContent: "flex-end" }}>
+                    <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${T.borderSubtle}`, display: "flex", justifyContent: "flex-end", gap: 8 }}>
                       <button onClick={() => setShareCard("single")} style={{
                         display: "inline-flex", alignItems: "center", gap: 5,
                         padding: "5px 14px", border: `1px solid ${T.borderMid}`,
@@ -5582,6 +6328,21 @@ export default function ScriptGraph() {
                           <line x1="12" y1="15" x2="12" y2="3"/>
                         </svg>
                         Share Image
+                      </button>
+                      <button onClick={() => setCarousel({
+                        mode: "single",
+                        films: [{ slug: (p1._filename||"").replace(/\.json$/i,"") || (p1.title||"").toLowerCase().replace(/[^a-z0-9]+/g,"-"), color: T.accent, label: p1.title, entry: p1 }],
+                        fromInsight: null,
+                      })} style={{
+                        display: "inline-flex", alignItems: "center", gap: 5,
+                        padding: "5px 14px", border: `1px solid ${T.borderMid}`,
+                        borderRadius: T.radiusSm, background: "transparent",
+                        color: T.textSecondary, fontSize: 11, fontFamily: T.fontSans,
+                        fontWeight: 500, letterSpacing: 0.2, cursor: "pointer", transition: "all 0.12s",
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.borderColor = T.accent; e.currentTarget.style.color = T.accent; e.currentTarget.style.background = T.accent+"0d"; }}
+                      onMouseLeave={e => { e.currentTarget.style.borderColor = T.borderMid; e.currentTarget.style.color = T.textSecondary; e.currentTarget.style.background = "transparent"; }}>
+                        Carousel
                       </button>
                     </div>
                   )}
@@ -5694,55 +6455,11 @@ export default function ScriptGraph() {
 
             {/* ── Insights strip — public only ── */}
             {PUBLIC_MODE && (() => {
-              // ─── INSIGHTS DATA — edit here to add/update insights ───────────────
-              // Each insight needs:
-              //   title: string
-              //   body: string (2–4 sentences, your voice)
-              //   films: array of { slug, color, label }
-              //     slug must match the JSON filename in /public/library/ (without .json)
-              //     color: one of T.fwColors values or any hex
-              //     label: display name for the legend tag
-              // For solo-film cards, films has one entry → links to script detail page
-              // For multi-film cards, films has two entries → links to comparison view
-              // ─── INSIGHTS DATA — edit here to add/update insights ───────────────
-              // ORDERING: Newest card goes FIRST (top of array = leftmost on screen)
-              const INSIGHTS = [
-                {
-                  title: "Genre as Trojan Horse",
-                  subtitle: "2025 Oscar Winner — Best Original Screenplay",
-                  body: "Sinners disguises itself as horror. What Coogler is actually doing — tracing the roots of American music, the theft of Black culture — takes nearly 40% of the script to build. The prologue earns that patience. You already know something terrible is coming. So the wait feels like dread, not drag.",
-                  films: [
-                    { slug: "sinners", color: T.accent, label: "Sinners" },
-                  ],
-                },
-                {
-                  title: "The Safdie Climb",
-                  body: "Most screenplays breathe — peaks followed by release. The Safdie films don't. Uncut Gems and Marty Supreme both start high and almost never come down. It's a structural choice that explains the physiological experience of watching them — a foot on the pedal that never lifts.",
-                  films: [
-                    { slug: "uncut-gems", color: T.fwColors.three_act, label: "Uncut Gems" },
-                    { slug: "marty-supreme", color: T.fwColors.story_circle, label: "Marty Supreme" },
-                  ],
-                },
-                {
-                  title: "Tarantino's Heartbeat",
-                  body: "Both written by Tarantino. The heartbeat is there in both — sharp peaks, deep valleys, almost metronomic. You could argue he found the signature in True Romance, his first produced script, and perfected it by Pulp Fiction.",
-                  films: [
-                    { slug: "pulp-fiction", color: T.fwColors.three_act, label: "Pulp Fiction" },
-                    { slug: "true-romance", color: T.fwColors.story_circle, label: "True Romance" },
-                  ],
-                },
-                {
-                  title: "Tension Isn't Everything",
-                  body: "It's one of my favorite films. The graph is almost flat — no towering peaks, no relentless climb. That's not a flaw. Some films work through accumulation, through feeling, through the weight of an idea. The direction matters too. Not every story needs to tighten a screw.",
-                  films: [
-                    { slug: "eternal-sunshine-of-the-spotless-mind", color: T.accent, label: "Eternal Sunshine" },
-                  ],
-                },
-              ];
-              // ────────────────────────────────────────────────────────────────────
+              // Insights loaded from /insights/manifest.json + individual JSON files.
+              // Color tokens resolved to T.* by loadInsights().
 
               // Resolve library entries for each insight
-              const resolvedInsights = INSIGHTS.map(insight => ({
+              const resolvedInsights = insights.map(insight => ({
                 ...insight,
                 resolvedFilms: insight.films.map(f => ({
                   ...f,
@@ -6130,9 +6847,9 @@ export default function ScriptGraph() {
                   />
                 );
               })()}
-              {/* Share Image */}
+              {/* Share Image + Carousel */}
               {PUBLIC_MODE && (
-                <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${T.borderSubtle}`, display: "flex", justifyContent: "flex-end" }}>
+                <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${T.borderSubtle}`, display: "flex", justifyContent: "flex-end", gap: 8 }}>
                   <button onClick={() => setShareCard("compare")} style={{
                     display: "inline-flex", alignItems: "center", gap: 5,
                     padding: "5px 14px", border: `1px solid ${T.borderMid}`,
@@ -6148,6 +6865,24 @@ export default function ScriptGraph() {
                       <line x1="12" y1="15" x2="12" y2="3"/>
                     </svg>
                     Share Image
+                  </button>
+                  <button onClick={() => setCarousel({
+                    mode: "compare",
+                    films: [
+                      { slug: (compareItems[0]._filename||"").replace(/\.json$/i,"") || (compareItems[0].title||"").toLowerCase().replace(/[^a-z0-9]+/g,"-"), color: T.fwColors.three_act, label: compareItems[0].title, entry: compareItems[0] },
+                      { slug: (compareItems[1]._filename||"").replace(/\.json$/i,"") || (compareItems[1].title||"").toLowerCase().replace(/[^a-z0-9]+/g,"-"), color: T.fwColors.story_circle, label: compareItems[1].title, entry: compareItems[1] },
+                    ],
+                    fromInsight: null,
+                  })} style={{
+                    display: "inline-flex", alignItems: "center", gap: 5,
+                    padding: "5px 14px", border: `1px solid ${T.borderMid}`,
+                    borderRadius: T.radiusSm, background: "transparent",
+                    color: T.textSecondary, fontSize: 11, fontFamily: T.fontSans,
+                    fontWeight: 500, letterSpacing: 0.2, cursor: "pointer", transition: "all 0.12s",
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = T.accent; e.currentTarget.style.color = T.accent; e.currentTarget.style.background = T.accent+"0d"; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = T.borderMid; e.currentTarget.style.color = T.textSecondary; e.currentTarget.style.background = "transparent"; }}>
+                    Carousel
                   </button>
                 </div>
               )}
@@ -6454,39 +7189,16 @@ export default function ScriptGraph() {
         {PUBLIC_MODE && screen === "studio" && (
           <PublishStudio
             T={T}
-            insights={(() => {
-              const INSIGHTS = [
-                {
-                  title: "Genre as Trojan Horse",
-                  subtitle: "2025 Oscar Winner — Best Original Screenplay",
-                  body: "Sinners disguises itself as horror. What Coogler is actually doing — tracing the roots of American music, the theft of Black culture — takes nearly 40% of the script to build. The prologue earns that patience. You already know something terrible is coming. So the wait feels like dread, not drag.",
-                  films: [{ slug: "sinners", color: T.accent, label: "Sinners" }],
-                },
-                {
-                  title: "The Safdie Climb",
-                  body: "Most screenplays breathe — peaks followed by release. The Safdie films don't. Uncut Gems and Marty Supreme both start high and almost never come down. It's a structural choice that explains the physiological experience of watching them — a foot on the pedal that never lifts.",
-                  films: [
-                    { slug: "uncut-gems", color: T.fwColors.three_act, label: "Uncut Gems" },
-                    { slug: "marty-supreme", color: T.fwColors.story_circle, label: "Marty Supreme" },
-                  ],
-                },
-                {
-                  title: "Tarantino's Heartbeat",
-                  body: "Both written by Tarantino. The heartbeat is there in both — sharp peaks, deep valleys, almost metronomic. You could argue he found the signature in True Romance, his first produced script, and perfected it by Pulp Fiction.",
-                  films: [
-                    { slug: "pulp-fiction", color: T.fwColors.three_act, label: "Pulp Fiction" },
-                    { slug: "true-romance", color: T.fwColors.story_circle, label: "True Romance" },
-                  ],
-                },
-                {
-                  title: "Tension Isn't Everything",
-                  body: "It's one of my favorite films. The graph is almost flat — no towering peaks, no relentless climb. That's not a flaw. Some films work through accumulation, through feeling, through the weight of an idea. The direction matters too. Not every story needs to tighten a screw.",
-                  films: [{ slug: "eternal-sunshine-of-the-spotless-mind", color: T.accent, label: "Eternal Sunshine" }],
-                },
-              ];
-              return INSIGHTS;
-            })()}
+            insights={insights}
             onDownloadInsight={downloadInsightCard}
+            onOpenCarousel={(insight) => {
+              const mode = insight.films.length > 1 ? "compare" : "single";
+              setCarousel({
+                mode,
+                films: insight.films,
+                fromInsight: insight,
+              });
+            }}
             library={library}
           />
         )}
@@ -7078,6 +7790,18 @@ export default function ScriptGraph() {
             </button>
           </div>
         </div>
+      )}
+
+      {/* ── Carousel modal ── */}
+      {carousel && (
+        <CarouselModal
+          T={T}
+          carousel={carousel}
+          library={library}
+          onClose={() => setCarousel(null)}
+          onSaveInsight={null}
+          password={""}
+        />
       )}
 
       {/* ── Export JSON overlay — reliable cross-environment fallback ── */}
