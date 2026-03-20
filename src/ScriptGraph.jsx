@@ -2547,13 +2547,16 @@ function applyMidpointRulingCorrection(keyMoments, scenes) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // PUBLISH STUDIO — password-protected JSON publisher with delete
 // ═══════════════════════════════════════════════════════════════════════════════
-function PublishStudio({ T }) {
+function PublishStudio({ T, insights = [], onDownloadInsight, library: appLibrary = [] }) {
   const [tab, setTab] = useState("publish");
   const [password, setPassword] = useState("");
+  const [unlocked, setUnlocked] = useState(false);
+  const [gateInput, setGateInput] = useState("");
+  const [gateError, setGateError] = useState(false);
   const [files, setFiles] = useState([]);
   const [dragOver, setDragOver] = useState(false);
   const [publishing, setPublishing] = useState(false);
-  const [library, setLibrary] = useState([]);
+  const [manifestFiles, setManifestFiles] = useState([]);
   const [libraryLoading, setLibraryLoading] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleteStatus, setDeleteStatus] = useState(null);
@@ -2561,16 +2564,28 @@ function PublishStudio({ T }) {
 
   const reserved = ["manifest.json", "index.json", "config.json"];
 
+  // Load manifest once on mount — shared across Delete and Director's Notes tabs
   useEffect(() => {
-    if (tab === "delete") {
-      setLibraryLoading(true);
-      fetch("/library/manifest.json")
-        .then(r => r.json())
-        .then(m => setLibrary(m.filter(f => !reserved.includes(f))))
-        .catch(() => setLibrary([]))
-        .finally(() => setLibraryLoading(false));
-    }
-  }, [tab]);
+    setLibraryLoading(true);
+    fetch("/library/manifest.json")
+      .then(r => r.json())
+      .then(m => setManifestFiles(m.filter(f => !reserved.includes(f))))
+      .catch(() => setManifestFiles([]))
+      .finally(() => setLibraryLoading(false));
+  }, []);
+
+  // Resolve insight cards against the app library passed in as prop
+  const slugFromFilename = (filename) => filename.replace(/\.json$/i, "");
+  const resolvedInsights = insights.map(insight => ({
+    ...insight,
+    resolvedFilms: insight.films.map(f => ({
+      ...f,
+      entry: appLibrary.find(e =>
+        slugFromFilename(e._filename || "") === f.slug ||
+        slugFromFilename((e.title || "").replace(/[^a-z0-9]/gi, "-").toLowerCase()) === f.slug
+      ),
+    })),
+  }));
 
   const parseFiles = (rawFiles) => {
     const results = [];
@@ -2646,7 +2661,7 @@ function PublishStudio({ T }) {
       if (res.ok) {
         setDeleteStatus("success"); setDeleteMessage(data.message);
         setDeleteTarget(null);
-        setLibrary(prev => prev.filter(f => f !== deleteTarget));
+        setManifestFiles(prev => prev.filter(f => f !== deleteTarget));
       } else {
         setDeleteStatus("error"); setDeleteMessage(data.error || "Delete failed");
       }
@@ -2665,6 +2680,78 @@ function PublishStudio({ T }) {
     background: active ? T.accent : "transparent", color: active ? T.bgPage : T.textMuted,
   });
 
+  const handleGateSubmit = () => {
+    // Probe the publish API — 400 means auth passed but payload invalid (correct password),
+    // 401 means wrong password. No side effects either way.
+    fetch("/api/publish", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: gateInput, filename: "__gate-check__.json", content: "{}" }),
+    })
+      .then(r => {
+        if (r.status === 400 || r.status === 200) {
+          setPassword(gateInput);
+          setUnlocked(true);
+        } else {
+          setGateError(true);
+          setTimeout(() => setGateError(false), 1800);
+        }
+      })
+      .catch(() => {
+        // Network error — admit and let API calls surface the real error
+        setPassword(gateInput);
+        setUnlocked(true);
+      });
+  };
+
+  if (!unlocked) {
+    return (
+      <div style={{ maxWidth: 340, margin: "0 auto", padding: "120px 0", display: "flex", flexDirection: "column", alignItems: "center" }}>
+        <div style={{ fontSize: 11, fontFamily: T.fontMono, letterSpacing: 2, color: T.accent, marginBottom: 8, textTransform: "uppercase" }}>ScriptGraph Studio</div>
+        <h1 style={{ margin: "0 0 32px", fontSize: 32, fontWeight: 800, fontFamily: T.fontDisplay, textTransform: "uppercase", color: T.textPrimary, letterSpacing: 2 }}>Library Manager</h1>
+        <div style={{ width: "100%" }}>
+          <label style={{ display: "block", fontSize: 10, fontFamily: T.fontMono, letterSpacing: 1.5, color: T.textMuted, textTransform: "uppercase", marginBottom: 6 }}>Password</label>
+          <input
+            type="password"
+            value={gateInput}
+            onChange={e => { setGateInput(e.target.value); setGateError(false); }}
+            onKeyDown={e => e.key === "Enter" && gateInput && handleGateSubmit()}
+            placeholder="Enter password"
+            autoFocus
+            style={{
+              width: "100%", boxSizing: "border-box",
+              background: T.bgPanel,
+              border: `1px solid ${gateError ? T.colorError : T.borderMid}`,
+              borderRadius: T.radiusSm, padding: "10px 14px",
+              color: T.textPrimary, fontFamily: T.fontSans, fontSize: 14, outline: "none",
+              transition: "border-color 0.15s",
+            }}
+          />
+          {gateError && (
+            <div style={{ marginTop: 8, fontSize: 11, color: T.colorError, fontFamily: T.fontMono, letterSpacing: 1 }}>
+              Incorrect password
+            </div>
+          )}
+          <button
+            onClick={handleGateSubmit}
+            disabled={!gateInput}
+            style={{
+              width: "100%", marginTop: 12, padding: "12px",
+              borderRadius: T.radiusSm,
+              background: gateInput ? T.accent : T.borderMid,
+              color: T.bgPage, border: "none",
+              cursor: gateInput ? "pointer" : "not-allowed",
+              fontSize: 13, fontFamily: T.fontMono, fontWeight: 600,
+              letterSpacing: 1.5, textTransform: "uppercase",
+            }}
+          >
+            Enter
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ maxWidth: 560, margin: "0 auto", padding: "60px 0" }}>
       <div style={{ marginBottom: 28 }}>
@@ -2675,6 +2762,7 @@ function PublishStudio({ T }) {
       <div style={{ display: "flex", gap: 6, marginBottom: 28, padding: "4px", background: T.bgPanel, borderRadius: T.radiusSm, width: "fit-content" }}>
         <button style={tabStyle(tab === "publish")} onClick={() => setTab("publish")}>Publish</button>
         <button style={tabStyle(tab === "delete")} onClick={() => setTab("delete")}>Delete</button>
+        <button style={tabStyle(tab === "notes")} onClick={() => setTab("notes")}>Director's Notes</button>
       </div>
 
       <div style={{ marginBottom: 20 }}>
@@ -2743,11 +2831,11 @@ function PublishStudio({ T }) {
         <>
           {libraryLoading ? (
             <div style={{ fontSize: 12, color: T.textMuted, fontFamily: T.fontMono, padding: "20px 0" }}>Loading library...</div>
-          ) : library.length === 0 ? (
+          ) : manifestFiles.length === 0 ? (
             <div style={{ fontSize: 12, color: T.textMuted, fontFamily: T.fontSans, padding: "20px 0" }}>No scripts in library.</div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 20 }}>
-              {library.map(f => {
+              {manifestFiles.map(f => {
                 const title = f.replace(".json", "").replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
                 const isSelected = deleteTarget === f;
                 return (
@@ -2788,6 +2876,70 @@ function PublishStudio({ T }) {
           </button>
           <div style={{ marginTop: 12, fontSize: 11, color: T.textMuted, fontFamily: T.fontSans, textAlign: "center" }}>
             Deletion is permanent and cannot be undone
+          </div>
+        </>
+      )}
+
+      {tab === "notes" && (
+        <>
+          {resolvedInsights.length === 0 ? (
+            <div style={{ fontSize: 12, color: T.textMuted, fontFamily: T.fontSans, padding: "20px 0" }}>No Director's Notes defined.</div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {resolvedInsights.map((insight, idx) => {
+                const hasData = insight.resolvedFilms.some(f => f.entry);
+                return (
+                  <div key={idx} style={{
+                    display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16,
+                    padding: "12px 14px", background: T.bgPanel, borderRadius: T.radiusSm,
+                    border: `1px solid ${T.borderSubtle}`,
+                  }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 13, fontFamily: T.fontDisplay, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: T.textPrimary, lineHeight: 1.2 }}>
+                        {insight.title}
+                      </div>
+                      <div style={{ display: "flex", gap: 6, marginTop: 6, flexWrap: "wrap" }}>
+                        {insight.resolvedFilms.map((f, fi) => (
+                          <div key={fi} style={{
+                            fontSize: 9, fontFamily: T.fontMono, letterSpacing: 1, textTransform: "uppercase",
+                            padding: "2px 6px", borderRadius: T.radiusSm,
+                            color: f.color, border: `1px solid ${f.color}38`, background: `${f.color}10`,
+                          }}>
+                            {f.label}
+                          </div>
+                        ))}
+                        {!hasData && (
+                          <div style={{ fontSize: 9, fontFamily: T.fontMono, color: T.colorError, letterSpacing: 1, textTransform: "uppercase", padding: "2px 6px" }}>
+                            missing library data
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => hasData && onDownloadInsight && onDownloadInsight(insight)}
+                      disabled={!hasData}
+                      title={hasData ? "Download share image" : "Library data not loaded"}
+                      style={{
+                        flexShrink: 0, background: "none",
+                        border: `1px solid ${hasData ? T.borderMid : T.borderSubtle}`,
+                        borderRadius: T.radiusSm, padding: "6px 14px",
+                        color: hasData ? T.textSecondary : T.textMuted,
+                        fontFamily: T.fontMono, fontSize: 10, letterSpacing: 1.5,
+                        textTransform: "uppercase", cursor: hasData ? "pointer" : "not-allowed",
+                        transition: "color 0.15s, border-color 0.15s",
+                      }}
+                      onMouseEnter={e => { if (hasData) { e.currentTarget.style.color = T.accent; e.currentTarget.style.borderColor = T.accent + "60"; } }}
+                      onMouseLeave={e => { e.currentTarget.style.color = T.textSecondary; e.currentTarget.style.borderColor = T.borderMid; }}
+                    >
+                      Export
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          <div style={{ marginTop: 16, fontSize: 11, color: T.textMuted, fontFamily: T.fontSans, textAlign: "center" }}>
+            Downloads a 1800×2250 PNG — ready for Instagram
           </div>
         </>
       )}
@@ -2977,7 +3129,7 @@ export default function ScriptGraph() {
     if (path === "/" || path === "") return { screen: "library", entry: null };
     if (path === "/about") return { screen: "about", entry: null };
     if (path === "/compare") return { screen: "compare", entry: null, compareEntries: null };
-    if (path === "/publish") return { screen: "publish", entry: null };
+    if (path === "/studio") return { screen: "studio", entry: null };
     const compareMatch = path.match(/^\/compare\/([^/]+)\/([^/]+)$/);
     if (compareMatch && lib) {
       const findEntry = slug => lib.find(e =>
@@ -5209,7 +5361,29 @@ export default function ScriptGraph() {
                           onMouseEnter={e => { if (hasData) e.currentTarget.style.borderColor = T.accent + "40"; }}
                           onMouseLeave={e => { e.currentTarget.style.borderColor = T.borderSubtle; }}
                         >
-                          <div style={{ fontFamily: T.fontDisplay, fontWeight: 700, fontSize: 18, letterSpacing: 1.5, textTransform: "uppercase", color: T.textPrimary, marginBottom: insight.subtitle ? 5 : 8, lineHeight: 1.2 }}>
+                          {/* Share icon — top right corner */}
+                          {hasData && (
+                            <button
+                              onClick={e => { e.stopPropagation(); downloadInsightCard(insight); }}
+                              title="Download share image"
+                              style={{
+                                position: "absolute", top: 14, right: 14,
+                                background: "none", border: "none", padding: 4,
+                                cursor: "pointer", color: T.textDim,
+                                lineHeight: 1, borderRadius: T.radiusSm,
+                                transition: "color 0.15s",
+                              }}
+                              onMouseEnter={e => { e.currentTarget.style.color = T.accent; }}
+                              onMouseLeave={e => { e.currentTarget.style.color = T.textDim; }}
+                            >
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="7 10 12 15 17 10"/>
+                                <line x1="12" y1="15" x2="12" y2="3"/>
+                              </svg>
+                            </button>
+                          )}
+                          <div style={{ fontFamily: T.fontDisplay, fontWeight: 700, fontSize: 18, letterSpacing: 1.5, textTransform: "uppercase", color: T.textPrimary, marginBottom: insight.subtitle ? 5 : 8, lineHeight: 1.2, paddingRight: 24 }}>
                             {insight.title}
                           </div>
                           {insight.subtitle && (
@@ -5223,8 +5397,8 @@ export default function ScriptGraph() {
                           {/* Mini graph — pushed to bottom via marginTop auto */}
                           <div style={{ background: T.bgPage, border: `1px solid ${T.borderSubtle}`, borderRadius: T.radiusMd, padding: "12px 14px 10px", marginTop: "auto" }}>
                             <MiniInsightCurve resolvedFilms={insight.resolvedFilms} />
-                            {/* Film legend tags + glyph mark */}
-                            <div style={{ display: "flex", gap: 6, marginTop: 10, flexWrap: "wrap", alignItems: "center" }}>
+                            {/* Film legend tags */}
+                            <div style={{ display: "flex", gap: 6, marginTop: 10, flexWrap: "wrap" }}>
                               {insight.resolvedFilms.map((f, fi) => (
                                 <div key={fi} style={{
                                   fontSize: 9, fontFamily: T.fontMono, letterSpacing: 1, textTransform: "uppercase",
@@ -5234,17 +5408,6 @@ export default function ScriptGraph() {
                                   {f.label}
                                 </div>
                               ))}
-                              <svg width="16" height="15" viewBox="0 0 58 52" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginLeft: "auto", opacity: 0.28, flexShrink: 0 }}>
-                                <path d="M22 5 L14 5 L14 47 L22 47" stroke="#c8a060" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-                                <path d="M36 5 L44 5 L44 47 L36 47" stroke="#c8a060" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-                                <line x1="19" y1="16" x2="34" y2="16" stroke="#c8a060" strokeWidth="1.0" strokeLinecap="round"/>
-                                <line x1="19" y1="22" x2="38" y2="22" stroke="#c8a060" strokeWidth="1.0" strokeLinecap="round"/>
-                                <line x1="19" y1="28" x2="31" y2="28" stroke="#c8a060" strokeWidth="1.0" strokeLinecap="round"/>
-                                <line x1="19" y1="34" x2="36" y2="34" stroke="#c8a060" strokeWidth="1.0" strokeLinecap="round"/>
-                                <path d="M19 38 Q24 30 28 24 Q32 17 39 11" stroke="#c8a060" strokeWidth="2.6" strokeLinecap="round" fill="none"/>
-                                <circle cx="19" cy="38" r="2.4" fill="#c8a060"/>
-                                <circle cx="39" cy="11" r="2.4" fill="#c8a060"/>
-                              </svg>
                             </div>
                           </div>
                         </div>
@@ -5814,8 +5977,46 @@ export default function ScriptGraph() {
           );
         })()}
 
-        {/* ════ PUBLISH STUDIO ════ */}
-        {PUBLIC_MODE && screen === "publish" && <PublishStudio T={T} />}
+        {/* ════ STUDIO ════ */}
+        {PUBLIC_MODE && screen === "studio" && (
+          <PublishStudio
+            T={T}
+            insights={(() => {
+              const INSIGHTS = [
+                {
+                  title: "Genre as Trojan Horse",
+                  subtitle: "2025 Oscar Winner — Best Original Screenplay",
+                  body: "Sinners disguises itself as horror. What Coogler is actually doing — tracing the roots of American music, the theft of Black culture — takes nearly 40% of the script to build. The prologue earns that patience. You already know something terrible is coming. So the wait feels like dread, not drag.",
+                  films: [{ slug: "sinners", color: T.accent, label: "Sinners" }],
+                },
+                {
+                  title: "The Safdie Climb",
+                  body: "Most screenplays breathe — peaks followed by release. The Safdie films don't. Uncut Gems and Marty Supreme both start high and almost never come down. It's a structural choice that explains the physiological experience of watching them — a foot on the pedal that never lifts.",
+                  films: [
+                    { slug: "uncut-gems", color: T.fwColors.three_act, label: "Uncut Gems" },
+                    { slug: "marty-supreme", color: T.fwColors.story_circle, label: "Marty Supreme" },
+                  ],
+                },
+                {
+                  title: "Tarantino's Heartbeat",
+                  body: "Both written by Tarantino. The heartbeat is there in both — sharp peaks, deep valleys, almost metronomic. You could argue he found the signature in True Romance, his first produced script, and perfected it by Pulp Fiction.",
+                  films: [
+                    { slug: "pulp-fiction", color: T.fwColors.three_act, label: "Pulp Fiction" },
+                    { slug: "true-romance", color: T.fwColors.story_circle, label: "True Romance" },
+                  ],
+                },
+                {
+                  title: "Tension Isn't Everything",
+                  body: "It's one of my favorite films. The graph is almost flat — no towering peaks, no relentless climb. That's not a flaw. Some films work through accumulation, through feeling, through the weight of an idea. The direction matters too. Not every story needs to tighten a screw.",
+                  films: [{ slug: "eternal-sunshine-of-the-spotless-mind", color: T.accent, label: "Eternal Sunshine" }],
+                },
+              ];
+              return INSIGHTS;
+            })()}
+            onDownloadInsight={downloadInsightCard}
+            library={library}
+          />
+        )}
 
         {/* ════ DOCS ════ */}
         {!PUBLIC_MODE && screen === "docs" && (() => {
