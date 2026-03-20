@@ -2860,33 +2860,47 @@ async function fetchFilmPerf(title, year) {
 
   const omdbUrl = `https://www.omdbapi.com/?apikey=${OMDB_KEY}&t=${encodeURIComponent(title)}${year ? `&y=${year}` : ""}&plot=short`;
   const tmdbSearchUrl = `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${encodeURIComponent(title)}${year ? `&year=${year}` : ""}`;
-  const wikidataSparql = `
-    SELECT ?awardLabel WHERE {
-      ?film wdt:P31 wd:Q11424.
-      ?film rdfs:label "${title.replace(/"/g, '\\"')}"@en.
-      ?film wdt:P166 ?award.
-      SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
-    } LIMIT 30
-  `;
-  const wikidataUrl = `https://query.wikidata.org/sparql?format=json&query=${encodeURIComponent(wikidataSparql)}`;
 
   const results = { boxOffice: null, budget: null, rt: null, mc: null, awards: null, awardNames: [] };
 
-  const NOTABLE = [
-    "Academy Award", "Oscar", "BAFTA", "Independent Spirit", "Cannes",
-    "Palme d'Or", "Golden Globe", "Screen Actors Guild", "SAG Award",
-    "Sundance", "SXSW", "Tribeca", "Berlinale", "Golden Bear", "Venice",
-    "Golden Lion", "Gotham Award", "Critics Choice", "Spirit Award",
+  // Maps TMDb award category names to clean display labels
+  const NOTABLE_MAP = [
+    { match: /academy award|oscar/i,          label: "Academy Award"       },
+    { match: /bafta/i,                         label: "BAFTA"               },
+    { match: /independent spirit/i,            label: "Independent Spirit"  },
+    { match: /cannes|palme d.or/i,             label: "Cannes"              },
+    { match: /golden globe/i,                  label: "Golden Globe"        },
+    { match: /screen actors guild|sag award/i, label: "SAG Award"           },
+    { match: /sundance/i,                      label: "Sundance"            },
+    { match: /south by southwest|sxsw/i,       label: "SXSW"               },
+    { match: /tribeca/i,                       label: "Tribeca"             },
+    { match: /berlinale|golden bear/i,         label: "Berlinale"           },
+    { match: /venice|golden lion/i,            label: "Venice"              },
+    { match: /gotham award/i,                  label: "Gotham Award"        },
+    { match: /critics choice/i,                label: "Critics Choice"      },
   ];
 
+  // Parse notable award names from OMDb awards string as a baseline
+  const parseOmdbAwardNames = (str) => {
+    if (!str || str === "N/A") return [];
+    const found = [];
+    const seen = new Set();
+    NOTABLE_MAP.forEach(({ match, label }) => {
+      if (match.test(str) && !seen.has(label)) {
+        seen.add(label);
+        found.push(label);
+      }
+    });
+    return found;
+  };
+
   try {
-    const [omdbRes, tmdbRes, wikiRes] = await Promise.allSettled([
+    const [omdbRes, tmdbRes] = await Promise.allSettled([
       fetch(omdbUrl).then(r => r.json()),
       fetch(tmdbSearchUrl).then(r => r.json()),
-      fetch(wikidataUrl, { headers: { Accept: "application/json" } }).then(r => r.json()),
     ]);
 
-    // ── OMDb: box office, RT score, Metacritic, awards summary ──
+    // ── OMDb: box office, RT score, Metacritic, awards count + baseline names ──
     if (omdbRes.status === "fulfilled" && omdbRes.value?.Response === "True") {
       const d = omdbRes.value;
       if (d.BoxOffice && d.BoxOffice !== "N/A") results.boxOffice = d.BoxOffice;
@@ -2898,36 +2912,53 @@ async function fetchFilmPerf(title, year) {
         const wins = aw.match(/(\d+)\s+win/i);
         const noms = aw.match(/(\d+)\s+nomination/i);
         if (wins || noms) results.awards = { wins: wins ? parseInt(wins[1]) : 0, noms: noms ? parseInt(noms[1]) : 0 };
+        results.awardNames = parseOmdbAwardNames(aw);
       }
     }
 
-    // ── TMDb: budget, fallback revenue if OMDb had no box office ──
+    // ── TMDb: budget, fallback revenue, richer award names from awards endpoint ──
     if (tmdbRes.status === "fulfilled" && tmdbRes.value?.results?.length > 0) {
       const movieId = tmdbRes.value.results[0].id;
       try {
-        const detail = await fetch(`https://api.themoviedb.org/3/movie/${movieId}?api_key=${TMDB_KEY}`).then(r => r.json());
-        if (detail.budget && detail.budget > 0) {
-          const b = detail.budget;
-          results.budget = b >= 1_000_000 ? `$${(b / 1_000_000).toFixed(0)}M` : `$${(b / 1_000).toFixed(0)}K`;
+        const [detail, awards] = await Promise.allSettled([
+          fetch(`https://api.themoviedb.org/3/movie/${movieId}?api_key=${TMDB_KEY}`).then(r => r.json()),
+          fetch(`https://api.themoviedb.org/3/movie/${movieId}/awards?api_key=${TMDB_KEY}`).then(r => r.json()),
+        ]);
+
+        if (detail.status === "fulfilled") {
+          const d = detail.value;
+          if (d.budget && d.budget > 0) {
+            const b = d.budget;
+            results.budget = b >= 1_000_000 ? `$${(b / 1_000_000).toFixed(0)}M` : `$${(b / 1_000).toFixed(0)}K`;
+          }
+          if (!results.boxOffice && d.revenue && d.revenue > 0) {
+            const r = d.revenue;
+            results.boxOffice = r >= 1_000_000 ? `$${(r / 1_000_000).toFixed(1)}M` : `$${(r / 1_000).toFixed(0)}K`;
+          }
         }
-        if (!results.boxOffice && detail.revenue && detail.revenue > 0) {
-          const r = detail.revenue;
-          results.boxOffice = r >= 1_000_000 ? `$${(r / 1_000_000).toFixed(1)}M` : `$${(r / 1_000).toFixed(0)}K`;
+
+        // TMDb awards endpoint returns results array with organization names
+        if (awards.status === "fulfilled" && awards.value?.results?.length > 0) {
+          const seen = new Set();
+          const tmdbNames = [];
+          awards.value.results.forEach(entry => {
+            const org = entry.organization?.name || "";
+            NOTABLE_MAP.forEach(({ match, label }) => {
+              if (match.test(org) && !seen.has(label)) {
+                seen.add(label);
+                tmdbNames.push(label);
+              }
+            });
+          });
+          // TMDb names are more reliable — replace OMDb baseline if we got any
+          if (tmdbNames.length > 0) results.awardNames = tmdbNames;
         }
       } catch {}
     }
 
-    // ── Wikidata: named notable awards ──
-    if (wikiRes.status === "fulfilled" && wikiRes.value?.results?.bindings?.length > 0) {
-      const seen = new Set();
-      wikiRes.value.results.bindings.forEach(b => {
-        const name = b.awardLabel?.value || "";
-        if (!name || seen.has(name)) return;
-        seen.add(name);
-        if (NOTABLE.some(n => name.includes(n))) results.awardNames.push(name);
-      });
-      results.awardNames = results.awardNames.slice(0, 3);
-    }
+    // Cap at 3 notable names
+    results.awardNames = results.awardNames.slice(0, 3);
+
   } catch {}
 
   return results;
