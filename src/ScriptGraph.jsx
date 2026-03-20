@@ -5361,29 +5361,7 @@ export default function ScriptGraph() {
                           onMouseEnter={e => { if (hasData) e.currentTarget.style.borderColor = T.accent + "40"; }}
                           onMouseLeave={e => { e.currentTarget.style.borderColor = T.borderSubtle; }}
                         >
-                          {/* Share icon — top right corner */}
-                          {hasData && (
-                            <button
-                              onClick={e => { e.stopPropagation(); downloadInsightCard(insight); }}
-                              title="Download share image"
-                              style={{
-                                position: "absolute", top: 14, right: 14,
-                                background: "none", border: "none", padding: 4,
-                                cursor: "pointer", color: T.textDim,
-                                lineHeight: 1, borderRadius: T.radiusSm,
-                                transition: "color 0.15s",
-                              }}
-                              onMouseEnter={e => { e.currentTarget.style.color = T.accent; }}
-                              onMouseLeave={e => { e.currentTarget.style.color = T.textDim; }}
-                            >
-                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                                <polyline points="7 10 12 15 17 10"/>
-                                <line x1="12" y1="15" x2="12" y2="3"/>
-                              </svg>
-                            </button>
-                          )}
-                          <div style={{ fontFamily: T.fontDisplay, fontWeight: 700, fontSize: 18, letterSpacing: 1.5, textTransform: "uppercase", color: T.textPrimary, marginBottom: insight.subtitle ? 5 : 8, lineHeight: 1.2, paddingRight: 24 }}>
+                          <div style={{ fontFamily: T.fontDisplay, fontWeight: 700, fontSize: 18, letterSpacing: 1.5, textTransform: "uppercase", color: T.textPrimary, marginBottom: insight.subtitle ? 5 : 8, lineHeight: 1.2 }}>
                             {insight.title}
                           </div>
                           {insight.subtitle && (
@@ -5397,8 +5375,8 @@ export default function ScriptGraph() {
                           {/* Mini graph — pushed to bottom via marginTop auto */}
                           <div style={{ background: T.bgPage, border: `1px solid ${T.borderSubtle}`, borderRadius: T.radiusMd, padding: "12px 14px 10px", marginTop: "auto" }}>
                             <MiniInsightCurve resolvedFilms={insight.resolvedFilms} />
-                            {/* Film legend tags */}
-                            <div style={{ display: "flex", gap: 6, marginTop: 10, flexWrap: "wrap" }}>
+                            {/* Film legend tags + glyph mark */}
+                            <div style={{ display: "flex", gap: 6, marginTop: 10, flexWrap: "wrap", alignItems: "center" }}>
                               {insight.resolvedFilms.map((f, fi) => (
                                 <div key={fi} style={{
                                   fontSize: 9, fontFamily: T.fontMono, letterSpacing: 1, textTransform: "uppercase",
@@ -5408,6 +5386,17 @@ export default function ScriptGraph() {
                                   {f.label}
                                 </div>
                               ))}
+                              <svg width="16" height="15" viewBox="0 0 58 52" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginLeft: "auto", opacity: 0.28, flexShrink: 0 }}>
+                                <path d="M22 5 L14 5 L14 47 L22 47" stroke="#c8a060" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                                <path d="M36 5 L44 5 L44 47 L36 47" stroke="#c8a060" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                                <line x1="19" y1="16" x2="34" y2="16" stroke="#c8a060" strokeWidth="1.0" strokeLinecap="round"/>
+                                <line x1="19" y1="22" x2="38" y2="22" stroke="#c8a060" strokeWidth="1.0" strokeLinecap="round"/>
+                                <line x1="19" y1="28" x2="31" y2="28" stroke="#c8a060" strokeWidth="1.0" strokeLinecap="round"/>
+                                <line x1="19" y1="34" x2="36" y2="34" stroke="#c8a060" strokeWidth="1.0" strokeLinecap="round"/>
+                                <path d="M19 38 Q24 30 28 24 Q32 17 39 11" stroke="#c8a060" strokeWidth="2.6" strokeLinecap="round" fill="none"/>
+                                <circle cx="19" cy="38" r="2.4" fill="#c8a060"/>
+                                <circle cx="39" cy="11" r="2.4" fill="#c8a060"/>
+                              </svg>
                             </div>
                           </div>
                         </div>
