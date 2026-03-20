@@ -4607,7 +4607,7 @@ export default function ScriptGraph() {
   <rect x="${plotX}" y="${_sgPlotY}" width="${plotW}" height="${_sgPlotH}" fill="#ffffff03" rx="6"/>
   ${grid}
   ${curves}
-  <text x="${wmX}" y="${wmY}" text-anchor="end" font-family="${fontS}" font-weight="300" font-size="${_sgFWmark}" fill="${ac}" opacity="0.35">scriptgraph.ai</text>
+  <text x="${wmX}" y="${wmY}" text-anchor="end" font-family="${T.fontDisplay}" font-size="${_sgFWmark}" fill="${ac}" opacity="0.35"><tspan font-weight="200">SCRIPT</tspan><tspan font-weight="700">GRAPH</tspan><tspan font-weight="200">.ai</tspan></text>
   ${_sgYAxis()}
   <line x1="${plotX}" y1="${_sgInfoY - 10}" x2="${plotX + plotW}" y2="${_sgInfoY - 10}" stroke="${T.borderSubtle}" stroke-width="1.5"/>
   ${_sgStatStrip(stats, sw)}
