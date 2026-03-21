@@ -6082,26 +6082,27 @@ export default function ScriptGraph() {
         };
 
         return (
-          <div style={{ position: "relative" }}>
+          <div style={{ position: "relative", paddingBottom: 120 }}>
 
             {/* Ambient background curves — full viewport width, no clipping */}
             {heroCurveEntries.length > 0 && (
               <div style={{
                 position: "absolute",
                 top: 0, left: 0, right: 0,
-                height: 340,
+                height: 420,
                 pointerEvents: "none",
                 zIndex: 0,
               }}>
                 <svg
-                  viewBox="0 0 1200 340"
+                  viewBox="0 0 1200 420"
                   preserveAspectRatio="none"
                   style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
                 >
                   <defs>
                     {heroCurveEntries.map((e, i) => (
                       <linearGradient key={i} id={`hg-area-${i}`} x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={heroCurveColors[i]} stopOpacity="0.10" />
+                        <stop offset="0%" stopColor={heroCurveColors[i]} stopOpacity="0.08" />
+                        <stop offset="70%" stopColor={heroCurveColors[i]} stopOpacity="0.02" />
                         <stop offset="100%" stopColor={heroCurveColors[i]} stopOpacity="0.0" />
                       </linearGradient>
                     ))}
@@ -6115,7 +6116,7 @@ export default function ScriptGraph() {
                     ))}
                   </defs>
                   {heroCurveEntries.map((e, i) => {
-                    const { line, area } = makeHeroCurvePath(e.overallTension, 1200, 340);
+                    const { line, area } = makeHeroCurvePath(e.overallTension, 1200, 420);
                     return (
                       <g key={i}>
                         <path d={area} fill={`url(#hg-area-${i})`}
@@ -6129,10 +6130,10 @@ export default function ScriptGraph() {
                     );
                   })}
                 </svg>
-                {/* Bottom fade — glows dissolve naturally into page */}
+                {/* Bottom fade — long runway so glow reaches true zero before div ends */}
                 <div style={{
-                  position: "absolute", bottom: 0, left: 0, right: 0, height: 240,
-                  background: `linear-gradient(to bottom, rgba(13,13,15,0), ${T.bgPage})`,
+                  position: "absolute", bottom: 0, left: 0, right: 0, height: 300,
+                  background: `linear-gradient(to bottom, rgba(13,13,15,0), rgba(13,13,15,1))`,
                   pointerEvents: "none",
                 }} />
               </div>
@@ -6188,7 +6189,7 @@ export default function ScriptGraph() {
         );
       })()}
 
-      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 48px", marginTop: -80, paddingTop: 80 }}>
+      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 48px" }}>
 
         {/* ════ UPLOAD ════ */}
         {!PUBLIC_MODE && screen === "upload" && (
