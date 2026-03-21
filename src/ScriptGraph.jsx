@@ -3567,28 +3567,27 @@ function _cWordmark(x, y, targetWidth, fill) {
 }
 
 // Watermark — wordmark at small size, right-anchored
-// At 26px equivalent: wordmark ~115px wide × ~17px tall, plus ".ai" text
 // targetWidth=115 → height=115*0.153=~17.6px
 function _cWatermark(y=1318) {
   const wmW = 115;
   const wmH = Math.round(wmW * 0.153); // ~17px
   const rx = _cPAD + _cPW; // right edge = 1000
-  // ".ai" at same cap height as wordmark — Barlow Condensed 17px, positioned after wordmark
-  const aiSize = 17;
-  const aiOffset = 5; // small gap between wordmark and .ai
-  const wmX = rx - wmW - aiOffset - 14; // 14 ≈ width of ".ai" at 17px
+  // ".ai" at 21px — matches wordmark cap height more closely, tight 1px gap
+  const aiSize = 21;
+  const aiOffset = 1;
+  const wmX = rx - wmW - aiOffset - 16; // 16 ≈ width of ".ai" at 21px
   return `${_cWordmark(wmX, y - wmH, wmW, THEME.accent)}` +
     `<text x="${rx}" y="${y}" text-anchor="end" font-family="'Barlow Condensed','Arial Narrow',sans-serif" font-size="${aiSize}" font-weight="200" fill="${THEME.accent}">.ai</text>`;
 }
 
-// Simplified watermark wrapper that accepts opacity — used for the gold 0.3 opacity version
+// Faded version (0.3 opacity) — used on slides 1, 2, 3
 function _cWatermarkFaded(y=1318) {
   const wmW = 115;
   const wmH = Math.round(wmW * 0.153);
   const rx = _cPAD + _cPW;
-  const aiOffset = 5;
-  const wmX = rx - wmW - aiOffset - 14;
-  return `<g opacity="0.3">${_cWordmark(wmX, y - wmH, wmW, THEME.accent)}<text x="${rx}" y="${y}" text-anchor="end" font-family="'Barlow Condensed','Arial Narrow',sans-serif" font-size="17" font-weight="200" fill="${THEME.accent}">.ai</text></g>`;
+  const aiOffset = 1;
+  const wmX = rx - wmW - aiOffset - 16;
+  return `<g opacity="0.3">${_cWordmark(wmX, y - wmH, wmW, THEME.accent)}<text x="${rx}" y="${y}" text-anchor="end" font-family="'Barlow Condensed','Arial Narrow',sans-serif" font-size="21" font-weight="200" fill="${THEME.accent}">.ai</text></g>`;
 }
 
 // Top bar — single=gold, compare=red|blue split
@@ -3799,9 +3798,9 @@ ${[0,25,50,75,100].map(p=>{
   // 100px wide at 0.3 opacity, right-anchored just inside plot right edge
   const gwmW = 100, gwmH = Math.round(100*0.153); // ~15px tall
   const gwmRx = plotX + plotW - 8;
-  const gwmAiW = 12, gwmGap = 4;
+  const gwmAiW = 13, gwmGap = 1; // tight gap, 18px .ai
   const gwmX = gwmRx - gwmW - gwmGap - gwmAiW;
-  const gwm = `<g opacity="0.3">${_cWordmark(gwmX, plotBottom-8-gwmH, gwmW, GOLD)}<text x="${gwmRx}" y="${plotBottom-8}" text-anchor="end" font-family="'Barlow Condensed','Arial Narrow',sans-serif" font-size="15" font-weight="200" fill="${GOLD}">.ai</text></g>`;
+  const gwm = `<g opacity="0.3">${_cWordmark(gwmX, plotBottom-8-gwmH, gwmW, GOLD)}<text x="${gwmRx}" y="${plotBottom-8}" text-anchor="end" font-family="'Barlow Condensed','Arial Narrow',sans-serif" font-size="18" font-weight="200" fill="${GOLD}">.ai</text></g>`;
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${_cCW}" height="${_cCH}" viewBox="0 0 ${_cCW} ${_cCH}">
 <rect width="${_cCW}" height="${_cCH}" fill="${BG}"/>
