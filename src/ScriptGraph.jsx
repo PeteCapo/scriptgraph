@@ -3506,16 +3506,12 @@ SLIDE_2_CONTEXT: Exactly 3 short lines that set up what the graph shows.
 - Each line max 45 characters
 - Tone: analytical, precise. A frame, not a summary.
 
-SLIDE_3_LINES: 4–5 punchy lines that deliver the structural insight.
-- Each line is a complete thought, short and punchy.
-- Each line max 38 characters for mobile readability.
-- Voice: Pete Capó. A director sharing a discovery. Not teaching. Not promoting.
-- Reference the specific films by name.
+SLIDE_3_BODY: A single paragraph delivering the structural insight. 2–4 sentences. 200–350 characters. Pete Capó's voice — a director sharing a discovery, not teaching. Observational, precise, specific. Reference the films by name.
 
 Return JSON only — no preamble, no markdown:
 {
   "slide2_context": ["line1", "line2", "line3"],
-  "slide3_lines": ["line1", "line2", "line3", "line4"]
+  "slide3_body": "The full paragraph text here."
 }`;
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -3524,7 +3520,7 @@ Return JSON only — no preamble, no markdown:
   });
   const data = await res.json();
   const raw = data.content?.[0]?.text?.trim() || "{}";
-  try { return JSON.parse(raw); } catch { return { slide2_context:[], slide3_lines:[] }; }
+  try { return JSON.parse(raw); } catch { return { slide2_context:[], slide3_body:"" }; }
 }
 
 // ── SVG constants (carousel-specific — different canvas than share cards) ─────
@@ -3543,13 +3539,7 @@ function _cSmooth(arr) {
 }
 
 // Swipe dots — active = slide index 0-3
-function _cDots(active) {
-  const centers = [509,528,547,566];
-  return centers.map((cx,i) => {
-    const isActive = i === active;
-    return `<circle cx="${cx}" cy="1330" r="${isActive?5:4}" fill="${isActive?THEME.accent:"#3a3a42"}" opacity="${isActive?0.9:0.6}"/>`;
-  }).join("");
-}
+function _cDots() { return ""; } // dots removed — Instagram provides native swipe indicators
 
 // Watermark — bottom right, inside canvas
 function _cWatermark(y=1318) {
@@ -3788,9 +3778,28 @@ ${_cDots(1)}
 }
 
 // ── Slide 3 — The Observation ─────────────────────────────────────────────────
-function generateCarouselSlide3({ mode, films, slide3Lines, title, year }) {
+// Word wrap helper for SVG text — computes line breaks at a given pixel width
+// Uses character-width estimation for Barlow Condensed (no canvas measurement needed for export)
+function _wrapText(text, maxWidth, fontSize, charWidthRatio) {
+  const words = (text || "").split(" ");
+  const charW = fontSize * charWidthRatio;
+  const lines = [];
+  let current = "";
+  words.forEach(word => {
+    const test = current ? current + " " + word : word;
+    if (test.length * charW > maxWidth && current) {
+      lines.push(current);
+      current = word;
+    } else {
+      current = test;
+    }
+  });
+  if (current) lines.push(current);
+  return lines;
+}
+
+function generateCarouselSlide3({ mode, films, bodyText, title, year }) {
   const BG=THEME.bgPage, CREAM=THEME.textPrimary, GOLD=THEME.accent;
-  const EDGE=THEME.borderSubtle;
   const isSingle = mode !== "compare";
   const s1 = films[0]?.entry;
 
@@ -3798,28 +3807,25 @@ function generateCarouselSlide3({ mode, films, slide3Lines, title, year }) {
     ? `${(s1?.title||title||"").toUpperCase()} · ${(s1?.writer||"").toUpperCase()}${year?` · ${year}`:""}`
     : (title||"").toUpperCase();
 
-  // All lines: uniform large Barlow light cream. Simple, clean.
-  const lines = (slide3Lines||[]).slice(0,5);
-  const fs = 88;
-  const lh = 104;
-  let y = 300;
-  let observationSvg = "";
+  // Word-wrap the body paragraph
+  const fs = 72;           // font size — large, readable
+  const lh = 88;           // line height
+  const charRatio = 0.50;  // Barlow Condensed 300 character width ratio
+  const lines = _wrapText(bodyText || "", _cPW, fs, charRatio);
 
-  lines.forEach(line => {
-    const text = (line.text || line || "").toString();
-    if (!text.trim()) return;
-    const estW = text.length * fs * 0.52;
-    const tlAttr = estW > _cPW ? ` textLength="${_cPW}" lengthAdjust="spacingAndGlyphs"` : "";
-    observationSvg += `<text x="${_cPAD}" y="${y}" font-family="${THEME.fontDisplay}" font-weight="300" font-size="${fs}" fill="${CREAM}" letter-spacing="1"${tlAttr}>${text}</text>`;
+  let y = 290;
+  const textLines = lines.map(line => {
+    const svg = `<text x="${_cPAD}" y="${y}" font-family="${THEME.fontDisplay}" font-weight="300" font-size="${fs}" fill="${CREAM}" letter-spacing="0.5">${line}</text>`;
     y += lh;
-  });
+    return svg;
+  }).join("\n");
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${_cCW}" height="${_cCH}" viewBox="0 0 ${_cCW} ${_cCH}">
 <rect width="${_cCW}" height="${_cCH}" fill="${BG}"/>
 ${_cTopBar(mode)}
 <text x="${_cPAD}" y="80" font-family="${THEME.fontDisplay}" font-weight="600" font-size="21" fill="${GOLD}" letter-spacing="6" opacity="0.7">${eyebrow}</text>
 <line x1="${_cPAD}" y1="162" x2="${_cPAD+160}" y2="162" stroke="${GOLD}" stroke-width="2" opacity="0.5"/>
-${observationSvg}
+${textLines}
 ${_cWatermark()}
 ${_cDots(2)}
 </svg>`;
@@ -3888,7 +3894,7 @@ function CarouselModal({ T, carousel, library, onClose, onSaveInsight, password 
   const [headline,     setHeadline]     = useState(fromInsight?.title || "");
   const [angle,        setAngle]        = useState(fromInsight?.body  || "");
   const [ctx,          setCtx]          = useState(["","",""]);
-  const [slide3Lines,  setSlide3Lines]  = useState(["","","",""]);
+  const [bodyText,     setBodyText]     = useState(fromInsight?.body || "");
   const [imageDataUrl, setImageDataUrl] = useState(null);
   const [drafting,     setDrafting]     = useState(false);
   const [downloading,  setDownloading]  = useState(false);
@@ -3901,7 +3907,7 @@ function CarouselModal({ T, carousel, library, onClose, onSaveInsight, password 
   const slides = [
     generateCarouselSlide1({ mode, films, headline, imageDataUrl }),
     generateCarouselSlide2({ mode, films, contextLines: ctx, title: fromInsight?.title || headline }),
-    generateCarouselSlide3({ mode, films, slide3Lines, title: fromInsight?.title || headline }),
+    generateCarouselSlide3({ mode, films, bodyText, title: fromInsight?.title || headline }),
     generateCarouselSlide4(),
   ];
 
@@ -3911,7 +3917,11 @@ function CarouselModal({ T, carousel, library, onClose, onSaveInsight, password 
     try {
       const result = await draftCarouselCopy({ angle, films, library, mode });
       if (result.slide2_context?.length) setCtx(result.slide2_context.slice(0,3).concat(["","",""]).slice(0,3));
-      if (result.slide3_lines?.length)   setSlide3Lines(result.slide3_lines.slice(0,5).map(l => typeof l === "string" ? l : (l.text || "")));
+      if (result.slide3_body)            setBodyText(result.slide3_body);
+      else if (result.slide3_lines?.length) {
+        const lines = result.slide3_lines.map(l => typeof l === "string" ? l : (l.text || ""));
+        setBodyText(lines.join(" "));
+      }
     } catch {}
     setDrafting(false);
   };
@@ -4050,20 +4060,19 @@ function CarouselModal({ T, carousel, library, onClose, onSaveInsight, password 
               ))}
             </div>
 
-            {/* Slide 3 lines */}
+            {/* Slide 3 — single paragraph, word-wrapped */}
             <div style={sectionS}>
               <label style={labelS}>Slide 3 — The Observation</label>
-              {slide3Lines.map((line,i) => (
-                <div key={i} style={{ marginBottom:6 }}>
-                  <input
-                    value={typeof line === "string" ? line : (line.text || "")}
-                    onChange={e=>setSlide3Lines(prev=>{const n=[...prev];n[i]=e.target.value;return n;})}
-                    placeholder={`Line ${i+1}`}
-                    style={inputS()}/>
-                </div>
-              ))}
-              <button onClick={()=>setSlide3Lines(prev=>[...prev,""])}
-                disabled={slide3Lines.length>=5} style={{ ...smBtn(slide3Lines.length>=5), fontSize:9 }}>+ Line</button>
+              <textarea
+                value={bodyText}
+                onChange={e => setBodyText(e.target.value)}
+                placeholder="The structural insight, in Pete's voice. Word-wraps automatically."
+                rows={5}
+                style={{ ...inputS(), resize:"vertical", lineHeight:1.7 }}
+              />
+              <div style={{ marginTop:5, fontSize:10, color:T.textDim, fontFamily:T.fontSans }}>
+                {bodyText.length} chars · wraps automatically on slide
+              </div>
             </div>
 
             {/* Film still */}
