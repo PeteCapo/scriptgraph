@@ -6188,7 +6188,7 @@ export default function ScriptGraph() {
         );
       })()}
 
-      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 48px" }}>
+      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 48px", marginTop: -80, paddingTop: 80 }}>
 
         {/* ════ UPLOAD ════ */}
         {!PUBLIC_MODE && screen === "upload" && (
