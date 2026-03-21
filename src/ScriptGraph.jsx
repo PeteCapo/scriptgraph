@@ -3543,8 +3543,7 @@ function _cDots() { return ""; } // dots removed — Instagram provides native s
 
 // Watermark — bottom right, inside canvas
 function _cWatermark(y=1318) {
-  // Single text element, uniform weight — avoids multi-text positioning bugs at small size
-  return `<text x="${_cPAD+_cPW}" y="${y}" text-anchor="end" font-family="'Barlow Condensed','Arial Narrow',sans-serif" font-size="26" font-weight="600" fill="${THEME.accent}" opacity="0.3">SCRIPTGRAPH.ai</text>`;
+  return `<text x="${_cPAD+_cPW}" y="${y}" text-anchor="end" font-family="'Barlow Condensed','Arial Narrow',sans-serif" font-size="26" fill="${THEME.accent}" opacity="0.3"><tspan font-weight="200">SCRIPT</tspan><tspan font-weight="700">GRAPH</tspan><tspan font-weight="200">.ai</tspan></text>`;
 }
 
 // Top bar — single=gold, compare=red|blue split
@@ -3751,11 +3750,12 @@ ${[0,25,50,75,100].map(p=>{
     ? curvePath(ten1, GOLD, "cg1", 5, 0.28)
     : curvePath(ten2, BLUE, "cg2", 4.5, 0.20) + curvePath(ten1, RED, "cg1", 4.5, 0.20);
 
-  // Graph watermark inside plot — single text, uniform weight for reliable rendering
-  const gwm = `<text x="${plotX+plotW-8}" y="${plotBottom-8}" text-anchor="end" font-family="'Barlow Condensed','Arial Narrow',sans-serif" font-size="24" font-weight="600" fill="${GOLD}" opacity="0.3">SCRIPTGRAPH.ai</text>`;
+  // Graph watermark inside plot — right-anchored, tspan handles weight contrast safely
+  const gwm = `<text x="${plotX+plotW-8}" y="${plotBottom-8}" text-anchor="end" font-family="'Barlow Condensed','Arial Narrow',sans-serif" font-size="24" fill="${GOLD}" opacity="0.3"><tspan font-weight="200">SCRIPT</tspan><tspan font-weight="700">GRAPH</tspan><tspan font-weight="200">.ai</tspan></text>`;
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${_cCW}" height="${_cCH}" viewBox="0 0 ${_cCW} ${_cCH}">
 <rect width="${_cCW}" height="${_cCH}" fill="${BG}"/>
+${_cTopBar(mode)}
 <text x="${_cPAD}" y="80" font-family="${THEME.fontDisplay}" font-weight="600" font-size="21" fill="${GOLD}" letter-spacing="6" opacity="0.7">${eyebrow}</text>
 ${ctxSvg}
 <line x1="${_cPAD}" y1="505" x2="${_cPAD+_cPW}" y2="505" stroke="${EDGE}" stroke-width="1.5"/>
@@ -3829,23 +3829,18 @@ ${_cDots(2)}
 function generateCarouselSlide4() {
   const BG=THEME.bgPage, CREAM=THEME.textPrimary, GOLD=THEME.accent;
   const MUTED=THEME.textMuted, EDGE=THEME.borderSubtle;
-  const glyphScale = 52*3.2; // = 166.4px rendered height
-  // Glyph internal left edge is at x=14 in glyph-space → 14 * 3.2 = 44.8px visual offset
-  // To align visual left edge with _cPAD (80), translate x = 80 - 45 = 35
+  const glyphScale = 52*3.2;
+  // Glyph visual left edge is at x=14 glyph-space → 14 * 3.2 = 45px indent from translate origin
+  // translate x = _cPAD - 45 = 35 aligns visual left edge with text margin
   const glyphX = _cPAD - 45;
   const glyphY = 420;
   const textX = _cPAD;
-
-  // SVG-measured: getComputedTextLength('SCRIPT') at 108px w200 letter-spacing=6 → 286px
-  // Add 6px for trailing letter-spacing after last char → 292px total before GRAPH starts
-  const scriptW = 292;
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${_cCW}" height="${_cCH}" viewBox="0 0 ${_cCW} ${_cCH}">
 <rect width="${_cCW}" height="${_cCH}" fill="${BG}"/>
 <rect x="0" y="0" width="${_cCW}" height="5" fill="${GOLD}" opacity="0.7"/>
 ${_cGlyph(glyphX, glyphY, glyphScale)}
-<text x="${textX}" y="720" font-family="'Barlow Condensed','Arial Narrow',sans-serif" font-weight="200" font-size="108" letter-spacing="6" fill="${CREAM}">SCRIPT</text>
-<text x="${textX + scriptW}" y="720" font-family="'Barlow Condensed','Arial Narrow',sans-serif" font-weight="700" font-size="108" letter-spacing="6" fill="${CREAM}">GRAPH</text>
+<text x="${textX}" y="720" font-family="'Barlow Condensed','Arial Narrow',sans-serif" font-weight="200" font-size="108" letter-spacing="6" fill="${CREAM}">SCRIPTGRAPH</text>
 <line x1="${textX}" y1="758" x2="${textX+240}" y2="758" stroke="${EDGE}" stroke-width="1.5"/>
 <text x="${textX}" y="820" font-family="'Barlow Condensed','Arial Narrow',sans-serif" font-weight="300" font-size="40" letter-spacing="6" fill="${MUTED}">scriptgraph.ai</text>
 <text x="${textX}" y="896" font-family="'Inter',system-ui,sans-serif" font-weight="300" font-size="32" letter-spacing="2" fill="${MUTED}">Story Structure, Visualized.</text>
@@ -3867,11 +3862,20 @@ async function downloadCarouselZip(slides, insightTitle) {
       im.onerror = rej;
       im.src = url;
     });
+    // Render at 2x for crisp text — matches retina screen rendering quality
+    const scale = 2;
     const canvas = document.createElement("canvas");
-    canvas.width = _cCW; canvas.height = _cCH;
-    canvas.getContext("2d").drawImage(img, 0, 0, _cCW, _cCH);
+    canvas.width  = _cCW * scale;
+    canvas.height = _cCH * scale;
+    const ctx2d = canvas.getContext("2d");
+    ctx2d.scale(scale, scale);
+    ctx2d.drawImage(img, 0, 0, _cCW, _cCH);
     URL.revokeObjectURL(url);
-    return new Promise(res => canvas.toBlob(res, "image/png"));
+    // Resize back to 1080×1350 for output
+    const out = document.createElement("canvas");
+    out.width = _cCW; out.height = _cCH;
+    out.getContext("2d").drawImage(canvas, 0, 0, _cCW * scale, _cCH * scale, 0, 0, _cCW, _cCH);
+    return new Promise(res => out.toBlob(res, "image/png"));
   }));
 
   const slug = (insightTitle||"carousel").toLowerCase().replace(/[^a-z0-9]+/g,"-");
