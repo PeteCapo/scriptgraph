@@ -6059,6 +6059,135 @@ export default function ScriptGraph() {
         </div>
       </div>
 
+      {/* ════ FULL-BLEED HERO — public only, outside maxWidth container ════ */}
+      {PUBLIC_MODE && screen === "library" && (() => {
+        const heroCurveEntries = library.filter(e => e.overallTension?.length > 0).slice(0, 3);
+        const heroCurveColors  = [T.accent, T.fwColors.three_act, T.fwColors.story_circle];
+
+        const makeHeroCurvePath = (tension, w, h) => {
+          const pad = { t: 10, r: 0, b: 10, l: 0 };
+          const iw = w - pad.l - pad.r, ih = h - pad.t - pad.b;
+          const sm = tension.map((_, i) => {
+            const lo = Math.max(0, i - 2), hi = Math.min(tension.length - 1, i + 2);
+            const sl = tension.slice(lo, hi + 1);
+            return sl.reduce((a, b) => a + b, 0) / sl.length;
+          });
+          const pts = sm.map((t, i) => ({
+            x: pad.l + (i / (sm.length - 1)) * iw,
+            y: pad.t + ih - (t / 10) * ih,
+          }));
+          const line = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+          const area = `${line} L${(pad.l + iw).toFixed(1)},${(pad.t + ih).toFixed(1)} L${pad.l},${(pad.t + ih).toFixed(1)} Z`;
+          return { line, area };
+        };
+
+        return (
+          <div style={{ position: "relative" }}>
+
+            {/* Ambient background curves — full viewport width, no clipping */}
+            {heroCurveEntries.length > 0 && (
+              <div style={{
+                position: "absolute",
+                top: 0, left: 0, right: 0,
+                height: 340,
+                pointerEvents: "none",
+                zIndex: 0,
+              }}>
+                <svg
+                  viewBox="0 0 1200 340"
+                  preserveAspectRatio="none"
+                  style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
+                >
+                  <defs>
+                    {heroCurveEntries.map((e, i) => (
+                      <linearGradient key={i} id={`hg-area-${i}`} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={heroCurveColors[i]} stopOpacity="0.10" />
+                        <stop offset="100%" stopColor={heroCurveColors[i]} stopOpacity="0.0" />
+                      </linearGradient>
+                    ))}
+                    {heroCurveEntries.map((e, i) => (
+                      <linearGradient key={`lf-${i}`} id={`hg-line-${i}`} x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%"   stopColor={heroCurveColors[i]} stopOpacity="0" />
+                        <stop offset="5%"   stopColor={heroCurveColors[i]} stopOpacity="1" />
+                        <stop offset="95%"  stopColor={heroCurveColors[i]} stopOpacity="1" />
+                        <stop offset="100%" stopColor={heroCurveColors[i]} stopOpacity="0" />
+                      </linearGradient>
+                    ))}
+                  </defs>
+                  {heroCurveEntries.map((e, i) => {
+                    const { line, area } = makeHeroCurvePath(e.overallTension, 1200, 340);
+                    return (
+                      <g key={i}>
+                        <path d={area} fill={`url(#hg-area-${i})`}
+                          style={{ animation: `sgFadeIn 1.4s ease ${0.3 + i * 0.25}s both` }} />
+                        <path d={line} fill="none"
+                          stroke={`url(#hg-line-${i})`} strokeWidth="1.4"
+                          strokeLinecap="round" strokeLinejoin="round"
+                          strokeDasharray="3000" strokeDashoffset="3000"
+                          style={{ animation: `sgDrawLine 2.2s ease ${0.1 + i * 0.3}s forwards` }} />
+                      </g>
+                    );
+                  })}
+                </svg>
+                {/* Bottom fade — glows dissolve naturally into page */}
+                <div style={{
+                  position: "absolute", bottom: 0, left: 0, right: 0, height: 240,
+                  background: `linear-gradient(to bottom, transparent, ${T.bgPage})`,
+                  pointerEvents: "none",
+                }} />
+              </div>
+            )}
+
+            {/* Hero text — padded to align with content container */}
+            <div style={{
+              position: "relative", zIndex: 1,
+              maxWidth: 1280, margin: "0 auto",
+              padding: "72px 48px 56px",
+            }}>
+              <h1 style={{
+                margin: "0 0 28px",
+                fontFamily: T.fontDisplay,
+                fontWeight: 800,
+                fontSize: "clamp(48px, 6vw, 76px)",
+                letterSpacing: "0.04em",
+                textTransform: "uppercase",
+                color: T.textPrimary,
+                lineHeight: 1.0,
+                maxWidth: 680,
+                animation: "sgFadeUp 0.7s ease 0.1s both",
+              }}>
+                Every screenplay<br />has a shape.
+              </h1>
+              <div style={{ maxWidth: 520, animation: "sgFadeUp 0.7s ease 0.3s both" }}>
+                <p style={{
+                  margin: "0 0 6px",
+                  fontSize: 15,
+                  color: T.textSecondary,
+                  lineHeight: 1.85,
+                  fontFamily: T.fontSans,
+                  fontWeight: 300,
+                }}>
+                  I built this to understand how films move. Each graph maps the rise and fall of narrative pressure across a screenplay — the shape of the story.
+                </p>
+                <p style={{
+                  margin: 0,
+                  fontSize: 13,
+                  color: T.textMuted,
+                  fontFamily: T.fontSans,
+                  fontStyle: "italic",
+                  fontWeight: 300,
+                }}>
+                  <a href="https://petecapo.com" target="_blank" rel="noopener noreferrer"
+                    style={{ color: "inherit", textDecoration: "none", borderBottom: `1px solid ${T.textMuted}40` }}>
+                    — Pete Capo
+                  </a>
+                </p>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 48px" }}>
 
         {/* ════ UPLOAD ════ */}
@@ -6471,147 +6600,8 @@ export default function ScriptGraph() {
             return matchSearch && matchGenre && matchStructure;
           });
 
-          // Background hero curves — pick up to 3 scripts with real tension data
-          const heroCurveEntries = library.filter(e => e.overallTension?.length > 0).slice(0, 3);
-          const heroCurveColors  = [T.accent, T.fwColors.three_act, T.fwColors.story_circle];
-
-          const makeHeroCurvePath = (tension, w, h) => {
-            const pad = { t: 10, r: 0, b: 10, l: 0 };
-            const iw = w - pad.l - pad.r, ih = h - pad.t - pad.b;
-            const sm = tension.map((_, i) => {
-              const lo = Math.max(0, i - 2), hi = Math.min(tension.length - 1, i + 2);
-              const sl = tension.slice(lo, hi + 1);
-              return sl.reduce((a, b) => a + b, 0) / sl.length;
-            });
-            const pts = sm.map((t, i) => ({
-              x: pad.l + (i / (sm.length - 1)) * iw,
-              y: pad.t + ih - (t / 10) * ih,
-            }));
-            const line = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
-            const area = `${line} L${(pad.l + iw).toFixed(1)},${(pad.t + ih).toFixed(1)} L${pad.l},${(pad.t + ih).toFixed(1)} Z`;
-            return { line, area };
-          };
-
           return (
           <div style={{ paddingBottom: compareItems.length > 0 ? 100 : 0 }}>
-
-            {/* ── HERO — public only ── */}
-            {PUBLIC_MODE && (
-              <div style={{ position: "relative", overflow: "hidden", paddingBottom: 0 }}>
-
-                {/* Ambient background curves */}
-                {heroCurveEntries.length > 0 && (
-                  <div style={{
-                    position: "absolute",
-                    top: 0, left: 0, right: 0,
-                    height: 320,
-                    pointerEvents: "none",
-                    zIndex: 0,
-                  }}>
-                    <svg
-                      viewBox="0 0 1200 320"
-                      preserveAspectRatio="none"
-                      style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
-                    >
-                      <defs>
-                        {heroCurveEntries.map((e, i) => (
-                          <linearGradient key={i} id={`hg-area-${i}`} x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor={heroCurveColors[i]} stopOpacity="0.10" />
-                            <stop offset="100%" stopColor={heroCurveColors[i]} stopOpacity="0.0" />
-                          </linearGradient>
-                        ))}
-                        {heroCurveEntries.map((e, i) => (
-                          <linearGradient key={`lf-${i}`} id={`hg-line-${i}`} x1="0" y1="0" x2="1" y2="0">
-                            <stop offset="0%"   stopColor={heroCurveColors[i]} stopOpacity="0" />
-                            <stop offset="6%"   stopColor={heroCurveColors[i]} stopOpacity="1" />
-                            <stop offset="94%"  stopColor={heroCurveColors[i]} stopOpacity="1" />
-                            <stop offset="100%" stopColor={heroCurveColors[i]} stopOpacity="0" />
-                          </linearGradient>
-                        ))}
-                      </defs>
-                      {heroCurveEntries.map((e, i) => {
-                        const { line, area } = makeHeroCurvePath(e.overallTension, 1200, 320);
-                        return (
-                          <g key={i}>
-                            <path d={area} fill={`url(#hg-area-${i})`}
-                              style={{ animation: `sgFadeIn 1.4s ease ${0.3 + i * 0.25}s both` }} />
-                            <path d={line} fill="none"
-                              stroke={`url(#hg-line-${i})`} strokeWidth="1.4"
-                              strokeLinecap="round" strokeLinejoin="round"
-                              strokeDasharray="3000" strokeDashoffset="3000"
-                              style={{ animation: `sgDrawLine 2.2s ease ${0.1 + i * 0.3}s forwards` }} />
-                          </g>
-                        );
-                      })}
-                    </svg>
-                    {/* Bottom fade — curves dissolve into page before Director's Notes */}
-                    <div style={{
-                      position: "absolute", bottom: 0, left: 0, right: 0, height: 220,
-                      background: `linear-gradient(to bottom, transparent, ${T.bgPage})`,
-                      pointerEvents: "none",
-                    }} />
-                    {/* Left edge fade */}
-                    <div style={{
-                      position: "absolute", top: 0, left: 0, bottom: 0, width: 80,
-                      background: `linear-gradient(to right, ${T.bgPage}, transparent)`,
-                      pointerEvents: "none",
-                    }} />
-                    {/* Right edge fade */}
-                    <div style={{
-                      position: "absolute", top: 0, right: 0, bottom: 0, width: 80,
-                      background: `linear-gradient(to left, ${T.bgPage}, transparent)`,
-                      pointerEvents: "none",
-                    }} />
-                  </div>
-                )}
-
-                {/* Hero text */}
-                <div style={{
-                  position: "relative", zIndex: 1,
-                  padding: "72px 48px 56px",
-                }}>
-                  <h1 style={{
-                    margin: "0 0 28px",
-                    fontFamily: T.fontDisplay,
-                    fontWeight: 800,
-                    fontSize: "clamp(48px, 6vw, 76px)",
-                    letterSpacing: "0.04em",
-                    textTransform: "uppercase",
-                    color: T.textPrimary,
-                    lineHeight: 1.0,
-                    maxWidth: 680,
-                    animation: "sgFadeUp 0.7s ease 0.1s both",
-                  }}>
-                    Every screenplay<br />has a shape.
-                  </h1>
-                  <div style={{ maxWidth: 520, animation: "sgFadeUp 0.7s ease 0.3s both" }}>
-                    <p style={{
-                      margin: "0 0 6px",
-                      fontSize: 15,
-                      color: T.textSecondary,
-                      lineHeight: 1.85,
-                      fontFamily: T.fontSans,
-                      fontWeight: 300,
-                    }}>
-                      I built this to understand how films move. Each graph maps the rise and fall of narrative pressure across a screenplay — the shape of the story.
-                    </p>
-                    <p style={{
-                      margin: 0,
-                      fontSize: 13,
-                      color: T.textMuted,
-                      fontFamily: T.fontSans,
-                      fontStyle: "italic",
-                      fontWeight: 300,
-                    }}>
-                      <a href="https://petecapo.com" target="_blank" rel="noopener noreferrer"
-                        style={{ color: "inherit", textDecoration: "none", borderBottom: `1px solid ${T.textMuted}40` }}>
-                        — Pete Capo
-                      </a>
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
 
             {/* ── Insights strip — public only ── */}
             {PUBLIC_MODE && (() => {
@@ -6699,7 +6689,6 @@ export default function ScriptGraph() {
                   animation: "sgFadeUp 0.7s ease 0.5s both",
                 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 20 }}>
-                    <h2 style={{ margin: 0, fontSize: 44, fontWeight: 800, letterSpacing: 3, fontFamily: T.fontDisplay, textTransform: "uppercase", color: T.textPrimary }}>Director's Notes</h2>
                   </div>
 
                   {/* Scroll container with right-edge peek affordance */}
