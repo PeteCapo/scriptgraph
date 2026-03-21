@@ -6523,8 +6523,8 @@ export default function ScriptGraph() {
                         {heroCurveEntries.map((e, i) => (
                           <linearGradient key={`lf-${i}`} id={`hg-line-${i}`} x1="0" y1="0" x2="1" y2="0">
                             <stop offset="0%"   stopColor={heroCurveColors[i]} stopOpacity="0" />
-                            <stop offset="12%"  stopColor={heroCurveColors[i]} stopOpacity="1" />
-                            <stop offset="88%"  stopColor={heroCurveColors[i]} stopOpacity="1" />
+                            <stop offset="6%"   stopColor={heroCurveColors[i]} stopOpacity="1" />
+                            <stop offset="94%"  stopColor={heroCurveColors[i]} stopOpacity="1" />
                             <stop offset="100%" stopColor={heroCurveColors[i]} stopOpacity="0" />
                           </linearGradient>
                         ))}
@@ -6544,10 +6544,22 @@ export default function ScriptGraph() {
                         );
                       })}
                     </svg>
-                    {/* Fade out curves before Director's Notes */}
+                    {/* Bottom fade — curves dissolve into page before Director's Notes */}
                     <div style={{
-                      position: "absolute", bottom: 0, left: 0, right: 0, height: 160,
+                      position: "absolute", bottom: 0, left: 0, right: 0, height: 220,
                       background: `linear-gradient(to bottom, transparent, ${T.bgPage})`,
+                      pointerEvents: "none",
+                    }} />
+                    {/* Left edge fade */}
+                    <div style={{
+                      position: "absolute", top: 0, left: 0, bottom: 0, width: 80,
+                      background: `linear-gradient(to right, ${T.bgPage}, transparent)`,
+                      pointerEvents: "none",
+                    }} />
+                    {/* Right edge fade */}
+                    <div style={{
+                      position: "absolute", top: 0, right: 0, bottom: 0, width: 80,
+                      background: `linear-gradient(to left, ${T.bgPage}, transparent)`,
                       pointerEvents: "none",
                     }} />
                   </div>
@@ -6686,8 +6698,8 @@ export default function ScriptGraph() {
                   paddingBottom: 28,
                   animation: "sgFadeUp 0.7s ease 0.5s both",
                 }}>
-                  <div style={{ fontSize: 9, fontFamily: T.fontSans, fontWeight: 600, letterSpacing: 2.5, textTransform: "uppercase", color: T.textMuted, marginBottom: 16 }}>
-                    Director's Notes
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 20 }}>
+                    <h2 style={{ margin: 0, fontSize: 44, fontWeight: 800, letterSpacing: 3, fontFamily: T.fontDisplay, textTransform: "uppercase", color: T.textPrimary }}>Director's Notes</h2>
                   </div>
 
                   {/* Scroll container with right-edge peek affordance */}
