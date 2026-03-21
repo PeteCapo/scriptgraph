@@ -6546,12 +6546,6 @@ export default function ScriptGraph() {
                           );
                         })}
                       </svg>
-                      {/* Bottom fade — same element, no boundary to cross */}
-                      <div style={{
-                        position: "absolute", bottom: 0, left: 0, right: 0, height: "50%",
-                        background: `linear-gradient(to bottom, rgba(13,13,15,0), rgba(13,13,15,1))`,
-                        pointerEvents: "none",
-                      }} />
                     </div>
                   )}
                   {/* Hero text */}
