@@ -5960,7 +5960,7 @@ export default function ScriptGraph() {
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <div style={{ minHeight: "100vh", background: T.bgPage, color: T.textPrimary, fontFamily: T.fontSans }}>
+    <div style={{ minHeight: "100vh", background: T.bgPage, color: T.textPrimary, fontFamily: T.fontSans, paddingBottom: 40 }}>
 
       {/* Nav */}
       <div style={{ borderBottom: `1px solid ${T.borderSubtle}`, padding: isMobile ? "0 20px" : "0 48px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 64, background: T.bgPage, position: "sticky", top: 0, zIndex: 100, backdropFilter: "blur(12px)" }}>
@@ -8120,16 +8120,16 @@ export default function ScriptGraph() {
       {/* ── Site footer ── */}
       {PUBLIC_MODE && (
         <div style={{ borderTop: `1px solid ${T.borderSubtle}`, padding: "0 48px" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "11px 0" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 0" }}>
 
             {/* Left: wordmark · divider · byline */}
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <div style={{ fontFamily: T.fontDisplay, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.12em", lineHeight: 1 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+              <div style={{ fontFamily: T.fontDisplay, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.12em", lineHeight: 1 }}>
                 <span style={{ fontWeight: 200, color: T.textDim }}>SCRIPT</span>
                 <span style={{ fontWeight: 700, color: T.textDim }}>GRAPH</span>
               </div>
-              <div style={{ width: 1, height: 11, background: T.borderMid }} />
-              <div style={{ fontFamily: T.fontSans, fontSize: 10, letterSpacing: "0.06em", color: T.textDim }}>
+              <div style={{ width: 1, height: 13, background: T.borderMid }} />
+              <div style={{ fontFamily: T.fontSans, fontSize: 12, letterSpacing: "0.06em", color: T.textDim }}>
                 Built by{" "}
                 <a href="https://petecapo.com" target="_blank" rel="noopener noreferrer"
                   style={{ color: T.textDim, textDecoration: "none", borderBottom: `1px solid ${T.textDim}30` }}
@@ -8141,19 +8141,19 @@ export default function ScriptGraph() {
             </div>
 
             {/* Right: url · divider · icons */}
-            <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-              <span style={{ fontFamily: T.fontDisplay, fontSize: 11, fontWeight: 300, letterSpacing: "0.14em", color: T.textDim }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+              <span style={{ fontFamily: T.fontDisplay, fontSize: 14, fontWeight: 300, letterSpacing: "0.14em", color: T.textDim }}>
                 scriptgraph.ai
               </span>
-              <div style={{ width: 1, height: 11, background: T.borderMid }} />
-              <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+              <div style={{ width: 1, height: 13, background: T.borderMid }} />
+              <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
                 {/* Instagram */}
                 <a href="https://instagram.com/thescriptgraph" target="_blank" rel="noopener noreferrer"
                   aria-label="Instagram"
                   style={{ color: T.textDim, display: "flex", transition: "color 0.15s" }}
                   onMouseEnter={e => e.currentTarget.style.color = T.accent}
                   onMouseLeave={e => e.currentTarget.style.color = T.textDim}>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="2" y="2" width="20" height="20" rx="5"/>
                     <circle cx="12" cy="12" r="4"/>
                     <circle cx="17.5" cy="6.5" r="0.7" fill="currentColor" stroke="none"/>
@@ -8165,7 +8165,7 @@ export default function ScriptGraph() {
                   style={{ color: T.textDim, display: "flex", transition: "color 0.15s" }}
                   onMouseEnter={e => e.currentTarget.style.color = T.accent}
                   onMouseLeave={e => e.currentTarget.style.color = T.textDim}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622 5.911-5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
                   </svg>
                 </a>
@@ -8175,7 +8175,7 @@ export default function ScriptGraph() {
                   style={{ color: T.textDim, display: "flex", transition: "color 0.15s" }}
                   onMouseEnter={e => e.currentTarget.style.color = T.accent}
                   onMouseLeave={e => e.currentTarget.style.color = T.textDim}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.5 12.068c0-3.52.85-6.374 2.495-8.424C5.845 1.34 8.598.16 12.179.136h.014c2.306.018 4.35.718 5.92 2.022 1.467 1.22 2.397 2.946 2.765 5.13l-2.01.355c-.645-3.668-3.01-5.507-6.675-5.507h-.013c-2.973.021-5.232.968-6.714 2.814C4.017 6.47 3.5 8.887 3.5 12.068c0 3.18.517 5.597 1.966 7.118 1.482 1.846 3.741 2.793 6.714 2.814h.013c2.653 0 4.396-.65 5.58-2.046.84-.993 1.33-2.439 1.456-4.301-.994.252-2.047.372-3.13.36-2.132-.024-3.897-.659-5.11-1.837-1.29-1.25-1.92-2.986-1.83-5.038.168-3.885 3.028-6.043 7.638-5.79 1.46.08 2.742.453 3.82 1.107.38.233.716.502 1.01.804-.02-.192-.045-.38-.075-.563l1.983-.372c.12.64.183 1.318.183 2.025 0 4.088-1.196 7.003-3.556 8.665-1.5 1.057-3.384 1.604-5.598 1.634zm4.147-10.867c-.978-.556-2.11-.87-3.362-.938-3.13-.175-5.047 1.082-5.154 3.452-.062 1.4.387 2.547 1.297 3.424.93.898 2.282 1.38 3.912 1.397.9.009 1.763-.086 2.569-.282.108-2.29-.28-5.47-1.262-7.053z"/>
                   </svg>
                 </a>
