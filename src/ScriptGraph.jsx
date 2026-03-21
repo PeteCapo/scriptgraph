@@ -5960,7 +5960,7 @@ export default function ScriptGraph() {
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <div style={{ minHeight: "100vh", background: T.bgPage, color: T.textPrimary, fontFamily: T.fontSans, paddingBottom: 40 }}>
+    <div style={{ minHeight: "100vh", background: T.bgPage, color: T.textPrimary, fontFamily: T.fontSans }}>
 
       {/* Nav */}
       <div style={{ borderBottom: `1px solid ${T.borderSubtle}`, padding: isMobile ? "0 20px" : "0 48px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 64, background: T.bgPage, position: "sticky", top: 0, zIndex: 100, backdropFilter: "blur(12px)" }}>
@@ -8119,7 +8119,7 @@ export default function ScriptGraph() {
 
       {/* ── Site footer ── */}
       {PUBLIC_MODE && (
-        <div style={{ borderTop: `1px solid ${T.borderSubtle}`, padding: "0 48px" }}>
+        <div style={{ borderTop: `1px solid ${T.borderSubtle}`, padding: "0 48px", marginTop: 40 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 0" }}>
 
             {/* Left: wordmark · divider · byline */}
