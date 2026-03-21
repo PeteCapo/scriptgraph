@@ -3591,6 +3591,38 @@ function _cWatermarkFaded(y=1318) {
 }
 
 // Top bar — single=gold, compare=red|blue split
+// Brand lockup — glyph above wordmark, both same width, bottom-right corner
+// Used on slides 1 and 3 as a "button" style mark
+// wmW=115px: glyph 115w×103h + 8px gap + wordmark 115w×17h = 128px total height
+function _cBrandLockup() {
+  const wmW = 115;
+  const glyphH = Math.round(wmW * 52/58); // 103px
+  const wmH   = Math.round(wmW * 0.153);  // 17px
+  const gap   = 8;
+  const totalH = glyphH + gap + wmH;       // 128px
+  const rx = _cPAD + _cPW;                // right edge = 1000
+  const bottomY = 1318;
+  const lockupX = rx - wmW;               // 885
+  const lockupTopY = bottomY - totalH;    // 1190
+  const glyphScale = (wmW / 58).toFixed(4);
+  const wmScale = (wmW / 54).toFixed(4);
+  const wmY = lockupTopY + glyphH + gap;  // wordmark top
+  return `<g opacity="0.3">
+<g transform="translate(${lockupX},${lockupTopY}) scale(${glyphScale})">
+<path d="M22 5 L14 5 L14 47 L22 47" stroke="${THEME.accent}" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+<path d="M36 5 L44 5 L44 47 L36 47" stroke="${THEME.accent}" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+<line x1="19" y1="16" x2="34" y2="16" stroke="#3a3a42" stroke-width="1.0" stroke-linecap="round"/>
+<line x1="19" y1="22" x2="38" y2="22" stroke="#3a3a42" stroke-width="1.0" stroke-linecap="round"/>
+<line x1="19" y1="28" x2="31" y2="28" stroke="#3a3a42" stroke-width="1.0" stroke-linecap="round"/>
+<line x1="19" y1="34" x2="36" y2="34" stroke="#3a3a42" stroke-width="1.0" stroke-linecap="round"/>
+<path d="M19 38 Q24 30 28 24 Q32 17 39 11" stroke="${THEME.accent}" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+<circle cx="19" cy="38" r="2.4" fill="${THEME.accent}"/>
+<circle cx="39" cy="11" r="2.4" fill="${THEME.accent}"/>
+</g>
+${_cWordmark(lockupX, wmY, wmW, THEME.accent)}
+</g>`;
+}
+
 function _cTopBar(mode) {
   if (mode === "compare") {
     return `<rect x="0" y="0" width="540" height="5" fill="${THEME.fwColors.three_act}" opacity="0.7"/>
@@ -3673,7 +3705,7 @@ ${_cTopBar(mode)}
 <line x1="${_cPAD}" y1="${dividerY}" x2="${_cPAD+_cPW}" y2="${dividerY}" stroke="${EDGE}" stroke-width="1.5"/>
 ${headlineSvg}
 ${creditSvg}
-${_cWatermarkFaded()}
+${_cBrandLockup()}
 ${_cDots(0)}
 </svg>`;
 }
@@ -3869,7 +3901,7 @@ ${_cTopBar(mode)}
 <text x="${_cPAD}" y="80" font-family="${THEME.fontDisplay}" font-weight="600" font-size="21" fill="${GOLD}" letter-spacing="6" opacity="0.7">${eyebrow}</text>
 <line x1="${_cPAD}" y1="162" x2="${_cPAD+160}" y2="162" stroke="${GOLD}" stroke-width="2" opacity="0.5"/>
 ${textLines}
-${_cWatermarkFaded()}
+${_cBrandLockup()}
 ${_cDots(2)}
 </svg>`;
 }
