@@ -6132,7 +6132,7 @@ export default function ScriptGraph() {
                 {/* Bottom fade — glows dissolve naturally into page */}
                 <div style={{
                   position: "absolute", bottom: 0, left: 0, right: 0, height: 240,
-                  background: `linear-gradient(to bottom, transparent, ${T.bgPage})`,
+                  background: `linear-gradient(to bottom, rgba(13,13,15,0), ${T.bgPage})`,
                   pointerEvents: "none",
                 }} />
               </div>
