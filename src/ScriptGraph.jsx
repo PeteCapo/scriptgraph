@@ -3543,15 +3543,8 @@ function _cDots() { return ""; } // dots removed — Instagram provides native s
 
 // Watermark — bottom right, inside canvas
 function _cWatermark(y=1318) {
-  // Three separate text elements so font-weight renders reliably in canvas export
-  // Measured widths at 26px: SCRIPT=60, GRAPH=62, .ai=20 → total=142px
-  // Right-anchored at _cPAD+_cPW; positions from right: .ai ends at right edge
-  const rx = _cPAD + _cPW;       // right edge = 1000
-  const aiX   = rx - 20;         // .ai starts at 980
-  const graphX = aiX - 62;       // GRAPH starts at 918
-  const scriptX = graphX - 60;   // SCRIPT starts at 858
-  const f = `font-family="'Barlow Condensed','Arial Narrow',sans-serif" font-size="26" fill="${THEME.accent}" opacity="0.3"`;
-  return `<text x="${scriptX}" y="${y}" ${f} font-weight="200">SCRIPT</text><text x="${graphX}" y="${y}" ${f} font-weight="700">GRAPH</text><text x="${aiX}" y="${y}" ${f} font-weight="200">.ai</text>`;
+  // Single text element, uniform weight — avoids multi-text positioning bugs at small size
+  return `<text x="${_cPAD+_cPW}" y="${y}" text-anchor="end" font-family="'Barlow Condensed','Arial Narrow',sans-serif" font-size="26" font-weight="600" fill="${THEME.accent}" opacity="0.3">SCRIPTGRAPH.ai</text>`;
 }
 
 // Top bar — single=gold, compare=red|blue split
@@ -3758,11 +3751,8 @@ ${[0,25,50,75,100].map(p=>{
     ? curvePath(ten1, GOLD, "cg1", 5, 0.28)
     : curvePath(ten2, BLUE, "cg2", 4.5, 0.20) + curvePath(ten1, RED, "cg1", 4.5, 0.20);
 
-  // Graph watermark inside plot — 3 separate texts for reliable weight in canvas export
-  // Measured at 24px: SCRIPT=56, GRAPH=57, .ai=19 → total=132px, right-anchored
-  const gwmRx = plotX + plotW - 8;
-  const gwmF = `font-family="'Barlow Condensed','Arial Narrow',sans-serif" font-size="24" fill="${GOLD}" opacity="0.3"`;
-  const gwm = `<text x="${gwmRx-132}" y="${plotBottom-8}" ${gwmF} font-weight="200">SCRIPT</text><text x="${gwmRx-76}" y="${plotBottom-8}" ${gwmF} font-weight="700">GRAPH</text><text x="${gwmRx-19}" y="${plotBottom-8}" ${gwmF} font-weight="200">.ai</text>`;
+  // Graph watermark inside plot — single text, uniform weight for reliable rendering
+  const gwm = `<text x="${plotX+plotW-8}" y="${plotBottom-8}" text-anchor="end" font-family="'Barlow Condensed','Arial Narrow',sans-serif" font-size="24" font-weight="600" fill="${GOLD}" opacity="0.3">SCRIPTGRAPH.ai</text>`;
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${_cCW}" height="${_cCH}" viewBox="0 0 ${_cCW} ${_cCH}">
 <rect width="${_cCW}" height="${_cCH}" fill="${BG}"/>
@@ -3846,8 +3836,9 @@ function generateCarouselSlide4() {
   const glyphY = 420;
   const textX = _cPAD;
 
-  // Measured: "SCRIPT" at 108px weight-200 with letter-spacing 6 = 280px
-  const scriptW = 280;
+  // SVG-measured: getComputedTextLength('SCRIPT') at 108px w200 letter-spacing=6 → 286px
+  // Add 6px for trailing letter-spacing after last char → 292px total before GRAPH starts
+  const scriptW = 292;
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${_cCW}" height="${_cCH}" viewBox="0 0 ${_cCW} ${_cCH}">
 <rect width="${_cCW}" height="${_cCH}" fill="${BG}"/>
