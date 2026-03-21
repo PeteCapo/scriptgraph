@@ -3507,9 +3507,7 @@ SLIDE_2_CONTEXT: Exactly 3 short lines that set up what the graph shows.
 - Tone: analytical, precise. A frame, not a summary.
 
 SLIDE_3_LINES: 4–5 punchy lines that deliver the structural insight.
-- Lines 1–2: The observation stated plainly. Barlow light.
-- Line 3: The sharpest phrase — the pivot. Mark as GOLD. Barlow bold.
-- Lines 4–5 (optional): Closing analytical beat. Inter light. Smaller register.
+- Each line is a complete thought, short and punchy.
 - Each line max 38 characters for mobile readability.
 - Voice: Pete Capó. A director sharing a discovery. Not teaching. Not promoting.
 - Reference the specific films by name.
@@ -3517,12 +3515,7 @@ SLIDE_3_LINES: 4–5 punchy lines that deliver the structural insight.
 Return JSON only — no preamble, no markdown:
 {
   "slide2_context": ["line1", "line2", "line3"],
-  "slide3_lines": [
-    { "text": "...", "style": "barlow_light" },
-    { "text": "...", "style": "barlow_light" },
-    { "text": "...", "style": "barlow_bold_gold" },
-    { "text": "...", "style": "inter_light" }
-  ]
+  "slide3_lines": ["line1", "line2", "line3", "line4"]
 }`;
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -3596,54 +3589,61 @@ function generateCarouselSlide1({ mode, films, headline, imageDataUrl }) {
   const isSingle = mode !== "compare";
   const s1 = films[0]?.entry, s2 = films[1]?.entry;
 
-  // Headline sizing
-  const lines = (headline||"").toUpperCase().trim().split(/\n|\\n/).slice(0,3);
-  const maxLen = Math.max(...lines.map(l=>l.length), 1);
-  const fs = maxLen<=8?148:maxLen<=14?132:maxLen<=20?108:88;
-  const lh = fs+8;
+  // Headline: split on explicit newlines or wrap long single lines
+  const rawLines = (headline||"").toUpperCase().trim().split(/\n|\\n/).slice(0,3);
+  // Font size based on longest line — slightly more conservative to avoid overflow
+  const maxLen = Math.max(...rawLines.map(l=>l.length), 1);
+  const fs = maxLen<=7?148:maxLen<=12?120:maxLen<=18?96:78;
+  const lh = fs + 10;
+  // Available text width
+  const maxTextW = _cPW; // 920px
 
-  // Film still zone
+  // Film still zone — clean top half, no overlay
   let stillZone = "";
   if (imageDataUrl) {
-    stillZone = `<image href="${imageDataUrl}" x="0" y="0" width="${_cCW}" height="600" preserveAspectRatio="xMidYMid slice"/>`;
+    stillZone = `<image href="${imageDataUrl}" x="0" y="0" width="${_cCW}" height="580" preserveAspectRatio="xMidYMid slice"/>`;
   } else {
-    stillZone = `<rect x="0" y="0" width="${_cCW}" height="600" fill="#0d0d0f"/>
-<rect x="0" y="0" width="${_cCW}" height="600" fill="#121210" opacity="0.8"/>`;
+    stillZone = `<rect x="0" y="0" width="${_cCW}" height="580" fill="#111113"/>`;
     if (!isSingle) {
-      stillZone += `<line x1="540" y1="5" x2="540" y2="580" stroke="#1e1e22" opacity="0.35"/>
-<text x="270" y="320" text-anchor="middle" font-family="${THEME.fontMono}" font-size="22" fill="#1e1e22" letter-spacing="6">FILM A</text>
-<text x="810" y="320" text-anchor="middle" font-family="${THEME.fontMono}" font-size="22" fill="#1e1e22" letter-spacing="6">FILM B</text>`;
+      stillZone += `<line x1="540" y1="5" x2="540" y2="570" stroke="#1e1e22" opacity="0.35"/>
+<text x="270" y="310" text-anchor="middle" font-family="${THEME.fontMono}" font-size="22" fill="#1e1e22" letter-spacing="6">FILM A</text>
+<text x="810" y="310" text-anchor="middle" font-family="${THEME.fontMono}" font-size="22" fill="#1e1e22" letter-spacing="6">FILM B</text>`;
     }
   }
 
-  // Headline lines — build from bottom of zone up or just stack from y=630
-  let headlineY = 640;
+  // Divider rule between image and text zone
+  const dividerY = 580;
+
+  // Headline — use textLength to constrain each line within available width
+  let headlineY = dividerY + fs + 28;
   let headlineSvg = "";
-  lines.forEach(line => {
-    headlineSvg += `<text x="${_cPAD}" y="${headlineY}" font-family="${THEME.fontDisplay}" font-weight="800" font-size="${fs}" fill="${CREAM}" letter-spacing="2" text-anchor="start">${line}</text>`;
+  rawLines.forEach(line => {
+    // Estimate natural width; if it would overflow, apply textLength constraint
+    const estW = line.length * fs * 0.52;
+    const tlAttr = estW > maxTextW ? ` textLength="${maxTextW}" lengthAdjust="spacingAndGlyphs"` : "";
+    headlineSvg += `<text x="${_cPAD}" y="${headlineY}" font-family="${THEME.fontDisplay}" font-weight="800" font-size="${fs}" fill="${CREAM}" letter-spacing="2"${tlAttr}>${line}</text>`;
     headlineY += lh;
   });
   const lastBaseline = headlineY - lh;
-  const creditRuleY = lastBaseline + 48;
+  const creditRuleY = lastBaseline + 40;
 
   // Credit
-  let creditSvg = `<line x1="${_cPAD}" y1="${creditRuleY}" x2="${_cPAD+180}" y2="${creditRuleY}" stroke="${GOLD}" stroke-width="2" opacity="0.5"/>`;
+  let creditSvg = `<line x1="${_cPAD}" y1="${creditRuleY}" x2="${_cPAD+160}" y2="${creditRuleY}" stroke="${GOLD}" stroke-width="2" opacity="0.5"/>`;
   if (isSingle) {
     const label = [s1?.title, s1?.writer].filter(Boolean).join(" — ");
-    creditSvg += `<text x="${_cPAD}" y="${creditRuleY+64}" font-family="${THEME.fontDisplay}" font-weight="300" font-size="34" fill="#b8b0a4">${label}</text>`;
+    if (label) creditSvg += `<text x="${_cPAD}" y="${creditRuleY+56}" font-family="${THEME.fontDisplay}" font-weight="300" font-size="32" fill="#b8b0a4">${label}</text>`;
   } else {
     const lA = [s1?.title, s1?.writer].filter(Boolean).join(" — ");
     const lB = [s2?.title, s2?.writer].filter(Boolean).join(" — ");
-    creditSvg += `<text x="${_cPAD}" y="${creditRuleY+58}" font-family="${THEME.fontDisplay}" font-weight="400" font-size="34" fill="${RED}">${lA}</text>`;
-    creditSvg += `<text x="${_cPAD}" y="${creditRuleY+106}" font-family="${THEME.fontDisplay}" font-weight="400" font-size="34" fill="${BLUE}">${lB}</text>`;
+    if (lA) creditSvg += `<text x="${_cPAD}" y="${creditRuleY+52}" font-family="${THEME.fontDisplay}" font-weight="400" font-size="32" fill="${RED}">${lA}</text>`;
+    if (lB) creditSvg += `<text x="${_cPAD}" y="${creditRuleY+96}" font-family="${THEME.fontDisplay}" font-weight="400" font-size="32" fill="${BLUE}">${lB}</text>`;
   }
 
   return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${_cCW}" height="${_cCH}" viewBox="0 0 ${_cCW} ${_cCH}">
 <rect width="${_cCW}" height="${_cCH}" fill="${BG}"/>
 ${stillZone}
-<rect x="0" y="380" width="${_cCW}" height="220" fill="#0d0d0f" opacity="0.7"/>
 ${_cTopBar(mode)}
-<line x1="${_cPAD}" y1="600" x2="${_cPAD+_cPW}" y2="600" stroke="${EDGE}" stroke-width="1.5"/>
+<line x1="${_cPAD}" y1="${dividerY}" x2="${_cPAD+_cPW}" y2="${dividerY}" stroke="${EDGE}" stroke-width="1.5"/>
 ${headlineSvg}
 ${creditSvg}
 ${_cWatermark()}
@@ -3790,7 +3790,7 @@ ${_cDots(1)}
 // ── Slide 3 — The Observation ─────────────────────────────────────────────────
 function generateCarouselSlide3({ mode, films, slide3Lines, title, year }) {
   const BG=THEME.bgPage, CREAM=THEME.textPrimary, GOLD=THEME.accent;
-  const MUTED=THEME.textMuted, EDGE=THEME.borderSubtle;
+  const EDGE=THEME.borderSubtle;
   const isSingle = mode !== "compare";
   const s1 = films[0]?.entry;
 
@@ -3798,35 +3798,20 @@ function generateCarouselSlide3({ mode, films, slide3Lines, title, year }) {
     ? `${(s1?.title||title||"").toUpperCase()} · ${(s1?.writer||"").toUpperCase()}${year?` · ${year}`:""}`
     : (title||"").toUpperCase();
 
+  // All lines: uniform large Barlow light cream. Simple, clean.
   const lines = (slide3Lines||[]).slice(0,5);
+  const fs = 88;
+  const lh = 104;
   let y = 300;
-  let lastBarlowY = null;
-  let hasInter = false;
   let observationSvg = "";
 
-  lines.forEach((line, i) => {
-    const text = line.text || "";
-    const style = line.style || "barlow_light";
-    const isInter = style === "inter_light";
-
-    // Insert separator between last barlow and first inter
-    if (isInter && !hasInter && lastBarlowY !== null) {
-      const sepY = lastBarlowY + 36;
-      observationSvg += `<line x1="${_cPAD}" y1="${sepY}" x2="${_cPAD+100}" y2="${sepY}" stroke="${EDGE}" stroke-width="1.5"/>`;
-      y = Math.max(y, sepY + 32);
-      hasInter = true;
-    }
-
-    if (!isInter) {
-      const fillColor = style === "barlow_bold_gold" ? GOLD : CREAM;
-      const weight = style === "barlow_bold_gold" ? 700 : 300;
-      observationSvg += `<text x="${_cPAD}" y="${y}" font-family="${THEME.fontDisplay}" font-weight="${weight}" font-size="88" fill="${fillColor}" letter-spacing="1">${text}</text>`;
-      lastBarlowY = y;
-      y += 100;
-    } else {
-      observationSvg += `<text x="${_cPAD}" y="${y}" font-family="${THEME.fontSans}" font-weight="300" font-size="42" fill="${MUTED}">${text}</text>`;
-      y += 58;
-    }
+  lines.forEach(line => {
+    const text = (line.text || line || "").toString();
+    if (!text.trim()) return;
+    const estW = text.length * fs * 0.52;
+    const tlAttr = estW > _cPW ? ` textLength="${_cPW}" lengthAdjust="spacingAndGlyphs"` : "";
+    observationSvg += `<text x="${_cPAD}" y="${y}" font-family="${THEME.fontDisplay}" font-weight="300" font-size="${fs}" fill="${CREAM}" letter-spacing="1"${tlAttr}>${text}</text>`;
+    y += lh;
   });
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${_cCW}" height="${_cCH}" viewBox="0 0 ${_cCW} ${_cCH}">
@@ -3903,12 +3888,7 @@ function CarouselModal({ T, carousel, library, onClose, onSaveInsight, password 
   const [headline,     setHeadline]     = useState(fromInsight?.title || "");
   const [angle,        setAngle]        = useState(fromInsight?.body  || "");
   const [ctx,          setCtx]          = useState(["","",""]);
-  const [slide3Lines,  setSlide3Lines]  = useState([
-    { text:"", style:"barlow_light" },
-    { text:"", style:"barlow_light" },
-    { text:"", style:"barlow_bold_gold" },
-    { text:"", style:"inter_light" },
-  ]);
+  const [slide3Lines,  setSlide3Lines]  = useState(["","","",""]);
   const [imageDataUrl, setImageDataUrl] = useState(null);
   const [drafting,     setDrafting]     = useState(false);
   const [downloading,  setDownloading]  = useState(false);
@@ -3931,7 +3911,7 @@ function CarouselModal({ T, carousel, library, onClose, onSaveInsight, password 
     try {
       const result = await draftCarouselCopy({ angle, films, library, mode });
       if (result.slide2_context?.length) setCtx(result.slide2_context.slice(0,3).concat(["","",""]).slice(0,3));
-      if (result.slide3_lines?.length)   setSlide3Lines(result.slide3_lines.slice(0,5));
+      if (result.slide3_lines?.length)   setSlide3Lines(result.slide3_lines.slice(0,5).map(l => typeof l === "string" ? l : (l.text || "")));
     } catch {}
     setDrafting(false);
   };
@@ -3993,11 +3973,7 @@ function CarouselModal({ T, carousel, library, onClose, onSaveInsight, password 
     textTransform:"uppercase", cursor: disabled?"not-allowed":"pointer",
   });
 
-  const STYLE_OPTIONS = [
-    { value:"barlow_light",    label:"Barlow Light" },
-    { value:"barlow_bold_gold",label:"Barlow Bold Gold" },
-    { value:"inter_light",     label:"Inter Light" },
-  ];
+  // (style options removed — slide 3 uses uniform text)
 
   return (
     <div style={{
@@ -4078,16 +4054,15 @@ function CarouselModal({ T, carousel, library, onClose, onSaveInsight, password 
             <div style={sectionS}>
               <label style={labelS}>Slide 3 — The Observation</label>
               {slide3Lines.map((line,i) => (
-                <div key={i} style={{ marginBottom:8, display:"flex", gap:6, alignItems:"center" }}>
-                  <input value={line.text} onChange={e=>setSlide3Lines(prev=>{const n=[...prev];n[i]={...n[i],text:e.target.value};return n;})}
-                    placeholder={`Line ${i+1}`} style={{ ...inputS(), flex:1 }}/>
-                  <select value={line.style} onChange={e=>setSlide3Lines(prev=>{const n=[...prev];n[i]={...n[i],style:e.target.value};return n;})}
-                    style={{ ...inputS({ width:"auto", padding:"8px 8px", fontSize:11, appearance:"none", flexShrink:0 }) }}>
-                    {STYLE_OPTIONS.map(o=><option key={o.value} value={o.value}>{o.label}</option>)}
-                  </select>
+                <div key={i} style={{ marginBottom:6 }}>
+                  <input
+                    value={typeof line === "string" ? line : (line.text || "")}
+                    onChange={e=>setSlide3Lines(prev=>{const n=[...prev];n[i]=e.target.value;return n;})}
+                    placeholder={`Line ${i+1}`}
+                    style={inputS()}/>
                 </div>
               ))}
-              <button onClick={()=>setSlide3Lines(prev=>[...prev,{text:"",style:"barlow_light"}])}
+              <button onClick={()=>setSlide3Lines(prev=>[...prev,""])}
                 disabled={slide3Lines.length>=5} style={{ ...smBtn(slide3Lines.length>=5), fontSize:9 }}>+ Line</button>
             </div>
 
@@ -7151,9 +7126,13 @@ export default function ScriptGraph() {
             onDownloadInsight={downloadInsightCard}
             onOpenCarousel={(insight) => {
               const mode = insight.films.length > 1 ? "compare" : "single";
+              const resolveEntry = (slug) => library.find(e =>
+                (e._filename||"").replace(/\.json$/i,"") === slug ||
+                (e.title||"").toLowerCase().replace(/[^a-z0-9]+/g,"-") === slug
+              ) || null;
               setCarousel({
                 mode,
-                films: insight.films,
+                films: insight.films.map(f => ({ ...f, entry: resolveEntry(f.slug) })),
                 fromInsight: insight,
               });
             }}
