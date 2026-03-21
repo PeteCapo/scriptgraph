@@ -4473,6 +4473,15 @@ export default function ScriptGraph() {
   const [libGenreOpen, setLibGenreOpen]         = useState(false);
   const [libStructureOpen, setLibStructureOpen] = useState(false);
   const [uploadMode, setUploadMode]             = useState("script");
+
+  // ── Responsive ───────────────────────────────────────────────────────────────
+  const [windowWidth, setWindowWidth] = useState(typeof window !== "undefined" ? window.innerWidth : 1280);
+  useEffect(() => {
+    const handler = () => setWindowWidth(window.innerWidth);
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, []);
+  const isMobile = windowWidth < 640;
   const [docsTab, setDocsTab]                   = useState("user");
   const [outlineText, setOutlineText]           = useState("");
   const [outlineFile, setOutlineFile]           = useState(null);
@@ -5954,7 +5963,7 @@ export default function ScriptGraph() {
     <div style={{ minHeight: "100vh", background: T.bgPage, color: T.textPrimary, fontFamily: T.fontSans, paddingBottom: 100 }}>
 
       {/* Nav */}
-      <div style={{ borderBottom: `1px solid ${T.borderSubtle}`, padding: "0 48px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 64, background: T.bgPage, position: "sticky", top: 0, zIndex: 100, backdropFilter: "blur(12px)" }}>
+      <div style={{ borderBottom: `1px solid ${T.borderSubtle}`, padding: isMobile ? "0 20px" : "0 48px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 64, background: T.bgPage, position: "sticky", top: 0, zIndex: 100, backdropFilter: "blur(12px)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 16, cursor: "pointer" }} onClick={() => { pushPath("/"); setScreen("library"); }}>
           {/* Mark + wordmark grouped tightly as one lockup */}
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -5973,7 +5982,7 @@ export default function ScriptGraph() {
               <span style={{ fontWeight: 200 }}>SCRIPT</span><span style={{ fontWeight: 700 }}>GRAPH</span>
             </span>
           </div>
-          <span style={{ fontSize: 9, color: T.textDim, letterSpacing: "0.2em", fontFamily: T.fontMono, textTransform: "uppercase", paddingTop: 1 }}>{T.appTagline}</span>
+          {!isMobile && <span style={{ fontSize: 9, color: T.textDim, letterSpacing: "0.2em", fontFamily: T.fontMono, textTransform: "uppercase", paddingTop: 1 }}>{T.appTagline}</span>}
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           {!PUBLIC_MODE && screen === "results" && p1 && (
@@ -6042,15 +6051,19 @@ export default function ScriptGraph() {
                 <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
                 <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
               </svg>
-              {shareCopied ? "Copied!" : "Share"}
+              {!isMobile && (shareCopied ? "Copied!" : "Share")}
+              {isMobile && shareCopied && "Copied!"}
             </button>
           )}
           {screen !== "library" && (
             <Btn color={T.borderMid} variant="ghost" small onClick={() => { pushPath("/"); setScreen("library"); }}>
-              ← Library
+              ← {isMobile ? "" : "Library"}
             </Btn>
           )}
-          {PUBLIC_MODE && (
+          {PUBLIC_MODE && !isMobile && (
+            <Btn color={screen === "about" ? T.accent : T.borderMid} variant="ghost" small onClick={() => { pushPath("/about"); setScreen("about"); }}>About</Btn>
+          )}
+          {PUBLIC_MODE && isMobile && screen === "library" && (
             <Btn color={screen === "about" ? T.accent : T.borderMid} variant="ghost" small onClick={() => { pushPath("/about"); setScreen("about"); }}>About</Btn>
           )}
           {!PUBLIC_MODE && (
@@ -6059,7 +6072,7 @@ export default function ScriptGraph() {
         </div>
       </div>
 
-      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 48px" }}>
+      <div style={{ maxWidth: 1280, margin: "0 auto", padding: isMobile ? "0 20px" : "0 48px" }}>
 
         {/* ════ UPLOAD ════ */}
         {!PUBLIC_MODE && screen === "upload" && (
@@ -6200,8 +6213,8 @@ export default function ScriptGraph() {
             <div style={{ marginBottom: 32, paddingBottom: 28, borderBottom: `1px solid ${T.borderSubtle}` }}>
               <div style={{ display: "flex", alignItems: "baseline", gap: 14, flexWrap: "wrap" }}>
                 <h1 style={{
-                  margin: "0 0 10px", fontSize: 52, fontWeight: 800,
-                  letterSpacing: 2.5, lineHeight: 1.0, textTransform: "uppercase",
+                  margin: "0 0 10px", fontSize: isMobile ? 36 : 52, fontWeight: 800,
+                  letterSpacing: isMobile ? 1.5 : 2.5, lineHeight: 1.0, textTransform: "uppercase",
                   fontFamily: T.fontDisplay, color: T.textPrimary,
                 }}>{p1.title}</h1>
                 {p1.isOutline && (
@@ -6242,7 +6255,7 @@ export default function ScriptGraph() {
                 <div style={{ fontSize: 9, fontFamily: T.fontMono, color: T.textDim, letterSpacing: 2.5, textTransform: "uppercase", marginBottom: 14 }}>
                   Film Performance
                 </div>
-                <div style={{ display: "flex", alignItems: "flex-start" }}>
+                <div style={{ display: "flex", alignItems: "flex-start", flexWrap: isMobile ? "wrap" : "nowrap", gap: isMobile ? 16 : 0 }}>
                   {[
                     {
                       label: "Box Office",
@@ -6271,10 +6284,10 @@ export default function ScriptGraph() {
                   ].map((block, i, arr) => (
                     <div key={block.label} style={{
                       display: "flex", flexDirection: "column", alignItems: "flex-start",
-                      flex: 1,
-                      paddingRight: i < arr.length - 1 ? 28 : 0,
-                      marginRight: i < arr.length - 1 ? 28 : 0,
-                      borderRight: i < arr.length - 1 ? `1px solid ${T.borderSubtle}` : "none",
+                      flex: isMobile ? "1 1 calc(50% - 8px)" : 1,
+                      paddingRight: !isMobile && i < arr.length - 1 ? 28 : 0,
+                      marginRight: !isMobile && i < arr.length - 1 ? 28 : 0,
+                      borderRight: !isMobile && i < arr.length - 1 ? `1px solid ${T.borderSubtle}` : "none",
                       minHeight: 72,
                     }}>
                       <div style={{ fontSize: 9, fontFamily: T.fontMono, color: T.textMuted, letterSpacing: 2, textTransform: "uppercase", marginBottom: 7 }}>
@@ -6550,12 +6563,12 @@ export default function ScriptGraph() {
                     </div>
                   )}
                   {/* Hero text */}
-                  <div style={{ position: "relative", zIndex: 1, padding: "72px 0 56px" }}>
+                  <div style={{ position: "relative", zIndex: 1, padding: isMobile ? "48px 0 40px" : "72px 0 56px" }}>
                     <h1 style={{
                       margin: "0 0 28px",
                       fontFamily: T.fontDisplay,
                       fontWeight: 800,
-                      fontSize: "clamp(48px, 6vw, 76px)",
+                      fontSize: isMobile ? "clamp(38px, 10vw, 52px)" : "clamp(52px, 6vw, 76px)",
                       letterSpacing: "0.04em",
                       textTransform: "uppercase",
                       color: T.textPrimary,
@@ -6684,12 +6697,13 @@ export default function ScriptGraph() {
                   </div>
 
                   {/* Scroll container with right-edge peek affordance */}
-                  <div style={{ position: "relative" }}>
+                  <div style={{ position: "relative", margin: isMobile ? "0 -20px" : 0 }}>
                     <div style={{
-                      display: "flex", gap: 14,
+                      display: "flex", gap: 12,
                       overflowX: "auto",
                       paddingBottom: 4,
-                      paddingRight: 72,
+                      paddingLeft: isMobile ? 20 : 0,
+                      paddingRight: isMobile ? 60 : 72,
                       scrollbarWidth: "none",
                       msOverflowStyle: "none",
                     }}>
@@ -6703,8 +6717,8 @@ export default function ScriptGraph() {
                               border: `1px solid ${T.borderSubtle}`,
                               borderRadius: T.radiusLg,
                               padding: "20px 20px 18px",
-                              minWidth: 360,
-                              maxWidth: 360,
+                              minWidth: isMobile ? "min(300px, 85vw)" : 360,
+                              maxWidth: isMobile ? "min(300px, 85vw)" : 360,
                               flexShrink: 0,
                               cursor: hasData ? "pointer" : "default",
                               transition: "border-color 0.15s",
@@ -6993,7 +7007,7 @@ export default function ScriptGraph() {
               <SectionLabel>Structure Comparison</SectionLabel>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 22 }}>
+            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 12, marginBottom: 22 }}>
               {compareItems.map((entry, i) => {
                 const c = i === 0 ? T.fwColors.three_act : T.fwColors.story_circle;
                 const avgLen = (!entry.isOutline && entry.scenes?.length)
@@ -7030,22 +7044,20 @@ export default function ScriptGraph() {
                 <SectionLabel>Tension Arc · Structural Overlay</SectionLabel>
                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                   {/* Script filter */}
-                  {[["both","BOTH"],["a", compareItems[0]?.title?.slice(0,14) || "SCRIPT A"],["b", compareItems[1]?.title?.slice(0,14) || "SCRIPT B"]].map(([v,label]) => (
+                  {[["both","BOTH"],["a", compareItems[0]?.title?.slice(0, isMobile ? 8 : 14) || "SCRIPT A"],["b", compareItems[1]?.title?.slice(0, isMobile ? 8 : 14) || "SCRIPT B"]].map(([v,label]) => (
                     <Btn key={v} small color={compareView === v ? naturalColor : T.borderMid}
                       variant={compareView === v ? "fill" : "ghost"}
                       onClick={() => setCompareView(v)}>{label}</Btn>
                   ))}
-                  <div style={{ width: 1, background: T.borderSubtle, margin: "0 2px" }} />
-                  {/* Normalized / true length */}
-                  <Btn small color={normalizedView ? naturalColor : T.borderMid} variant={normalizedView ? "fill" : "ghost"} onClick={() => setNormalizedView(true)}>NORMALIZED</Btn>
-                  <Btn small color={!normalizedView ? naturalColor : T.borderMid} variant={!normalizedView ? "fill" : "ghost"} onClick={() => setNormalizedView(false)}>TRUE LENGTH</Btn>
-                  <div style={{ width: 1, background: T.borderSubtle, margin: "0 2px" }} />
-                  {/* Page label toggle */}
-                  <Btn small color={showComparePages ? naturalColor : T.borderMid}
+                  {!isMobile && <div style={{ width: 1, background: T.borderSubtle, margin: "0 2px" }} />}
+                  {!isMobile && <Btn small color={normalizedView ? naturalColor : T.borderMid} variant={normalizedView ? "fill" : "ghost"} onClick={() => setNormalizedView(true)}>NORMALIZED</Btn>}
+                  {!isMobile && <Btn small color={!normalizedView ? naturalColor : T.borderMid} variant={!normalizedView ? "fill" : "ghost"} onClick={() => setNormalizedView(false)}>TRUE LENGTH</Btn>}
+                  {!isMobile && <div style={{ width: 1, background: T.borderSubtle, margin: "0 2px" }} />}
+                  {!isMobile && <Btn small color={showComparePages ? naturalColor : T.borderMid}
                     variant={showComparePages ? "fill" : "ghost"}
                     onClick={() => setShowComparePages(p => !p)}>
                     {showComparePages ? "PAGES" : "% ONLY"}
-                  </Btn>
+                  </Btn>}
                 </div>
               </div>
 
@@ -7141,7 +7153,7 @@ export default function ScriptGraph() {
             </div>
 
             {/* ── Act Breaks + Key Moments side-by-side ── */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 22 }}>
+            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 12, marginBottom: 22 }}>
               {compareItems.map((entry, i) => {
                 const c = i === 0 ? T.fwColors.three_act : T.fwColors.story_circle;
                 const km = entry.keyMoments || {};
@@ -7188,7 +7200,7 @@ export default function ScriptGraph() {
             </div>
 
             {/* Scene Rhythm side by side */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 22 }}>
+            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 12, marginBottom: 22 }}>
               {compareItems.map((entry, i) => {
                 const c = i === 0 ? T.fwColors.three_act : T.fwColors.story_circle;
                 return (
@@ -7269,29 +7281,29 @@ export default function ScriptGraph() {
                         Where your outline places key structural moments vs. the reference script. Delta is outline minus reference — negative means yours runs earlier.
                       </div>
                       {/* Column headers */}
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 90px 90px 72px", gap: 0,
+                      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 72px" : "1fr 90px 90px 72px", gap: 0,
                         borderBottom: `1px solid ${T.borderSubtle}`, paddingBottom: 8, marginBottom: 4 }}>
                         <div style={{ fontSize: 9, fontFamily: T.fontMono, color: T.textMuted, letterSpacing: 1.5 }}>MOMENT</div>
-                        <div style={{ fontSize: 9, fontFamily: T.fontMono, color: refColor, letterSpacing: 1.5, textAlign: "right" }}>
+                        {!isMobile && <div style={{ fontSize: 9, fontFamily: T.fontMono, color: refColor, letterSpacing: 1.5, textAlign: "right" }}>
                           {refEntry.title.slice(0, 14).toUpperCase()}
-                        </div>
-                        <div style={{ fontSize: 9, fontFamily: T.fontMono, color: outlineColor, letterSpacing: 1.5, textAlign: "right" }}>
+                        </div>}
+                        {!isMobile && <div style={{ fontSize: 9, fontFamily: T.fontMono, color: outlineColor, letterSpacing: 1.5, textAlign: "right" }}>
                           YOUR OUTLINE
-                        </div>
+                        </div>}
                         <div style={{ fontSize: 9, fontFamily: T.fontMono, color: T.textMuted, letterSpacing: 1.5, textAlign: "right" }}>DELTA</div>
                       </div>
                       {gapRows.map((row, i) => (
-                        <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 90px 90px 72px",
+                        <div key={i} style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 72px" : "1fr 90px 90px 72px",
                           borderBottom: i < gapRows.length - 1 ? `1px solid ${T.borderSubtle}` : "none",
                           padding: "10px 0", alignItems: "center" }}>
                           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                             <span style={{ fontSize: 11, color: T.accent }}>{row.icon}</span>
                             <span style={{ fontSize: 12, color: T.textSecondary, fontFamily: T.fontSans }}>{row.label}</span>
                           </div>
-                          <div style={{ fontSize: 12, fontFamily: T.fontMono, color: row.refPos != null ? refColor : T.textDim, textAlign: "right" }}>
+                          <div style={{ fontSize: 12, fontFamily: T.fontMono, color: row.refPos != null ? refColor : T.textDim, textAlign: "right", display: isMobile ? "none" : "block" }}>
                             {row.refPos != null ? `${row.refPos.toFixed(0)}%` : "—"}
                           </div>
-                          <div style={{ fontSize: 12, fontFamily: T.fontMono, color: row.olPos != null ? outlineColor : T.textDim, textAlign: "right" }}>
+                          <div style={{ fontSize: 12, fontFamily: T.fontMono, color: row.olPos != null ? outlineColor : T.textDim, textAlign: "right", display: isMobile ? "none" : "block" }}>
                             {row.olPos != null ? `${row.olPos.toFixed(0)}%` : "—"}
                           </div>
                           <div style={{ fontSize: 11, fontFamily: T.fontMono, color: severityColor(row.severity), textAlign: "right", fontWeight: 600 }}>
@@ -7322,7 +7334,7 @@ export default function ScriptGraph() {
                   </div>
 
                   {/* Strengths panels */}
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 12 }}>
                     {[
                       { entry: compareItems[0], items: comparison.scriptAStrengths, color: T.fwColors.three_act },
                       { entry: compareItems[1], items: comparison.scriptBStrengths, color: T.fwColors.story_circle },
@@ -8104,71 +8116,6 @@ export default function ScriptGraph() {
       )}
       {/* ── Toast notifications ── */}
       <Toast toasts={toasts} />
-
-      {/* ── Site footer ── */}
-      {PUBLIC_MODE && (
-        <div style={{
-          borderTop: `1px solid ${T.borderSubtle}`,
-          padding: "20px 48px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginTop: 40,
-        }}>
-          {/* Left: attribution */}
-          <div style={{ fontSize: 11, color: T.textDim, fontFamily: T.fontSans, letterSpacing: "0.04em" }}>
-            Built by{" "}
-            <a
-              href="https://petecapo.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ color: T.textDim, textDecoration: "none", borderBottom: `1px solid ${T.textDim}40` }}
-              onMouseEnter={e => e.currentTarget.style.color = T.textSecondary}
-              onMouseLeave={e => e.currentTarget.style.color = T.textDim}
-            >
-              Pete Capó
-            </a>
-          </div>
-
-          {/* Right: platform icons */}
-          <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-            {/* Instagram */}
-            <a href="https://instagram.com/thescriptgraph" target="_blank" rel="noopener noreferrer"
-              style={{ color: T.textDim, display: "flex", transition: "color 0.15s" }}
-              onMouseEnter={e => e.currentTarget.style.color = T.accent}
-              onMouseLeave={e => e.currentTarget.style.color = T.textDim}
-              aria-label="Instagram">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
-                <circle cx="12" cy="12" r="4"/>
-                <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor" stroke="none"/>
-              </svg>
-            </a>
-
-            {/* X / Twitter */}
-            <a href="https://x.com/scriptgraph" target="_blank" rel="noopener noreferrer"
-              style={{ color: T.textDim, display: "flex", transition: "color 0.15s" }}
-              onMouseEnter={e => e.currentTarget.style.color = T.accent}
-              onMouseLeave={e => e.currentTarget.style.color = T.textDim}
-              aria-label="X">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622 5.911-5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-              </svg>
-            </a>
-
-            {/* Threads */}
-            <a href="https://threads.net/@thescriptgraph" target="_blank" rel="noopener noreferrer"
-              style={{ color: T.textDim, display: "flex", transition: "color 0.15s" }}
-              onMouseEnter={e => e.currentTarget.style.color = T.accent}
-              onMouseLeave={e => e.currentTarget.style.color = T.textDim}
-              aria-label="Threads">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.5 12.068c0-3.52.85-6.374 2.495-8.424C5.845 1.34 8.598.16 12.179.136h.014c2.306.018 4.35.718 5.92 2.022 1.467 1.22 2.397 2.946 2.765 5.13l-2.01.355c-.645-3.668-3.01-5.507-6.675-5.507h-.013c-2.973.021-5.232.968-6.714 2.814C4.017 6.47 3.5 8.887 3.5 12.068c0 3.18.517 5.597 1.966 7.118 1.482 1.846 3.741 2.793 6.714 2.814h.013c2.653 0 4.396-.65 5.58-2.046.84-.993 1.33-2.439 1.456-4.301-.994.252-2.047.372-3.13.36-2.132-.024-3.897-.659-5.11-1.837-1.29-1.25-1.92-2.986-1.83-5.038.168-3.885 3.028-6.043 7.638-5.79 1.46.08 2.742.453 3.82 1.107.38.233.716.502 1.01.804-.02-.192-.045-.38-.075-.563l1.983-.372c.12.64.183 1.318.183 2.025 0 4.088-1.196 7.003-3.556 8.665-1.5 1.057-3.384 1.604-5.598 1.634zm4.147-10.867c-.978-.556-2.11-.87-3.362-.938-3.13-.175-5.047 1.082-5.154 3.452-.062 1.4.387 2.547 1.297 3.424.93.898 2.282 1.38 3.912 1.397.9.009 1.763-.086 2.569-.282.108-2.29-.28-5.47-1.262-7.053z"/>
-              </svg>
-            </a>
-          </div>
-        </div>
-      )}
 
     </div>
   );
