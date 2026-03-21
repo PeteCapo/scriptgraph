@@ -3542,8 +3542,53 @@ function _cSmooth(arr) {
 function _cDots() { return ""; } // dots removed — Instagram provides native swipe indicators
 
 // Watermark — bottom right, inside canvas
+// SCRIPTGRAPH wordmark as outlined paths — font-independent, renders identically everywhere.
+// Paths exported from Adobe Illustrator (dual-weight: SCRIPT=thin, GRAPH=bold).
+// Source coordinate space: x 126.28–~180, y 226.29–234.55 (width ~54, height ~8.26 units)
+// _cWordmark(x, y, targetWidth, fill)
+//   x, y       = top-left position
+//   targetWidth = desired pixel width (height scales proportionally ~0.153 × width)
+//   fill       = color string
+function _cWordmark(x, y, targetWidth, fill) {
+  const scale = (targetWidth / 54).toFixed(4);
+  return `<g transform="translate(${x},${y}) scale(${scale}) translate(-126.28,-226.29)" fill="${fill}">
+<path d="M126.28,234.16c-.34-.38-.51-.89-.51-1.51v-.23c0-.08.04-.12.12-.12h.22c.08,0,.12.04.12.12v.22c0,.5.13.91.38,1.22.26.31.59.47,1,.47s.73-.15,1-.45c.27-.3.4-.69.4-1.18,0-.32-.06-.59-.19-.82-.12-.23-.28-.43-.47-.59s-.49-.4-.9-.71c-.41-.3-.72-.56-.94-.77-.22-.21-.4-.45-.53-.73-.14-.28-.2-.61-.2-1,0-.6.16-1.07.49-1.42.33-.34.76-.52,1.28-.52.56,0,1.01.19,1.35.58.34.39.51.9.51,1.53v.3c0,.08-.04.12-.12.12h-.23c-.08,0-.12-.04-.12-.12v-.3c0-.51-.13-.92-.38-1.24-.26-.31-.59-.47-1.01-.47-.38,0-.7.14-.95.41-.25.27-.37.65-.37,1.14,0,.29.05.54.16.75s.25.41.45.59c.2.18.49.42.88.71.47.35.82.63,1.05.85s.4.44.53.7c.12.25.19.56.19.92,0,.64-.17,1.15-.52,1.54s-.79.58-1.34.58-1-.19-1.34-.58Z"/>
+<path d="M131.05,234.21c-.34-.36-.52-.83-.52-1.41v-4.72c0-.58.17-1.05.52-1.4s.8-.53,1.36-.53,1.03.18,1.37.53c.35.35.52.82.52,1.4v.24c0,.08-.04.12-.12.12h-.24c-.08.01-.12-.03-.12-.11v-.28c0-.45-.13-.81-.39-1.08-.26-.27-.6-.41-1.03-.41s-.76.14-1.02.41-.38.63-.38,1.08v4.78c0,.45.13.81.39,1.08.26.27.6.41,1.01.41s.77-.14,1.03-.41c.26-.27.39-.63.39-1.08v-.26c0-.08.04-.12.12-.12h.24c.08.01.12.05.12.13v.22c0,.58-.17,1.05-.52,1.41-.35.36-.81.53-1.37.53s-1.01-.18-1.36-.53Z"/>
+<path d="M138.97,234.55l-1.39-3.89s-.02-.04-.05-.04h-1.31s-.05.02-.05.05v3.85c0,.08-.04.12-.12.12h-.23c-.08,0-.12-.04-.12-.12v-8.16c0-.08.04-.12.12-.12h1.78c.54,0,.98.2,1.31.61.33.41.5.94.5,1.6,0,.55-.12,1.02-.37,1.39-.24.38-.57.62-.99.72-.03.02-.04.04-.04.06l1.4,3.89v.05c.01.06-.02.08-.1.08h-.22c-.07,0-.12-.03-.14-.1ZM136.17,226.71v3.47s.02.05.05.05h1.33c.42,0,.75-.16,1.01-.49.26-.32.38-.75.38-1.28s-.13-.98-.38-1.31c-.26-.33-.59-.49-1.01-.49h-1.33s-.05.02-.05.05Z"/>
+<path d="M140.57,234.52v-8.16c0-.08.04-.12.12-.12h.23c.08,0,.12.04.12.12v8.16c0,.08-.04.12-.12.12h-.23c-.08,0-.12-.04-.12-.12Z"/>
+<path d="M145.98,226.84c.33.41.5.95.5,1.63s-.16,1.19-.49,1.59c-.33.4-.76.61-1.31.61h-1.39s-.05.02-.05.05v3.82c0,.08-.04.12-.12.12h-.23c-.08,0-.12-.04-.12-.12v-8.18c0-.08.04-.12.12-.12h1.78c.54,0,.98.21,1.31.62ZM145.63,229.76c.25-.33.38-.76.38-1.3s-.13-.99-.38-1.32-.59-.49-1.01-.49h-1.33s-.05.02-.05.05v3.5s.02.05.05.05h1.33c.42,0,.76-.16,1.01-.49Z"/>
+<path d="M151.01,226.36v.18c0,.08-.04.12-.12.12h-1.61s-.05.02-.05.05v7.81c0,.08-.04.12-.12.12h-.23c-.08,0-.12-.04-.12-.12v-7.81s-.02-.05-.05-.05h-1.5c-.08,0-.12-.04-.12-.12v-.18c0-.08.04-.12.12-.12h3.67c.08,0,.12.04.12.12Z"/>
+<path d="M152.29,234.15c-.41-.4-.62-.92-.62-1.58v-4.25c0-.66.21-1.18.62-1.58s.96-.59,1.64-.59,1.23.2,1.65.59.63.93.63,1.59v.47s-.01.07-.04.1-.06.04-.1.04h-1.1s-.07-.01-.1-.04c-.03-.03-.04-.06-.04-.1v-.49c0-.29-.08-.52-.25-.7-.16-.18-.38-.26-.64-.26s-.48.09-.64.26c-.16.18-.24.41-.24.7v4.27c0,.29.08.52.24.7.16.18.37.26.64.26s.48-.09.64-.26c.16-.18.25-.41.25-.7v-1.15s-.02-.06-.06-.06h-.73s-.07-.01-.1-.04-.04-.06-.04-.1v-.88s.01-.07.04-.1.06-.04.1-.04h2.04s.07.01.1.04c.03.03.04.06.04.1v2.22c0,.66-.21,1.18-.63,1.58s-.97.59-1.65.59-1.23-.2-1.64-.59Z"/>
+<path d="M160.23,234.52l-1.02-3.44s-.04-.05-.06-.05h-.64s-.06.02-.06.06v3.41s-.01.07-.04.1-.06.04-.1.04h-1.1s-.07-.01-.1-.04c-.03-.03-.04-.06-.04-.1v-8.11s.01-.07.04-.1.06-.04.1-.04h2.26c.42,0,.8.1,1.12.31.32.2.58.49.76.86.18.37.27.8.27,1.28s-.1.92-.29,1.28c-.19.36-.46.63-.8.82-.03,0-.04.03-.04.07l1.18,3.61s.01.04.01.06c0,.07-.04.11-.13.11h-1.15c-.08,0-.13-.04-.16-.12ZM158.45,227.5v2.39s.02.06.06.06h.73c.29,0,.52-.11.7-.34.18-.22.27-.53.27-.91s-.09-.69-.27-.92c-.18-.23-.41-.34-.7-.34h-.73s-.06.02-.06.06Z"/>
+<path d="M165.64,234.51l-.23-1.26s-.02-.06-.07-.06h-1.75s-.07.02-.07.06l-.23,1.26c0,.09-.06.13-.16.13h-1.09c-.11,0-.16-.05-.13-.16l1.78-8.11c.02-.09.07-.13.16-.13h1.27c.09,0,.14.04.16.13l1.78,8.11v.05c0,.07-.04.11-.13.11h-1.12c-.1,0-.15-.04-.16-.13ZM163.79,232.1h1.33s.07-.02.06-.06l-.7-3.79s-.02-.04-.04-.04-.03.01-.04.04l-.68,3.79s.01.06.06.06Z"/>
+<path d="M171.07,226.54c.32.21.58.5.76.88.18.38.27.8.27,1.28,0,.72-.19,1.3-.57,1.74-.38.44-.88.66-1.51.66h-1.02s-.06.02-.06.06v3.34s-.01.07-.04.1c-.03.03-.06.04-.1.04h-1.1s-.07-.01-.1-.04c-.03-.03-.04-.06-.04-.1v-8.12s.01-.07.04-.1.06-.04.1-.04h2.26c.42,0,.8.1,1.12.31ZM170.44,229.67c.18-.23.27-.54.27-.93s-.09-.72-.27-.95-.42-.35-.71-.35h-.72s-.06.02-.06.06v2.46s.02.06.06.06h.72c.3,0,.53-.11.71-.34Z"/>
+<path d="M175.82,226.29s.06-.04.1-.04h1.1s.07.01.1.04c.03.03.04.06.04.1v8.11s-.01.07-.04.1-.06.04-.1.04h-1.1s-.07-.01-.1-.04c-.03-.03-.04-.06-.04-.1v-3.4s-.02-.06-.06-.06h-1.52s-.06.02-.06.06v3.4s-.01.07-.04.1-.06.04-.1.04h-1.1s-.07-.01-.1-.04c-.03-.03-.04-.06-.04-.1v-8.11s.01-.07.04-.1.06-.04.1-.04h1.1s.07.01.1.04c.03.03.04.06.04.1v3.38s.02.06.06.06h1.52s.06-.02.06-.06v-3.38s.01-.07.04-.1Z"/>
+</g>`;
+}
+
+// Watermark — wordmark at small size, right-anchored
+// At 26px equivalent: wordmark ~115px wide × ~17px tall, plus ".ai" text
+// targetWidth=115 → height=115*0.153=~17.6px
 function _cWatermark(y=1318) {
-  return `<text x="${_cPAD+_cPW}" y="${y}" text-anchor="end" font-family="'Barlow Condensed','Arial Narrow',sans-serif" font-size="26" fill="${THEME.accent}" opacity="0.3"><tspan font-weight="200">SCRIPT</tspan><tspan font-weight="700">GRAPH</tspan><tspan font-weight="200">.ai</tspan></text>`;
+  const wmW = 115;
+  const wmH = Math.round(wmW * 0.153); // ~17px
+  const rx = _cPAD + _cPW; // right edge = 1000
+  // ".ai" at same cap height as wordmark — Barlow Condensed 17px, positioned after wordmark
+  const aiSize = 17;
+  const aiOffset = 5; // small gap between wordmark and .ai
+  const wmX = rx - wmW - aiOffset - 14; // 14 ≈ width of ".ai" at 17px
+  return `${_cWordmark(wmX, y - wmH, wmW, THEME.accent)}` +
+    `<text x="${rx}" y="${y}" text-anchor="end" font-family="'Barlow Condensed','Arial Narrow',sans-serif" font-size="${aiSize}" font-weight="200" fill="${THEME.accent}">.ai</text>`;
+}
+
+// Simplified watermark wrapper that accepts opacity — used for the gold 0.3 opacity version
+function _cWatermarkFaded(y=1318) {
+  const wmW = 115;
+  const wmH = Math.round(wmW * 0.153);
+  const rx = _cPAD + _cPW;
+  const aiOffset = 5;
+  const wmX = rx - wmW - aiOffset - 14;
+  return `<g opacity="0.3">${_cWordmark(wmX, y - wmH, wmW, THEME.accent)}<text x="${rx}" y="${y}" text-anchor="end" font-family="'Barlow Condensed','Arial Narrow',sans-serif" font-size="17" font-weight="200" fill="${THEME.accent}">.ai</text></g>`;
 }
 
 // Top bar — single=gold, compare=red|blue split
@@ -3629,7 +3674,7 @@ ${_cTopBar(mode)}
 <line x1="${_cPAD}" y1="${dividerY}" x2="${_cPAD+_cPW}" y2="${dividerY}" stroke="${EDGE}" stroke-width="1.5"/>
 ${headlineSvg}
 ${creditSvg}
-${_cWatermark()}
+${_cWatermarkFaded()}
 ${_cDots(0)}
 </svg>`;
 }
@@ -3750,8 +3795,13 @@ ${[0,25,50,75,100].map(p=>{
     ? curvePath(ten1, GOLD, "cg1", 5, 0.28)
     : curvePath(ten2, BLUE, "cg2", 4.5, 0.20) + curvePath(ten1, RED, "cg1", 4.5, 0.20);
 
-  // Graph watermark inside plot — right-anchored, tspan handles weight contrast safely
-  const gwm = `<text x="${plotX+plotW-8}" y="${plotBottom-8}" text-anchor="end" font-family="'Barlow Condensed','Arial Narrow',sans-serif" font-size="24" fill="${GOLD}" opacity="0.3"><tspan font-weight="200">SCRIPT</tspan><tspan font-weight="700">GRAPH</tspan><tspan font-weight="200">.ai</tspan></text>`;
+  // Graph watermark inside plot — path-based wordmark, font-independent
+  // 100px wide at 0.3 opacity, right-anchored just inside plot right edge
+  const gwmW = 100, gwmH = Math.round(100*0.153); // ~15px tall
+  const gwmRx = plotX + plotW - 8;
+  const gwmAiW = 12, gwmGap = 4;
+  const gwmX = gwmRx - gwmW - gwmGap - gwmAiW;
+  const gwm = `<g opacity="0.3">${_cWordmark(gwmX, plotBottom-8-gwmH, gwmW, GOLD)}<text x="${gwmRx}" y="${plotBottom-8}" text-anchor="end" font-family="'Barlow Condensed','Arial Narrow',sans-serif" font-size="15" font-weight="200" fill="${GOLD}">.ai</text></g>`;
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${_cCW}" height="${_cCH}" viewBox="0 0 ${_cCW} ${_cCH}">
 <rect width="${_cCW}" height="${_cCH}" fill="${BG}"/>
@@ -3820,7 +3870,7 @@ ${_cTopBar(mode)}
 <text x="${_cPAD}" y="80" font-family="${THEME.fontDisplay}" font-weight="600" font-size="21" fill="${GOLD}" letter-spacing="6" opacity="0.7">${eyebrow}</text>
 <line x1="${_cPAD}" y1="162" x2="${_cPAD+160}" y2="162" stroke="${GOLD}" stroke-width="2" opacity="0.5"/>
 ${textLines}
-${_cWatermark()}
+${_cWatermarkFaded()}
 ${_cDots(2)}
 </svg>`;
 }
@@ -3831,59 +3881,48 @@ function generateCarouselSlide4() {
   const MUTED=THEME.textMuted, EDGE=THEME.borderSubtle;
   const glyphScale = 52*3.2;
   // Glyph visual left edge is at x=14 glyph-space → 14 * 3.2 = 45px indent from translate origin
-  // translate x = _cPAD - 45 = 35 aligns visual left edge with text margin
   const glyphX = _cPAD - 45;
   const glyphY = 420;
   const textX = _cPAD;
+  // Wordmark: 500px wide → height = 500 * 0.153 ≈ 76px
+  // Position y so baseline aligns with previous layout (~720): top = 720 - 76 = 644
+  const wmW = 500, wmH = Math.round(wmW * 0.153);
+  const wmY = 644;
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${_cCW}" height="${_cCH}" viewBox="0 0 ${_cCW} ${_cCH}">
 <rect width="${_cCW}" height="${_cCH}" fill="${BG}"/>
 <rect x="0" y="0" width="${_cCW}" height="5" fill="${GOLD}" opacity="0.7"/>
 ${_cGlyph(glyphX, glyphY, glyphScale)}
-<text x="${textX}" y="720" font-family="'Barlow Condensed','Arial Narrow',sans-serif" font-weight="200" font-size="108" letter-spacing="6" fill="${CREAM}">SCRIPTGRAPH</text>
-<line x1="${textX}" y1="758" x2="${textX+240}" y2="758" stroke="${EDGE}" stroke-width="1.5"/>
-<text x="${textX}" y="820" font-family="'Barlow Condensed','Arial Narrow',sans-serif" font-weight="300" font-size="40" letter-spacing="6" fill="${MUTED}">scriptgraph.ai</text>
-<text x="${textX}" y="896" font-family="'Inter',system-ui,sans-serif" font-weight="300" font-size="32" letter-spacing="2" fill="${MUTED}">Story Structure, Visualized.</text>
+${_cWordmark(textX, wmY, wmW, CREAM)}
+<line x1="${textX}" y1="${wmY+wmH+14}" x2="${textX+240}" y2="${wmY+wmH+14}" stroke="${EDGE}" stroke-width="1.5"/>
+<text x="${textX}" y="${wmY+wmH+76}" font-family="'Barlow Condensed','Arial Narrow',sans-serif" font-weight="300" font-size="40" letter-spacing="6" fill="${MUTED}">scriptgraph.ai</text>
+<text x="${textX}" y="${wmY+wmH+152}" font-family="'Inter',system-ui,sans-serif" font-weight="300" font-size="32" letter-spacing="2" fill="${MUTED}">Story Structure, Visualized.</text>
 ${_cDots(3)}
 </svg>`;
 }
 
 // ── ZIP export ────────────────────────────────────────────────────────────────
 async function downloadCarouselZip(slides, insightTitle) {
-  // Load fflate via ES module dynamic import (works in modern browsers)
+  // Export as SVG files — vector quality, font-independent, no canvas conversion.
+  // Open each SVG in a browser to screenshot for Instagram, or import into Figma/Illustrator.
   const { zipSync } = await import("https://esm.sh/fflate@0.8.2");
 
-  const pngs = await Promise.all(slides.map(async (svgStr) => {
-    const blob = new Blob([svgStr], { type:"image/svg+xml" });
-    const url  = URL.createObjectURL(blob);
-    const img  = await new Promise((res, rej) => {
-      const im = new Image();
-      im.onload = () => res(im);
-      im.onerror = rej;
-      im.src = url;
-    });
-    // Render at 2x for crisp text — matches retina screen rendering quality
-    const scale = 2;
-    const canvas = document.createElement("canvas");
-    canvas.width  = _cCW * scale;
-    canvas.height = _cCH * scale;
-    const ctx2d = canvas.getContext("2d");
-    ctx2d.scale(scale, scale);
-    ctx2d.drawImage(img, 0, 0, _cCW, _cCH);
-    URL.revokeObjectURL(url);
-    // Resize back to 1080×1350 for output
-    const out = document.createElement("canvas");
-    out.width = _cCW; out.height = _cCH;
-    out.getContext("2d").drawImage(canvas, 0, 0, _cCW * scale, _cCH * scale, 0, 0, _cCW, _cCH);
-    return new Promise(res => out.toBlob(res, "image/png"));
-  }));
-
   const slug = (insightTitle||"carousel").toLowerCase().replace(/[^a-z0-9]+/g,"-");
+  const enc = new TextEncoder();
   const files = {
-    [`${slug}-01-hook.png`]:        new Uint8Array(await pngs[0].arrayBuffer()),
-    [`${slug}-02-graph.png`]:       new Uint8Array(await pngs[1].arrayBuffer()),
-    [`${slug}-03-observation.png`]: new Uint8Array(await pngs[2].arrayBuffer()),
-    [`${slug}-04-invitation.png`]:  new Uint8Array(await pngs[3].arrayBuffer()),
+    [`${slug}-01-hook.svg`]:        enc.encode(slides[0]),
+    [`${slug}-02-graph.svg`]:       enc.encode(slides[1]),
+    [`${slug}-03-observation.svg`]: enc.encode(slides[2]),
+    [`${slug}-04-invitation.svg`]:  enc.encode(slides[3]),
+    [`README.txt`]: enc.encode(
+      `ScriptGraph Carousel — ${insightTitle || "export"}\n\n` +
+      `These are vector SVG files (1080×1350px).\n\n` +
+      `To post to Instagram:\n` +
+      `  1. Open each .svg file in Chrome\n` +
+      `  2. Press Cmd+Shift+4 (Mac) or Win+Shift+S (Windows) to screenshot\n` +
+      `  3. Crop to the slide area\n\n` +
+      `Or open in Figma / Illustrator to export as PNG at any resolution.\n`
+    ),
   };
   const zipped = zipSync(files);
   const zipBlob = new Blob([zipped], { type:"application/zip" });
@@ -4149,7 +4188,7 @@ function CarouselModal({ T, carousel, library, onClose, onSaveInsight, password 
               color: T.bgPage, fontSize:12, fontFamily:T.fontMono, fontWeight:600,
               letterSpacing:1.5, textTransform:"uppercase", cursor: downloading?"not-allowed":"pointer",
             }}>
-            {downloading?"Exporting...":"Download ZIP"}
+            {downloading?"Exporting...":"Download SVG ZIP"}
           </button>
         </div>
       </div>
