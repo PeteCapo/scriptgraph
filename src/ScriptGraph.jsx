@@ -4199,7 +4199,7 @@ function CarouselModal({ T, carousel, library, onClose, onSaveInsight, password 
                     borderRadius:T.radiusMd, overflow:"hidden",
                     border:`1px solid ${T.borderMid}`, background:T.bgPage, lineHeight:0,
                   }}
-                    dangerouslySetInnerHTML={{ __html: svg.replace(/width="\d+"/, 'width="100%"') }}
+                    dangerouslySetInnerHTML={{ __html: svg.replace(/width="\d+"/, 'width="100%"').replace(/height="\d+"/, '') }}
                   />
                 </div>
               ))}
