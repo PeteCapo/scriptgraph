@@ -3543,7 +3543,15 @@ function _cDots() { return ""; } // dots removed — Instagram provides native s
 
 // Watermark — bottom right, inside canvas
 function _cWatermark(y=1318) {
-  return `<text x="${_cPAD+_cPW}" y="${y}" text-anchor="end" font-family="${THEME.fontDisplay}" font-size="26" fill="${THEME.accent}" opacity="0.3"><tspan font-weight="200">SCRIPT</tspan><tspan font-weight="700">GRAPH</tspan><tspan font-weight="200">.ai</tspan></text>`;
+  // Three separate text elements so font-weight renders reliably in canvas export
+  // Measured widths at 26px: SCRIPT=60, GRAPH=62, .ai=20 → total=142px
+  // Right-anchored at _cPAD+_cPW; positions from right: .ai ends at right edge
+  const rx = _cPAD + _cPW;       // right edge = 1000
+  const aiX   = rx - 20;         // .ai starts at 980
+  const graphX = aiX - 62;       // GRAPH starts at 918
+  const scriptX = graphX - 60;   // SCRIPT starts at 858
+  const f = `font-family="'Barlow Condensed','Arial Narrow',sans-serif" font-size="26" fill="${THEME.accent}" opacity="0.3"`;
+  return `<text x="${scriptX}" y="${y}" ${f} font-weight="200">SCRIPT</text><text x="${graphX}" y="${y}" ${f} font-weight="700">GRAPH</text><text x="${aiX}" y="${y}" ${f} font-weight="200">.ai</text>`;
 }
 
 // Top bar — single=gold, compare=red|blue split
@@ -3750,8 +3758,11 @@ ${[0,25,50,75,100].map(p=>{
     ? curvePath(ten1, GOLD, "cg1", 5, 0.28)
     : curvePath(ten2, BLUE, "cg2", 4.5, 0.20) + curvePath(ten1, RED, "cg1", 4.5, 0.20);
 
-  // Graph watermark inside plot
-  const gwm = `<text x="${plotX+plotW-8}" y="${plotBottom-8}" text-anchor="end" font-family="${THEME.fontDisplay}" font-size="24" fill="${GOLD}" opacity="0.3"><tspan font-weight="200">SCRIPT</tspan><tspan font-weight="700">GRAPH</tspan><tspan font-weight="200">.ai</tspan></text>`;
+  // Graph watermark inside plot — 3 separate texts for reliable weight in canvas export
+  // Measured at 24px: SCRIPT=56, GRAPH=57, .ai=19 → total=132px, right-anchored
+  const gwmRx = plotX + plotW - 8;
+  const gwmF = `font-family="'Barlow Condensed','Arial Narrow',sans-serif" font-size="24" fill="${GOLD}" opacity="0.3"`;
+  const gwm = `<text x="${gwmRx-132}" y="${plotBottom-8}" ${gwmF} font-weight="200">SCRIPT</text><text x="${gwmRx-76}" y="${plotBottom-8}" ${gwmF} font-weight="700">GRAPH</text><text x="${gwmRx-19}" y="${plotBottom-8}" ${gwmF} font-weight="200">.ai</text>`;
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${_cCW}" height="${_cCH}" viewBox="0 0 ${_cCW} ${_cCH}">
 <rect width="${_cCW}" height="${_cCH}" fill="${BG}"/>
@@ -3828,19 +3839,25 @@ ${_cDots(2)}
 function generateCarouselSlide4() {
   const BG=THEME.bgPage, CREAM=THEME.textPrimary, GOLD=THEME.accent;
   const MUTED=THEME.textMuted, EDGE=THEME.borderSubtle;
-  const glyphScale = 52*3.2;
-  // Left-aligned layout — consistent with other slides
-  const textX = _cPAD; // 80px
-  const glyphX = _cPAD;
+  const glyphScale = 52*3.2; // = 166.4px rendered height
+  // Glyph internal left edge is at x=14 in glyph-space → 14 * 3.2 = 44.8px visual offset
+  // To align visual left edge with _cPAD (80), translate x = 80 - 45 = 35
+  const glyphX = _cPAD - 45;
   const glyphY = 420;
+  const textX = _cPAD;
+
+  // Measured: "SCRIPT" at 108px weight-200 with letter-spacing 6 = 280px
+  const scriptW = 280;
+
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${_cCW}" height="${_cCH}" viewBox="0 0 ${_cCW} ${_cCH}">
 <rect width="${_cCW}" height="${_cCH}" fill="${BG}"/>
 <rect x="0" y="0" width="${_cCW}" height="5" fill="${GOLD}" opacity="0.7"/>
 ${_cGlyph(glyphX, glyphY, glyphScale)}
-<text x="${textX}" y="720" font-family="${THEME.fontDisplay}" font-size="108" letter-spacing="6"><tspan font-weight="200" fill="${CREAM}">SCRIPT</tspan><tspan font-weight="700" fill="${CREAM}">GRAPH</tspan></text>
+<text x="${textX}" y="720" font-family="'Barlow Condensed','Arial Narrow',sans-serif" font-weight="200" font-size="108" letter-spacing="6" fill="${CREAM}">SCRIPT</text>
+<text x="${textX + scriptW}" y="720" font-family="'Barlow Condensed','Arial Narrow',sans-serif" font-weight="700" font-size="108" letter-spacing="6" fill="${CREAM}">GRAPH</text>
 <line x1="${textX}" y1="758" x2="${textX+240}" y2="758" stroke="${EDGE}" stroke-width="1.5"/>
-<text x="${textX}" y="820" font-family="${THEME.fontDisplay}" font-weight="300" font-size="40" fill="${MUTED}" letter-spacing="6">scriptgraph.ai</text>
-<text x="${textX}" y="896" font-family="${THEME.fontSans}" font-weight="300" font-size="32" fill="${MUTED}" letter-spacing="2">Story Structure, Visualized.</text>
+<text x="${textX}" y="820" font-family="'Barlow Condensed','Arial Narrow',sans-serif" font-weight="300" font-size="40" letter-spacing="6" fill="${MUTED}">scriptgraph.ai</text>
+<text x="${textX}" y="896" font-family="'Inter',system-ui,sans-serif" font-weight="300" font-size="32" letter-spacing="2" fill="${MUTED}">Story Structure, Visualized.</text>
 ${_cDots(3)}
 </svg>`;
 }
