@@ -3506,7 +3506,7 @@ SLIDE_2_CONTEXT: Exactly 3 short lines that set up what the graph shows.
 - Each line max 45 characters
 - Tone: analytical, precise. A frame, not a summary.
 
-SLIDE_3_BODY: A single paragraph delivering the structural insight. 2–4 sentences. 200–350 characters. Pete Capó's voice — a director sharing a discovery, not teaching. Observational, precise, specific. Reference the films by name.
+SLIDE_3_BODY: A single paragraph delivering the structural insight. 2–3 sentences. 150–260 characters maximum. Pete Capó's voice — a director sharing a discovery, not teaching. Observational, precise, specific. Reference the films by name.
 
 Return JSON only — no preamble, no markdown:
 {
@@ -3579,14 +3579,15 @@ function generateCarouselSlide1({ mode, films, headline, imageDataUrl }) {
   const isSingle = mode !== "compare";
   const s1 = films[0]?.entry, s2 = films[1]?.entry;
 
-  // Headline: split on explicit newlines or wrap long single lines
-  const rawLines = (headline||"").toUpperCase().trim().split(/\n|\\n/).slice(0,3);
-  // Font size based on longest line — slightly more conservative to avoid overflow
-  const maxLen = Math.max(...rawLines.map(l=>l.length), 1);
-  const fs = maxLen<=7?148:maxLen<=12?120:maxLen<=18?96:78;
-  const lh = fs + 10;
-  // Available text width
-  const maxTextW = _cPW; // 920px
+  // Headline — target large size, word-wrap to fit canvas width
+  // Try 140px first; if it produces >3 lines, drop to 110px
+  const rawText = (headline||"").toUpperCase().trim();
+  let fs = 140, charRatio = 0.52;
+  let lines = _wrapText(rawText, _cPW, fs, charRatio);
+  if (lines.length > 3) { fs = 110; lines = _wrapText(rawText, _cPW, fs, charRatio); }
+  if (lines.length > 3) { fs = 88;  lines = _wrapText(rawText, _cPW, fs, charRatio); }
+  lines = lines.slice(0, 3);
+  const lh = fs + 14;
 
   // Film still zone — clean top half, no overlay
   let stillZone = "";
@@ -3601,32 +3602,24 @@ function generateCarouselSlide1({ mode, films, headline, imageDataUrl }) {
     }
   }
 
-  // Divider rule between image and text zone
   const dividerY = 580;
-
-  // Headline — use textLength to constrain each line within available width
-  let headlineY = dividerY + fs + 28;
-  let headlineSvg = "";
-  rawLines.forEach(line => {
-    // Estimate natural width; if it would overflow, apply textLength constraint
-    const estW = line.length * fs * 0.52;
-    const tlAttr = estW > maxTextW ? ` textLength="${maxTextW}" lengthAdjust="spacingAndGlyphs"` : "";
-    headlineSvg += `<text x="${_cPAD}" y="${headlineY}" font-family="${THEME.fontDisplay}" font-weight="800" font-size="${fs}" fill="${CREAM}" letter-spacing="2"${tlAttr}>${line}</text>`;
+  let headlineY = dividerY + fs + 32;
+  const headlineSvg = lines.map(line => {
+    const svg = `<text x="${_cPAD}" y="${headlineY}" font-family="${THEME.fontDisplay}" font-weight="800" font-size="${fs}" fill="${CREAM}" letter-spacing="2">${line}</text>`;
     headlineY += lh;
-  });
-  const lastBaseline = headlineY - lh;
-  const creditRuleY = lastBaseline + 40;
+    return svg;
+  }).join("\n");
 
-  // Credit
+  const creditRuleY = headlineY - lh + 44;
   let creditSvg = `<line x1="${_cPAD}" y1="${creditRuleY}" x2="${_cPAD+160}" y2="${creditRuleY}" stroke="${GOLD}" stroke-width="2" opacity="0.5"/>`;
   if (isSingle) {
     const label = [s1?.title, s1?.writer].filter(Boolean).join(" — ");
-    if (label) creditSvg += `<text x="${_cPAD}" y="${creditRuleY+56}" font-family="${THEME.fontDisplay}" font-weight="300" font-size="32" fill="#b8b0a4">${label}</text>`;
+    if (label) creditSvg += `<text x="${_cPAD}" y="${creditRuleY+52}" font-family="${THEME.fontDisplay}" font-weight="300" font-size="32" fill="#b8b0a4">${label}</text>`;
   } else {
     const lA = [s1?.title, s1?.writer].filter(Boolean).join(" — ");
     const lB = [s2?.title, s2?.writer].filter(Boolean).join(" — ");
-    if (lA) creditSvg += `<text x="${_cPAD}" y="${creditRuleY+52}" font-family="${THEME.fontDisplay}" font-weight="400" font-size="32" fill="${RED}">${lA}</text>`;
-    if (lB) creditSvg += `<text x="${_cPAD}" y="${creditRuleY+96}" font-family="${THEME.fontDisplay}" font-weight="400" font-size="32" fill="${BLUE}">${lB}</text>`;
+    if (lA) creditSvg += `<text x="${_cPAD}" y="${creditRuleY+48}" font-family="${THEME.fontDisplay}" font-weight="400" font-size="32" fill="${RED}">${lA}</text>`;
+    if (lB) creditSvg += `<text x="${_cPAD}" y="${creditRuleY+90}" font-family="${THEME.fontDisplay}" font-weight="400" font-size="32" fill="${BLUE}">${lB}</text>`;
   }
 
   return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${_cCW}" height="${_cCH}" viewBox="0 0 ${_cCW} ${_cCH}">
@@ -3808,8 +3801,8 @@ function generateCarouselSlide3({ mode, films, bodyText, title, year }) {
     : (title||"").toUpperCase();
 
   // Word-wrap the body paragraph
-  const fs = 72;           // font size — large, readable
-  const lh = 88;           // line height
+  const fs = 58;           // font size — large, readable, fits a full paragraph
+  const lh = 74;           // line height
   const charRatio = 0.50;  // Barlow Condensed 300 character width ratio
   const lines = _wrapText(bodyText || "", _cPW, fs, charRatio);
 
@@ -3834,16 +3827,20 @@ ${_cDots(2)}
 // ── Slide 4 — The Invitation ──────────────────────────────────────────────────
 function generateCarouselSlide4() {
   const BG=THEME.bgPage, CREAM=THEME.textPrimary, GOLD=THEME.accent;
-  const DIM=THEME.textDim, EDGE=THEME.borderSubtle;
+  const MUTED=THEME.textMuted, EDGE=THEME.borderSubtle;
   const glyphScale = 52*3.2;
+  // Left-aligned layout — consistent with other slides
+  const textX = _cPAD; // 80px
+  const glyphX = _cPAD;
+  const glyphY = 420;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${_cCW}" height="${_cCH}" viewBox="0 0 ${_cCW} ${_cCH}">
 <rect width="${_cCW}" height="${_cCH}" fill="${BG}"/>
 <rect x="0" y="0" width="${_cCW}" height="5" fill="${GOLD}" opacity="0.7"/>
-${_cGlyph(447, 440, glyphScale)}
-<text x="${_cCW/2}" y="740" text-anchor="middle" font-family="${THEME.fontDisplay}" font-size="108" letter-spacing="6"><tspan font-weight="200" fill="${CREAM}">SCRIPT</tspan><tspan font-weight="700" fill="${CREAM}">GRAPH</tspan></text>
-<line x1="400" y1="778" x2="680" y2="778" stroke="${EDGE}" stroke-width="1.5"/>
-<text x="${_cCW/2}" y="840" text-anchor="middle" font-family="${THEME.fontDisplay}" font-weight="300" font-size="40" fill="${DIM}" letter-spacing="6">scriptgraph.ai</text>
-<text x="${_cCW/2}" y="916" text-anchor="middle" font-family="${THEME.fontSans}" font-weight="300" font-size="32" fill="#3a3a42" letter-spacing="2">Story Structure, Visualized.</text>
+${_cGlyph(glyphX, glyphY, glyphScale)}
+<text x="${textX}" y="720" font-family="${THEME.fontDisplay}" font-size="108" letter-spacing="6"><tspan font-weight="200" fill="${CREAM}">SCRIPT</tspan><tspan font-weight="700" fill="${CREAM}">GRAPH</tspan></text>
+<line x1="${textX}" y1="758" x2="${textX+240}" y2="758" stroke="${EDGE}" stroke-width="1.5"/>
+<text x="${textX}" y="820" font-family="${THEME.fontDisplay}" font-weight="300" font-size="40" fill="${MUTED}" letter-spacing="6">scriptgraph.ai</text>
+<text x="${textX}" y="896" font-family="${THEME.fontSans}" font-weight="300" font-size="32" fill="${MUTED}" letter-spacing="2">Story Structure, Visualized.</text>
 ${_cDots(3)}
 </svg>`;
 }
@@ -4065,13 +4062,13 @@ function CarouselModal({ T, carousel, library, onClose, onSaveInsight, password 
               <label style={labelS}>Slide 3 — The Observation</label>
               <textarea
                 value={bodyText}
-                onChange={e => setBodyText(e.target.value)}
+                onChange={e => setBodyText(e.target.value.slice(0, 280))}
                 placeholder="The structural insight, in Pete's voice. Word-wraps automatically."
                 rows={5}
                 style={{ ...inputS(), resize:"vertical", lineHeight:1.7 }}
               />
-              <div style={{ marginTop:5, fontSize:10, color:T.textDim, fontFamily:T.fontSans }}>
-                {bodyText.length} chars · wraps automatically on slide
+              <div style={{ marginTop:5, fontSize:10, fontFamily:T.fontMono, color: bodyText.length > 250 ? T.colorWarning : T.textDim }}>
+                {bodyText.length}/280 chars
               </div>
             </div>
 
