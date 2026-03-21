@@ -19,7 +19,7 @@ if (typeof document !== "undefined" && !document.getElementById("sg-fonts")) {
   const style = document.createElement("style");
   style.textContent = `
     *, *::before, *::after { box-sizing: border-box; }
-    body { margin: 0; -webkit-font-smoothing: antialiased; }
+    body { margin: 0; background: #0d0d0f; -webkit-font-smoothing: antialiased; }
     button { font-family: inherit; }
     @keyframes sgToastIn  { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes sgFadeIn   { from { opacity: 0; } to { opacity: 1; } }
