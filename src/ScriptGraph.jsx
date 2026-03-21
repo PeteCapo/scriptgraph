@@ -21,8 +21,10 @@ if (typeof document !== "undefined" && !document.getElementById("sg-fonts")) {
     *, *::before, *::after { box-sizing: border-box; }
     body { margin: 0; -webkit-font-smoothing: antialiased; }
     button { font-family: inherit; }
-    @keyframes sgToastIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes sgFadeIn  { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes sgToastIn  { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes sgFadeIn   { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes sgFadeUp   { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes sgDrawLine { from { stroke-dashoffset: 3000; } to { stroke-dashoffset: 0; } }
   `;
   document.head.appendChild(style);
 }
@@ -4467,6 +4469,9 @@ export default function ScriptGraph() {
   const [carousel, setCarousel]                 = useState(null);  // null | { mode, films, fromInsight }
   const [libSearch, setLibSearch]               = useState("");
   const [libGenreFilter, setLibGenreFilter]     = useState(null);
+  const [libStructureFilter, setLibStructureFilter] = useState(null);
+  const [libGenreOpen, setLibGenreOpen]         = useState(false);
+  const [libStructureOpen, setLibStructureOpen] = useState(false);
   const [uploadMode, setUploadMode]             = useState("script");
   const [docsTab, setDocsTab]                   = useState("user");
   const [outlineText, setOutlineText]           = useState("");
@@ -6452,43 +6457,147 @@ export default function ScriptGraph() {
             library.flatMap(e => (e.genre || "").split(/[/,·]/).map(g => g.trim()).filter(Boolean))
           )].sort();
 
-          // Apply search + genre filter
+          // Derive structure types dynamically from library
+          const allStructures = [...new Set(
+            library.map(e => e.naturalStructure?.structureType).filter(Boolean)
+          )].sort();
+
+          // Apply search + genre + structure filter
           const filtered = library.filter(e => {
             const q = libSearch.toLowerCase();
             const matchSearch = !q || e.title?.toLowerCase().includes(q) || e.logline?.toLowerCase().includes(q) || e.genre?.toLowerCase().includes(q) || e.writer?.toLowerCase().includes(q);
-            const matchGenre  = !libGenreFilter || (e.genre || "").toLowerCase().includes(libGenreFilter.toLowerCase());
-            return matchSearch && matchGenre;
+            const matchGenre     = !libGenreFilter     || (e.genre || "").toLowerCase().includes(libGenreFilter.toLowerCase());
+            const matchStructure = !libStructureFilter || (e.naturalStructure?.structureType || "").toLowerCase() === libStructureFilter.toLowerCase();
+            return matchSearch && matchGenre && matchStructure;
           });
 
-          return (
-          <div style={{ marginTop: 48, paddingBottom: compareItems.length > 0 ? 100 : 0 }}>
+          // Background hero curves — pick up to 3 scripts with real tension data
+          const heroCurveEntries = library.filter(e => e.overallTension?.length > 0).slice(0, 3);
+          const heroCurveColors  = [T.accent, T.fwColors.three_act, T.fwColors.story_circle];
 
-            {/* ── Intro banner — public only ── */}
+          const makeHeroCurvePath = (tension, w, h) => {
+            const pad = { t: 10, r: 0, b: 10, l: 0 };
+            const iw = w - pad.l - pad.r, ih = h - pad.t - pad.b;
+            const sm = tension.map((_, i) => {
+              const lo = Math.max(0, i - 2), hi = Math.min(tension.length - 1, i + 2);
+              const sl = tension.slice(lo, hi + 1);
+              return sl.reduce((a, b) => a + b, 0) / sl.length;
+            });
+            const pts = sm.map((t, i) => ({
+              x: pad.l + (i / (sm.length - 1)) * iw,
+              y: pad.t + ih - (t / 10) * ih,
+            }));
+            const line = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+            const area = `${line} L${(pad.l + iw).toFixed(1)},${(pad.t + ih).toFixed(1)} L${pad.l},${(pad.t + ih).toFixed(1)} Z`;
+            return { line, area };
+          };
+
+          return (
+          <div style={{ paddingBottom: compareItems.length > 0 ? 100 : 0 }}>
+
+            {/* ── HERO — public only ── */}
             {PUBLIC_MODE && (
-              <div style={{
-                borderBottom: `1px solid ${T.borderSubtle}`,
-                marginBottom: 40,
-                paddingBottom: 32,
-              }}>
-                <p style={{
-                  margin: "0 0 6px",
-                  fontSize: 14,
-                  color: T.textSecondary,
-                  lineHeight: 1.85,
-                  maxWidth: 600,
-                  fontFamily: T.fontSans,
-                  fontWeight: 300,
+              <div style={{ position: "relative", overflow: "hidden", paddingBottom: 0 }}>
+
+                {/* Ambient background curves */}
+                {heroCurveEntries.length > 0 && (
+                  <div style={{
+                    position: "absolute",
+                    top: 0, left: 0, right: 0,
+                    height: 320,
+                    pointerEvents: "none",
+                    zIndex: 0,
+                  }}>
+                    <svg
+                      viewBox="0 0 1200 320"
+                      preserveAspectRatio="none"
+                      style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
+                    >
+                      <defs>
+                        {heroCurveEntries.map((e, i) => (
+                          <linearGradient key={i} id={`hg-area-${i}`} x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor={heroCurveColors[i]} stopOpacity="0.10" />
+                            <stop offset="100%" stopColor={heroCurveColors[i]} stopOpacity="0.0" />
+                          </linearGradient>
+                        ))}
+                        {heroCurveEntries.map((e, i) => (
+                          <linearGradient key={`lf-${i}`} id={`hg-line-${i}`} x1="0" y1="0" x2="1" y2="0">
+                            <stop offset="0%"   stopColor={heroCurveColors[i]} stopOpacity="0" />
+                            <stop offset="12%"  stopColor={heroCurveColors[i]} stopOpacity="1" />
+                            <stop offset="88%"  stopColor={heroCurveColors[i]} stopOpacity="1" />
+                            <stop offset="100%" stopColor={heroCurveColors[i]} stopOpacity="0" />
+                          </linearGradient>
+                        ))}
+                      </defs>
+                      {heroCurveEntries.map((e, i) => {
+                        const { line, area } = makeHeroCurvePath(e.overallTension, 1200, 320);
+                        return (
+                          <g key={i}>
+                            <path d={area} fill={`url(#hg-area-${i})`}
+                              style={{ animation: `sgFadeIn 1.4s ease ${0.3 + i * 0.25}s both` }} />
+                            <path d={line} fill="none"
+                              stroke={`url(#hg-line-${i})`} strokeWidth="1.4"
+                              strokeLinecap="round" strokeLinejoin="round"
+                              strokeDasharray="3000" strokeDashoffset="3000"
+                              style={{ animation: `sgDrawLine 2.2s ease ${0.1 + i * 0.3}s forwards` }} />
+                          </g>
+                        );
+                      })}
+                    </svg>
+                    {/* Fade out curves before Director's Notes */}
+                    <div style={{
+                      position: "absolute", bottom: 0, left: 0, right: 0, height: 160,
+                      background: `linear-gradient(to bottom, transparent, ${T.bgPage})`,
+                      pointerEvents: "none",
+                    }} />
+                  </div>
+                )}
+
+                {/* Hero text */}
+                <div style={{
+                  position: "relative", zIndex: 1,
+                  padding: "72px 48px 56px",
                 }}>
-                  I built this to understand how films move. Each graph maps the rise and fall of narrative pressure across a screenplay — the shape of the story.
-                </p>
-                <p style={{
-                  margin: 0,
-                  fontSize: 13,
-                  color: T.textMuted,
-                  fontFamily: T.fontSans,
-                  fontStyle: "italic",
-                  fontWeight: 300,
-                }}><a href="https://petecapo.com" target="_blank" rel="noopener noreferrer" style={{ color: "inherit", textDecoration: "none", borderBottom: `1px solid ${T.textMuted}40` }}>— Pete Capo</a></p>
+                  <h1 style={{
+                    margin: "0 0 28px",
+                    fontFamily: T.fontDisplay,
+                    fontWeight: 800,
+                    fontSize: "clamp(48px, 6vw, 76px)",
+                    letterSpacing: "0.04em",
+                    textTransform: "uppercase",
+                    color: T.textPrimary,
+                    lineHeight: 1.0,
+                    maxWidth: 680,
+                    animation: "sgFadeUp 0.7s ease 0.1s both",
+                  }}>
+                    Every screenplay<br />has a shape.
+                  </h1>
+                  <div style={{ maxWidth: 520, animation: "sgFadeUp 0.7s ease 0.3s both" }}>
+                    <p style={{
+                      margin: "0 0 6px",
+                      fontSize: 15,
+                      color: T.textSecondary,
+                      lineHeight: 1.85,
+                      fontFamily: T.fontSans,
+                      fontWeight: 300,
+                    }}>
+                      I built this to understand how films move. Each graph maps the rise and fall of narrative pressure across a screenplay — the shape of the story.
+                    </p>
+                    <p style={{
+                      margin: 0,
+                      fontSize: 13,
+                      color: T.textMuted,
+                      fontFamily: T.fontSans,
+                      fontStyle: "italic",
+                      fontWeight: 300,
+                    }}>
+                      <a href="https://petecapo.com" target="_blank" rel="noopener noreferrer"
+                        style={{ color: "inherit", textDecoration: "none", borderBottom: `1px solid ${T.textMuted}40` }}>
+                        — Pete Capo
+                      </a>
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -6544,9 +6653,6 @@ export default function ScriptGraph() {
                       if (!f.entry?.overallTension) return null;
                       const line = makePath(f.entry.overallTension);
                       const sm = smooth(f.entry.overallTension);
-                      const last = sm[sm.length - 1];
-                      const areaClose = ` L${(P.l + iw).toFixed(1)},${(P.t + ih - (last / 10) * ih).toFixed(1)} L${(P.l + iw).toFixed(1)},${P.t + ih} L${P.l},${P.t + ih} Z`;
-                      const firstY = (P.t + ih - (sm[0] / 10) * ih).toFixed(1);
                       const areaPath = line + ` L${(P.l + iw).toFixed(1)},${P.t + ih} L${P.l},${P.t + ih} Z`;
                       return (
                         <g key={i}>
@@ -6574,92 +6680,127 @@ export default function ScriptGraph() {
               };
 
               return (
-                <div style={{ borderBottom: `1px solid ${T.borderSubtle}`, marginBottom: 40, paddingBottom: 28 }}>
+                <div style={{
+                  borderBottom: `1px solid ${T.borderSubtle}`,
+                  marginBottom: 40,
+                  paddingBottom: 28,
+                  animation: "sgFadeUp 0.7s ease 0.5s both",
+                }}>
                   <div style={{ fontSize: 9, fontFamily: T.fontSans, fontWeight: 600, letterSpacing: 2.5, textTransform: "uppercase", color: T.textMuted, marginBottom: 16 }}>
                     Director's Notes
                   </div>
-                  <div style={{ display: "flex", gap: 14, overflowX: "auto", paddingBottom: 4, scrollbarWidth: "none" }}>
-                    {resolvedInsights.map((insight, idx) => {
-                      const hasData = insight.resolvedFilms.some(f => f.entry);
-                      return (
-                        <div key={idx}
-                          onClick={() => hasData && handleInsightClick(insight)}
-                          style={{
-                            background: T.bgPanel,
-                            border: `1px solid ${T.borderSubtle}`,
-                            borderRadius: T.radiusLg,
-                            padding: "20px 20px 18px",
-                            minWidth: 360,
-                            maxWidth: 360,
-                            flexShrink: 0,
-                            cursor: hasData ? "pointer" : "default",
-                            transition: "border-color 0.15s",
-                            position: "relative",
-                            display: "flex",
-                            flexDirection: "column",
-                          }}
-                          onMouseEnter={e => { if (hasData) e.currentTarget.style.borderColor = T.accent + "40"; }}
-                          onMouseLeave={e => { e.currentTarget.style.borderColor = T.borderSubtle; }}
-                        >
-                          <div style={{ fontFamily: T.fontDisplay, fontWeight: 700, fontSize: 18, letterSpacing: 1.5, textTransform: "uppercase", color: T.textPrimary, marginBottom: insight.subtitle ? 5 : 8, lineHeight: 1.2 }}>
-                            {insight.title}
-                          </div>
-                          {insight.subtitle && (
-                            <div style={{ fontSize: 10, fontFamily: T.fontMono, letterSpacing: 1.5, textTransform: "uppercase", color: T.accentDim, marginBottom: 8, lineHeight: 1.4 }}>
-                              {insight.subtitle}
+
+                  {/* Scroll container with right-edge peek affordance */}
+                  <div style={{ position: "relative" }}>
+                    <div style={{
+                      display: "flex", gap: 14,
+                      overflowX: "auto",
+                      paddingBottom: 4,
+                      paddingRight: 72,
+                      scrollbarWidth: "none",
+                      msOverflowStyle: "none",
+                    }}>
+                      {resolvedInsights.map((insight, idx) => {
+                        const hasData = insight.resolvedFilms.some(f => f.entry);
+                        return (
+                          <div key={idx}
+                            onClick={() => hasData && handleInsightClick(insight)}
+                            style={{
+                              background: T.bgPanel,
+                              border: `1px solid ${T.borderSubtle}`,
+                              borderRadius: T.radiusLg,
+                              padding: "20px 20px 18px",
+                              minWidth: 360,
+                              maxWidth: 360,
+                              flexShrink: 0,
+                              cursor: hasData ? "pointer" : "default",
+                              transition: "border-color 0.15s",
+                              position: "relative",
+                              display: "flex",
+                              flexDirection: "column",
+                            }}
+                            onMouseEnter={e => { if (hasData) e.currentTarget.style.borderColor = T.accent + "40"; }}
+                            onMouseLeave={e => { e.currentTarget.style.borderColor = T.borderSubtle; }}
+                          >
+                            <div style={{ fontFamily: T.fontDisplay, fontWeight: 700, fontSize: 18, letterSpacing: 1.5, textTransform: "uppercase", color: T.textPrimary, marginBottom: insight.subtitle ? 5 : 8, lineHeight: 1.2 }}>
+                              {insight.title}
                             </div>
-                          )}
-                          <div style={{ fontSize: 12, color: T.textSecondary, lineHeight: 1.75, fontWeight: 300, marginBottom: 0 }}>
-                            {insight.body}
-                          </div>
-                          {/* Mini graph — pushed to bottom via marginTop auto */}
-                          <div style={{ background: T.bgPage, border: `1px solid ${T.borderSubtle}`, borderRadius: T.radiusMd, padding: "12px 14px 10px", marginTop: "auto" }}>
-                            <MiniInsightCurve resolvedFilms={insight.resolvedFilms} />
-                            {/* Film legend tags + glyph mark */}
-                            <div style={{ display: "flex", gap: 6, marginTop: 10, flexWrap: "wrap", alignItems: "center" }}>
-                              {insight.resolvedFilms.map((f, fi) => (
-                                <div key={fi} style={{
-                                  fontSize: 9, fontFamily: T.fontMono, letterSpacing: 1, textTransform: "uppercase",
-                                  padding: "3px 7px", borderRadius: T.radiusSm,
-                                  color: f.color, border: `1px solid ${f.color}38`, background: `${f.color}10`,
-                                }}>
-                                  {f.label}
-                                </div>
-                              ))}
-                              <svg width="16" height="15" viewBox="0 0 58 52" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginLeft: "auto", opacity: 0.28, flexShrink: 0 }}>
-                                <path d="M22 5 L14 5 L14 47 L22 47" stroke="#c8a060" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-                                <path d="M36 5 L44 5 L44 47 L36 47" stroke="#c8a060" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-                                <line x1="19" y1="16" x2="34" y2="16" stroke="#c8a060" strokeWidth="1.0" strokeLinecap="round"/>
-                                <line x1="19" y1="22" x2="38" y2="22" stroke="#c8a060" strokeWidth="1.0" strokeLinecap="round"/>
-                                <line x1="19" y1="28" x2="31" y2="28" stroke="#c8a060" strokeWidth="1.0" strokeLinecap="round"/>
-                                <line x1="19" y1="34" x2="36" y2="34" stroke="#c8a060" strokeWidth="1.0" strokeLinecap="round"/>
-                                <path d="M19 38 Q24 30 28 24 Q32 17 39 11" stroke="#c8a060" strokeWidth="2.6" strokeLinecap="round" fill="none"/>
-                                <circle cx="19" cy="38" r="2.4" fill="#c8a060"/>
-                                <circle cx="39" cy="11" r="2.4" fill="#c8a060"/>
-                              </svg>
+                            {insight.subtitle && (
+                              <div style={{ fontSize: 10, fontFamily: T.fontMono, letterSpacing: 1.5, textTransform: "uppercase", color: T.accentDim, marginBottom: 8, lineHeight: 1.4 }}>
+                                {insight.subtitle}
+                              </div>
+                            )}
+                            <div style={{ fontSize: 12, color: T.textSecondary, lineHeight: 1.75, fontWeight: 300, marginBottom: 0 }}>
+                              {insight.body}
+                            </div>
+                            {/* Mini graph — pushed to bottom via marginTop auto */}
+                            <div style={{ background: T.bgPage, border: `1px solid ${T.borderSubtle}`, borderRadius: T.radiusMd, padding: "12px 14px 10px", marginTop: "auto" }}>
+                              <MiniInsightCurve resolvedFilms={insight.resolvedFilms} />
+                              {/* Film legend tags + glyph mark */}
+                              <div style={{ display: "flex", gap: 6, marginTop: 10, flexWrap: "wrap", alignItems: "center" }}>
+                                {insight.resolvedFilms.map((f, fi) => (
+                                  <div key={fi} style={{
+                                    fontSize: 9, fontFamily: T.fontMono, letterSpacing: 1, textTransform: "uppercase",
+                                    padding: "3px 7px", borderRadius: T.radiusSm,
+                                    color: f.color, border: `1px solid ${f.color}38`, background: `${f.color}10`,
+                                  }}>
+                                    {f.label}
+                                  </div>
+                                ))}
+                                <svg width="16" height="15" viewBox="0 0 58 52" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginLeft: "auto", opacity: 0.28, flexShrink: 0 }}>
+                                  <path d="M22 5 L14 5 L14 47 L22 47" stroke="#c8a060" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                                  <path d="M36 5 L44 5 L44 47 L36 47" stroke="#c8a060" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                                  <line x1="19" y1="16" x2="34" y2="16" stroke="#c8a060" strokeWidth="1.0" strokeLinecap="round"/>
+                                  <line x1="19" y1="22" x2="38" y2="22" stroke="#c8a060" strokeWidth="1.0" strokeLinecap="round"/>
+                                  <line x1="19" y1="28" x2="31" y2="28" stroke="#c8a060" strokeWidth="1.0" strokeLinecap="round"/>
+                                  <line x1="19" y1="34" x2="36" y2="34" stroke="#c8a060" strokeWidth="1.0" strokeLinecap="round"/>
+                                  <path d="M19 38 Q24 30 28 24 Q32 17 39 11" stroke="#c8a060" strokeWidth="2.6" strokeLinecap="round" fill="none"/>
+                                  <circle cx="19" cy="38" r="2.4" fill="#c8a060"/>
+                                  <circle cx="39" cy="11" r="2.4" fill="#c8a060"/>
+                                </svg>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
+
+                    {/* Right-edge peek affordance — fade + chevron */}
+                    <div style={{
+                      position: "absolute", top: 0, right: 0, bottom: 4, width: 72,
+                      background: `linear-gradient(to right, transparent, ${T.bgPage})`,
+                      pointerEvents: "none",
+                      display: "flex", alignItems: "center", justifyContent: "flex-end", paddingRight: 6,
+                    }}>
+                      <span style={{ fontSize: 18, color: T.textDim, lineHeight: 1, userSelect: "none" }}>›</span>
+                    </div>
+                  </div>
+
+                  {/* Swipe hint */}
+                  <div style={{
+                    fontSize: 9, fontFamily: T.fontMono, color: T.textDim,
+                    letterSpacing: 1.2, textTransform: "uppercase",
+                    marginTop: 10, textAlign: "right", paddingRight: 4,
+                  }}>
+                    Scroll to explore →
                   </div>
                 </div>
               );
             })()}
 
             {/* ── Header ── */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 28 }}>
-              <h1 style={{ margin: 0, fontSize: 44, fontWeight: 800, letterSpacing: 3, fontFamily: T.fontDisplay, textTransform: "uppercase", color: T.textPrimary }}>Library</h1>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 20 }}>
+              <h2 style={{ margin: 0, fontSize: 44, fontWeight: 800, letterSpacing: 3, fontFamily: T.fontDisplay, textTransform: "uppercase", color: T.textPrimary }}>Library</h2>
               <span style={{ fontSize: 11, fontFamily: T.fontMono, color: T.textMuted }}>
-                {library.length} script{library.length !== 1 ? "s" : ""}
+                {filtered.length !== library.length ? `${filtered.length} of ${library.length}` : `${library.length}`} script{library.length !== 1 ? "s" : ""}
               </span>
             </div>
 
-            {/* ── Search + Genre filter bar ── */}
+            {/* ── Search + Filter bar (dropdown pattern) ── */}
             {library.length > 0 && (
-              <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 20, flexWrap: "wrap" }}>
+              <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 20, flexWrap: "wrap" }}>
                 {/* Search */}
-                <div style={{ position: "relative", flex: "1 1 220px", maxWidth: 360 }}>
+                <div style={{ position: "relative", flex: "1 1 200px", maxWidth: 360 }}>
                   <span style={{
                     position: "absolute", left: 11, top: "50%", transform: "translateY(-50%)",
                     fontSize: 12, color: T.textMuted, pointerEvents: "none",
@@ -6683,27 +6824,124 @@ export default function ScriptGraph() {
                   )}
                 </div>
 
-                {/* Genre chips */}
+                {/* Genre dropdown */}
                 {allGenres.length > 0 && (
-                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
-                    {libGenreFilter && (
-                      <button onClick={() => setLibGenreFilter(null)} style={{
-                        fontSize: 10, fontFamily: T.fontMono, letterSpacing: 1,
-                        padding: "4px 10px", borderRadius: T.radiusSm, cursor: "pointer",
-                        background: T.accent + "20", border: `1px solid ${T.accent + "60"}`,
-                        color: T.accent,
-                      }}>ALL ✕</button>
+                  <div style={{ position: "relative" }}>
+                    <button
+                      onClick={() => { setLibGenreOpen(o => !o); setLibStructureOpen(false); }}
+                      style={{
+                        display: "flex", alignItems: "center", gap: 6,
+                        padding: "7px 12px",
+                        background: libGenreFilter ? T.accent + "18" : T.bgCard,
+                        border: `1px solid ${libGenreFilter ? T.accent + "60" : T.borderMid}`,
+                        borderRadius: T.radiusMd,
+                        color: libGenreFilter ? T.accent : T.textMuted,
+                        fontSize: 11, fontFamily: T.fontSans, cursor: "pointer",
+                        whiteSpace: "nowrap", transition: "all 0.12s",
+                      }}
+                    >
+                      {libGenreFilter ? `Genre: ${libGenreFilter}` : "Genre: All"}
+                      {libGenreFilter
+                        ? <span onClick={e => { e.stopPropagation(); setLibGenreFilter(null); }} style={{ fontSize: 10, opacity: 0.7, marginLeft: 2 }}>✕</span>
+                        : <span style={{ fontSize: 9, opacity: 0.5, marginLeft: 2 }}>▾</span>
+                      }
+                    </button>
+                    {libGenreOpen && (
+                      <div style={{
+                        position: "absolute", top: "calc(100% + 6px)", left: 0, zIndex: 200,
+                        background: T.bgPanel, border: `1px solid ${T.borderMid}`,
+                        borderRadius: T.radiusMd, padding: "6px 0",
+                        minWidth: 180, maxHeight: 280, overflowY: "auto",
+                        boxShadow: "0 8px 32px #00000060",
+                      }}>
+                        <button
+                          onClick={() => { setLibGenreFilter(null); setLibGenreOpen(false); }}
+                          style={{
+                            display: "block", width: "100%", textAlign: "left",
+                            padding: "7px 14px", background: "none", border: "none",
+                            color: !libGenreFilter ? T.accent : T.textSecondary,
+                            fontSize: 11, fontFamily: T.fontSans, cursor: "pointer",
+                          }}
+                          onMouseEnter={e => e.currentTarget.style.background = T.bgHover}
+                          onMouseLeave={e => e.currentTarget.style.background = "none"}
+                        >All genres</button>
+                        {allGenres.map(g => (
+                          <button key={g}
+                            onClick={() => { setLibGenreFilter(g); setLibGenreOpen(false); }}
+                            style={{
+                              display: "block", width: "100%", textAlign: "left",
+                              padding: "7px 14px", background: "none", border: "none",
+                              color: libGenreFilter === g ? T.accent : T.textSecondary,
+                              fontSize: 11, fontFamily: T.fontSans, cursor: "pointer",
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.background = T.bgHover}
+                            onMouseLeave={e => e.currentTarget.style.background = "none"}
+                          >{g}</button>
+                        ))}
+                      </div>
                     )}
-                    {allGenres.map(g => (
-                      <button key={g} onClick={() => setLibGenreFilter(libGenreFilter === g ? null : g)} style={{
-                        fontSize: 10, fontFamily: T.fontSans, fontWeight: 500,
-                        padding: "4px 10px", borderRadius: T.radiusSm, cursor: "pointer",
-                        background: libGenreFilter === g ? T.accent + "22" : "transparent",
-                        border: `1px solid ${libGenreFilter === g ? T.accent + "60" : T.borderMid}`,
-                        color: libGenreFilter === g ? T.accent : T.textMuted,
-                        transition: "all 0.12s",
-                      }}>{g}</button>
-                    ))}
+                  </div>
+                )}
+
+                {/* Structure type dropdown */}
+                {allStructures.length > 0 && (
+                  <div style={{ position: "relative" }}>
+                    <button
+                      onClick={() => { setLibStructureOpen(o => !o); setLibGenreOpen(false); }}
+                      style={{
+                        display: "flex", alignItems: "center", gap: 6,
+                        padding: "7px 12px",
+                        background: libStructureFilter ? T.accent + "18" : T.bgCard,
+                        border: `1px solid ${libStructureFilter ? T.accent + "60" : T.borderMid}`,
+                        borderRadius: T.radiusMd,
+                        color: libStructureFilter ? T.accent : T.textMuted,
+                        fontSize: 11, fontFamily: T.fontSans, cursor: "pointer",
+                        whiteSpace: "nowrap", transition: "all 0.12s",
+                        textTransform: libStructureFilter ? "uppercase" : "none",
+                        letterSpacing: libStructureFilter ? 0.5 : 0,
+                      }}
+                    >
+                      {libStructureFilter ? `Structure: ${libStructureFilter}` : "Structure: All"}
+                      {libStructureFilter
+                        ? <span onClick={e => { e.stopPropagation(); setLibStructureFilter(null); }} style={{ fontSize: 10, opacity: 0.7, marginLeft: 2 }}>✕</span>
+                        : <span style={{ fontSize: 9, opacity: 0.5, marginLeft: 2 }}>▾</span>
+                      }
+                    </button>
+                    {libStructureOpen && (
+                      <div style={{
+                        position: "absolute", top: "calc(100% + 6px)", left: 0, zIndex: 200,
+                        background: T.bgPanel, border: `1px solid ${T.borderMid}`,
+                        borderRadius: T.radiusMd, padding: "6px 0",
+                        minWidth: 180,
+                        boxShadow: "0 8px 32px #00000060",
+                      }}>
+                        <button
+                          onClick={() => { setLibStructureFilter(null); setLibStructureOpen(false); }}
+                          style={{
+                            display: "block", width: "100%", textAlign: "left",
+                            padding: "7px 14px", background: "none", border: "none",
+                            color: !libStructureFilter ? T.accent : T.textSecondary,
+                            fontSize: 11, fontFamily: T.fontSans, cursor: "pointer",
+                          }}
+                          onMouseEnter={e => e.currentTarget.style.background = T.bgHover}
+                          onMouseLeave={e => e.currentTarget.style.background = "none"}
+                        >All structures</button>
+                        {allStructures.map(s => (
+                          <button key={s}
+                            onClick={() => { setLibStructureFilter(s); setLibStructureOpen(false); }}
+                            style={{
+                              display: "block", width: "100%", textAlign: "left",
+                              padding: "7px 14px", background: "none", border: "none",
+                              color: libStructureFilter === s ? T.accent : T.textSecondary,
+                              fontSize: 11, fontFamily: T.fontSans, cursor: "pointer",
+                              textTransform: "uppercase", letterSpacing: 0.5,
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.background = T.bgHover}
+                            onMouseLeave={e => e.currentTarget.style.background = "none"}
+                          >{s}</button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -6713,7 +6951,7 @@ export default function ScriptGraph() {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 12 }}>
 
               {/* Add Script card — hidden in PUBLIC_MODE, always first unless filtering */}
-              {!PUBLIC_MODE && !libSearch && !libGenreFilter && (
+              {!PUBLIC_MODE && !libSearch && !libGenreFilter && !libStructureFilter && (
                 <div
                   onClick={() => { setPdfFile(null); setPdfName(""); setP1(null); setScreen("upload"); }}
                   style={{
@@ -6736,7 +6974,7 @@ export default function ScriptGraph() {
                 </div>
               )}
 
-              {filtered.length === 0 && (libSearch || libGenreFilter) ? (
+              {filtered.length === 0 && (libSearch || libGenreFilter || libStructureFilter) ? (
                 <div style={{ gridColumn: "1/-1", padding: "48px 0", textAlign: "center", color: T.textMuted, fontSize: 13, fontFamily: T.fontMono }}>
                   No scripts match your filter.
                 </div>
