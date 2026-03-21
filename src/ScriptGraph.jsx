@@ -6517,7 +6517,7 @@ export default function ScriptGraph() {
                         <defs>
                           {heroCurveEntries.map((e, i) => (
                             <linearGradient key={i} id={`hg-area-${i}`} x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="0%"   stopColor={heroCurveColors[i]} stopOpacity="0.09" />
+                              <stop offset="0%"   stopColor={heroCurveColors[i]} stopOpacity="0.05" />
                               <stop offset="70%"  stopColor={heroCurveColors[i]} stopOpacity="0.04" />
                               <stop offset="88%"  stopColor={heroCurveColors[i]} stopOpacity="0.01" />
                               <stop offset="100%" stopColor={heroCurveColors[i]} stopOpacity="0.0" />
