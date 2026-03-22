@@ -1,6 +1,12 @@
 [
   {
     "action": "delete",
+    "filename": "beau-is-afraid.json",
+    "title": "Beau Is Afraid",
+    "timestamp": "2026-03-22T04:51:50.024Z"
+  },
+  {
+    "action": "delete",
     "filename": "anora.json",
     "title": "Anora",
     "timestamp": "2026-03-22T04:51:48.783Z"
