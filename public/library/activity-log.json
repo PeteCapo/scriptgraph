@@ -2,6 +2,13 @@
   {
     "action": "publish",
     "filename": "a-real-pain.json",
+    "title": "A Real Pain",
+    "confidence": "MEDIUM",
+    "timestamp": "2026-03-22T05:57:05.399Z"
+  },
+  {
+    "action": "publish",
+    "filename": "a-real-pain.json",
     "title": "A REAL PAIN",
     "confidence": "MEDIUM",
     "timestamp": "2026-03-22T05:12:53.572Z"
