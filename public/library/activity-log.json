@@ -1,6 +1,13 @@
 [
   {
     "action": "publish",
+    "filename": "american-fiction.json",
+    "title": "American Fiction",
+    "confidence": "HIGH",
+    "timestamp": "2026-03-22T16:05:52.806Z"
+  },
+  {
+    "action": "publish",
     "filename": "air.json",
     "title": "Air",
     "confidence": "HIGH",
