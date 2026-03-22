@@ -135,15 +135,6 @@
     "structureType": "linear"
   },
   {
-    "filename": "a-real-pain.json",
-    "publishedAt": "2026-03-22T03:24:00Z",
-    "confidence": "MEDIUM",
-    "title": "A Real Pain",
-    "writer": "Jesse Eisenberg",
-    "genre": "Drama/Comedy",
-    "structureType": "linear"
-  },
-  {
     "filename": "dunkirk.json",
     "publishedAt": "2026-03-21T21:18:01Z",
     "confidence": "HIGH",
