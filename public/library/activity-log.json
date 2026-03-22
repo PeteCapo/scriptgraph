@@ -1,6 +1,13 @@
 [
   {
     "action": "publish",
+    "filename": "the-holdovers.json",
+    "title": "The Holdovers",
+    "confidence": "HIGH",
+    "timestamp": "2026-03-22T16:06:06.276Z"
+  },
+  {
+    "action": "publish",
     "filename": "september-5.json",
     "title": "September 5",
     "confidence": "HIGH",
