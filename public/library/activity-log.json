@@ -1,5 +1,12 @@
 [
   {
+    "action": "publish",
+    "filename": "a-complete-unknown.json",
+    "title": "A Complete Unknown",
+    "confidence": "HIGH",
+    "timestamp": "2026-03-22T05:12:51.811Z"
+  },
+  {
     "action": "delete",
     "filename": "the-substance.json",
     "title": "The Substance",
