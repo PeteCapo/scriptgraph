@@ -1,5 +1,11 @@
 [
   {
+    "action": "delete",
+    "filename": "the-substance.json",
+    "title": "The Substance",
+    "timestamp": "2026-03-22T04:59:04.993Z"
+  },
+  {
     "action": "publish",
     "filename": "the-substance.json",
     "title": "The Substance",
