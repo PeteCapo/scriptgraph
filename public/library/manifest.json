@@ -1,5 +1,14 @@
 [
   {
+    "filename": "the-holdovers.json",
+    "publishedAt": "2026-03-22T16:06:06.276Z",
+    "confidence": "HIGH",
+    "title": "The Holdovers",
+    "writer": "David Hemingson",
+    "genre": "Drama",
+    "structureType": "linear"
+  },
+  {
     "filename": "september-5.json",
     "publishedAt": "2026-03-22T16:06:04.819Z",
     "confidence": "HIGH",
