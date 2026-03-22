@@ -1,6 +1,12 @@
 [
   {
     "action": "delete",
+    "filename": "emilia-p-rez.json",
+    "title": "EMILIA PÉREZ",
+    "timestamp": "2026-03-22T04:51:51.369Z"
+  },
+  {
+    "action": "delete",
     "filename": "beau-is-afraid.json",
     "title": "Beau Is Afraid",
     "timestamp": "2026-03-22T04:51:50.024Z"
