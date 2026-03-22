@@ -1,5 +1,14 @@
 [
   {
+    "filename": "the-substance.json",
+    "publishedAt": "2026-03-22T16:06:09.221Z",
+    "confidence": "HIGH",
+    "title": "THE SUBSTANCE",
+    "writer": "Coralie Fargeat",
+    "genre": "Body Horror",
+    "structureType": "linear"
+  },
+  {
     "filename": "the-martian.json",
     "publishedAt": "2026-03-22T16:06:07.793Z",
     "confidence": "HIGH",
