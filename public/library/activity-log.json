@@ -1,6 +1,13 @@
 [
   {
     "action": "publish",
+    "filename": "conclave.json",
+    "title": "CONCLAVE",
+    "confidence": "HIGH",
+    "timestamp": "2026-03-22T16:05:57.312Z"
+  },
+  {
+    "action": "publish",
     "filename": "barbie.json",
     "title": "BARBIE",
     "confidence": "MEDIUM",
