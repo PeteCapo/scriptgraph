@@ -144,15 +144,6 @@
     "structureType": "linear"
   },
   {
-    "filename": "a-complete-unknown.json",
-    "publishedAt": "2026-03-22T03:23:59Z",
-    "confidence": "HIGH",
-    "title": "A Complete Unknown",
-    "writer": "",
-    "genre": "Musical Biography/Drama",
-    "structureType": "linear"
-  },
-  {
     "filename": "dunkirk.json",
     "publishedAt": "2026-03-21T21:18:01Z",
     "confidence": "HIGH",
