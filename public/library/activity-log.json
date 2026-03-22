@@ -1,6 +1,12 @@
 [
   {
     "action": "delete",
+    "filename": "anora.json",
+    "title": "Anora",
+    "timestamp": "2026-03-22T04:51:48.783Z"
+  },
+  {
+    "action": "delete",
     "filename": "barbie.json",
     "title": "BARBIE",
     "timestamp": "2026-03-22T04:51:47.437Z"
