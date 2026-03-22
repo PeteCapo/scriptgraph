@@ -1,5 +1,12 @@
 [
   {
+    "action": "publish",
+    "filename": "the-substance.json",
+    "title": "The Substance",
+    "confidence": "HIGH",
+    "timestamp": "2026-03-22T04:57:50.012Z"
+  },
+  {
     "action": "delete",
     "filename": "the-martian.json",
     "title": "The Martian",
