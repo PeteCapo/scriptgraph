@@ -1,14 +1,5 @@
 [
   {
-    "filename": "the-martian.json",
-    "publishedAt": "2026-03-22T03:24:16Z",
-    "confidence": "HIGH",
-    "title": "The Martian",
-    "writer": "Drew Goddard",
-    "genre": "Sci-Fi Survival Drama",
-    "structureType": "linear"
-  },
-  {
     "filename": "dunkirk.json",
     "publishedAt": "2026-03-21T21:18:01Z",
     "confidence": "HIGH",
