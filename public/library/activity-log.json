@@ -1,6 +1,13 @@
 [
   {
     "action": "publish",
+    "filename": "the-zone-of-interest.json",
+    "title": "The Zone of Interest",
+    "confidence": "HIGH",
+    "timestamp": "2026-03-22T16:06:10.642Z"
+  },
+  {
+    "action": "publish",
     "filename": "the-substance.json",
     "title": "THE SUBSTANCE",
     "confidence": "HIGH",
