@@ -1,6 +1,12 @@
 [
   {
     "action": "delete",
+    "filename": "maestro.json",
+    "title": "MAESTRO",
+    "timestamp": "2026-03-22T04:51:53.859Z"
+  },
+  {
+    "action": "delete",
     "filename": "conclave.json",
     "title": "Conclave",
     "timestamp": "2026-03-22T04:51:52.704Z"
