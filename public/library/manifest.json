@@ -1,58 +1,506 @@
 [
-  "a-complete-unknown.json",
-  "a-history-of-violence.json",
-  "a-real-pain.json",
-  "air.json",
-  "american-fiction.json",
-  "anora.json",
-  "barbie.json",
-  "beau-is-afraid.json",
-  "bugonia.json",
-  "conclave.json",
-  "dumb-money.json",
-  "dunkirk.json",
-  "eddington.json",
-  "emilia-p-rez.json",
-  "eternal-sunshine-of-the-spotless-mind.json",
-  "everything-everywhere-all-at-once.json",
-  "get-out.json",
-  "ghostbusters.json",
-  "hamnet.json",
-  "inception.json",
-  "inherent-vice.json",
-  "interstellar.json",
-  "jackie-brown.json",
-  "maestro.json",
-  "marty-supreme.json",
-  "may-december.json",
-  "moonlight.json",
-  "nickel-boys.json",
-  "oppenheimer.json",
-  "past-lives.json",
-  "phantom-thread.json",
-  "poor-things.json",
-  "pulp-fiction.json",
-  "punch-drunk-love.json",
-  "reservoir-dogs.json",
-  "scream.json",
-  "sentimental-value.json",
-  "september-5.json",
-  "sing-sing.json",
-  "sinners.json",
-  "stranger-than-fiction.json",
-  "swiss-army-man.json",
-  "tenet.json",
-  "the-batman.json",
-  "the-brutalist.json",
-  "the-dark-knight-rises.json",
-  "the-dark-knight.json",
-  "the-following.json",
-  "the-holdovers.json",
-  "the-killing-of-a-sacred-deer.json",
-  "the-lobster.json",
-  "the-martian.json",
-  "there-will-be-blood.json",
-  "train-dreams.json",
-  "true-romance.json",
-  "uncut-gems.json"
+  {
+    "filename": "the-martian.json",
+    "publishedAt": "2026-03-22T03:24:16Z",
+    "confidence": "HIGH",
+    "title": "The Martian",
+    "writer": "Drew Goddard",
+    "genre": "Sci-Fi Survival Drama",
+    "structureType": "linear"
+  },
+  {
+    "filename": "the-holdovers.json",
+    "publishedAt": "2026-03-22T03:24:15Z",
+    "confidence": "HIGH",
+    "title": "The Holdovers",
+    "writer": "David Hemingson",
+    "genre": "Comedy-Drama",
+    "structureType": "linear"
+  },
+  {
+    "filename": "september-5.json",
+    "publishedAt": "2026-03-22T03:24:14Z",
+    "confidence": "HIGH",
+    "title": "September 5",
+    "writer": "Moritz Binder, Tim Fehlbaum, Alex David",
+    "genre": "Historical Drama/Thriller",
+    "structureType": "linear"
+  },
+  {
+    "filename": "sentimental-value.json",
+    "publishedAt": "2026-03-22T03:24:13Z",
+    "confidence": "HIGH",
+    "title": "SENTIMENTAL VALUE",
+    "writer": "Eskil Vogt & Joachim Trier",
+    "genre": "Drama",
+    "structureType": "non-linear"
+  },
+  {
+    "filename": "past-lives.json",
+    "publishedAt": "2026-03-22T03:24:12Z",
+    "confidence": "HIGH",
+    "title": "Past Lives",
+    "writer": "Celine Song",
+    "genre": "Romantic Drama",
+    "structureType": "triptych"
+  },
+  {
+    "filename": "nickel-boys.json",
+    "publishedAt": "2026-03-22T03:24:11Z",
+    "confidence": "HIGH",
+    "title": "Nickel Boys",
+    "writer": "RaMell Ross & Joslyn Barnes",
+    "genre": "Drama",
+    "structureType": "non-linear"
+  },
+  {
+    "filename": "may-december.json",
+    "publishedAt": "2026-03-22T03:24:10Z",
+    "confidence": "HIGH",
+    "title": "May December",
+    "writer": "Samy Burch",
+    "genre": "Psychological Drama",
+    "structureType": "linear"
+  },
+  {
+    "filename": "maestro.json",
+    "publishedAt": "2026-03-22T03:24:09Z",
+    "confidence": "LOW",
+    "title": "MAESTRO",
+    "writer": "Bradley Cooper & Josh Singer",
+    "genre": "Biographical Drama",
+    "structureType": "linear"
+  },
+  {
+    "filename": "conclave.json",
+    "publishedAt": "2026-03-22T03:24:07Z",
+    "confidence": "HIGH",
+    "title": "Conclave",
+    "writer": "Peter Straughan",
+    "genre": "Political Thriller/Drama",
+    "structureType": "linear"
+  },
+  {
+    "filename": "emilia-p-rez.json",
+    "publishedAt": "2026-03-22T03:24:07Z",
+    "confidence": "HIGH",
+    "title": "EMILIA PÉREZ",
+    "writer": "Jacques Audiard in collaboration with Thomas Bidegain",
+    "genre": "Musical Crime Drama",
+    "structureType": "linear"
+  },
+  {
+    "filename": "beau-is-afraid.json",
+    "publishedAt": "2026-03-22T03:24:06Z",
+    "confidence": "HIGH",
+    "title": "Beau Is Afraid",
+    "writer": "Ari Aster",
+    "genre": "Psychological Horror/Dark Comedy",
+    "structureType": "triptych"
+  },
+  {
+    "filename": "anora.json",
+    "publishedAt": "2026-03-22T03:24:04Z",
+    "confidence": "HIGH",
+    "title": "Anora",
+    "writer": "Sean Baker",
+    "genre": "Dark Comedy Drama",
+    "structureType": "linear"
+  },
+  {
+    "filename": "barbie.json",
+    "publishedAt": "2026-03-22T03:24:04Z",
+    "confidence": "MEDIUM",
+    "title": "BARBIE",
+    "writer": "Greta Gerwig & Noah Baumbach",
+    "genre": "Fantasy Comedy",
+    "structureType": "linear"
+  },
+  {
+    "filename": "american-fiction.json",
+    "publishedAt": "2026-03-22T03:24:02Z",
+    "confidence": "HIGH",
+    "title": "American Fiction",
+    "writer": "Cord Jefferson",
+    "genre": "Satirical Drama",
+    "structureType": "linear"
+  },
+  {
+    "filename": "air.json",
+    "publishedAt": "2026-03-22T03:24:01Z",
+    "confidence": "HIGH",
+    "title": "Air",
+    "writer": "Alex Convery",
+    "genre": "Biographical Drama",
+    "structureType": "linear"
+  },
+  {
+    "filename": "a-real-pain.json",
+    "publishedAt": "2026-03-22T03:24:00Z",
+    "confidence": "MEDIUM",
+    "title": "A Real Pain",
+    "writer": "Jesse Eisenberg",
+    "genre": "Drama/Comedy",
+    "structureType": "linear"
+  },
+  {
+    "filename": "a-complete-unknown.json",
+    "publishedAt": "2026-03-22T03:23:59Z",
+    "confidence": "HIGH",
+    "title": "A Complete Unknown",
+    "writer": "",
+    "genre": "Musical Biography/Drama",
+    "structureType": "linear"
+  },
+  {
+    "filename": "dunkirk.json",
+    "publishedAt": "2026-03-21T21:18:01Z",
+    "confidence": "HIGH",
+    "title": "Dunkirk",
+    "writer": "Christopher Nolan",
+    "genre": "War/Survival Thriller",
+    "structureType": "triptych"
+  },
+  {
+    "filename": "tenet.json",
+    "publishedAt": "2026-03-21T21:18:00Z",
+    "confidence": "HIGH",
+    "title": "TENET",
+    "writer": "Christopher Nolan",
+    "genre": "Science Fiction Espionage Thriller",
+    "structureType": "non-linear"
+  },
+  {
+    "filename": "inception.json",
+    "publishedAt": "2026-03-21T21:17:59Z",
+    "confidence": "HIGH",
+    "title": "Inception",
+    "writer": "Christopher Nolan",
+    "genre": "Science Fiction Thriller",
+    "structureType": "non-linear"
+  },
+  {
+    "filename": "the-following.json",
+    "publishedAt": "2026-03-20T17:45:37Z",
+    "confidence": "HIGH",
+    "title": "The Following",
+    "writer": "Christopher Nolan",
+    "genre": "Neo-noir psychological thriller",
+    "structureType": "non-linear"
+  },
+  {
+    "filename": "oppenheimer.json",
+    "publishedAt": "2026-03-20T17:45:36Z",
+    "confidence": "HIGH",
+    "title": "Oppenheimer",
+    "writer": "Christopher Nolan",
+    "genre": "Historical Drama / Biographical Thriller",
+    "structureType": "triptych"
+  },
+  {
+    "filename": "the-killing-of-a-sacred-deer.json",
+    "publishedAt": "2026-03-20T16:16:03Z",
+    "confidence": "HIGH",
+    "title": "The Killing of a Sacred Deer",
+    "writer": "Yorgos Lanthimos and Efthymis Filipou",
+    "genre": "Psychological Horror/Thriller",
+    "structureType": "linear"
+  },
+  {
+    "filename": "the-lobster.json",
+    "publishedAt": "2026-03-20T16:16:02Z",
+    "confidence": "HIGH",
+    "title": "The Lobster",
+    "writer": "Yorgos Lanthimos & Efthimis Filippou",
+    "genre": "Dystopian Dark Comedy",
+    "structureType": "linear"
+  },
+  {
+    "filename": "swiss-army-man.json",
+    "publishedAt": "2026-03-20T16:16:01Z",
+    "confidence": "HIGH",
+    "title": "Swiss Army Man",
+    "writer": "Daniels",
+    "genre": "Surreal Comedy-Drama",
+    "structureType": "circular"
+  },
+  {
+    "filename": "everything-everywhere-all-at-once.json",
+    "publishedAt": "2026-03-20T16:16:00Z",
+    "confidence": "HIGH",
+    "title": "Everything Everywhere All At Once",
+    "writer": "Daniel Kwan and Daniel Scheinert",
+    "genre": "Science Fiction Action Comedy Drama",
+    "structureType": "non-linear"
+  },
+  {
+    "filename": "ghostbusters.json",
+    "publishedAt": "2026-03-20T16:15:58Z",
+    "confidence": "HIGH",
+    "title": "Ghostbusters",
+    "writer": "Dan Aykroyd and Harold Ramis",
+    "genre": "Supernatural Comedy",
+    "structureType": "linear"
+  },
+  {
+    "filename": "inherent-vice.json",
+    "publishedAt": "2026-03-20T16:15:57Z",
+    "confidence": "HIGH",
+    "title": "Inherent Vice",
+    "writer": "Paul Thomas Anderson",
+    "genre": "Neo-noir / Stoner Detective Comedy-Drama",
+    "structureType": "non-linear"
+  },
+  {
+    "filename": "poor-things.json",
+    "publishedAt": "2026-03-20T16:15:56Z",
+    "confidence": "HIGH",
+    "title": "Poor Things",
+    "writer": "Tony McNamara",
+    "genre": "Dark Comedy/Fantasy/Period Drama",
+    "structureType": "linear"
+  },
+  {
+    "filename": "the-dark-knight.json",
+    "publishedAt": "2026-03-16T02:45:01Z",
+    "confidence": "HIGH",
+    "title": "The Dark Knight",
+    "writer": "Jonathan Nolan and Christopher Nolan",
+    "genre": "Crime thriller / Superhero drama",
+    "structureType": "linear"
+  },
+  {
+    "filename": "the-batman.json",
+    "publishedAt": "2026-03-15T16:47:11Z",
+    "confidence": "LOW",
+    "title": "THE BATMAN",
+    "writer": "Matt Reeves & Peter Craig",
+    "genre": "Crime Thriller / Superhero Noir",
+    "structureType": "linear"
+  },
+  {
+    "filename": "the-dark-knight-rises.json",
+    "publishedAt": "2026-03-15T16:25:16Z",
+    "confidence": "HIGH",
+    "title": "The Dark Knight Rises",
+    "writer": "Jonathan Nolan and Christopher Nolan",
+    "genre": "Superhero Action-Thriller",
+    "structureType": "linear"
+  },
+  {
+    "filename": "interstellar.json",
+    "publishedAt": "2026-03-15T16:15:34Z",
+    "confidence": "HIGH",
+    "title": "Interstellar",
+    "writer": "Jonathan Nolan and Christopher Nolan",
+    "genre": "Science Fiction Drama",
+    "structureType": "linear"
+  },
+  {
+    "filename": "eternal-sunshine-of-the-spotless-mind.json",
+    "publishedAt": "2026-03-15T16:03:47Z",
+    "confidence": "HIGH",
+    "title": "Eternal Sunshine of the Spotless Mind",
+    "writer": "Charlie Kaufman",
+    "genre": "Romantic Drama/Science Fiction",
+    "structureType": "non-linear"
+  },
+  {
+    "filename": "there-will-be-blood.json",
+    "publishedAt": "2026-03-15T05:52:02Z",
+    "confidence": "HIGH",
+    "title": "There Will Be Blood",
+    "writer": "Paul Thomas Anderson",
+    "genre": "Period Drama",
+    "structureType": "linear"
+  },
+  {
+    "filename": "phantom-thread.json",
+    "publishedAt": "2026-03-15T05:15:43Z",
+    "confidence": "HIGH",
+    "title": "Phantom Thread",
+    "writer": "Paul Thomas Anderson",
+    "genre": "Psychological Romance/Drama",
+    "structureType": "circular"
+  },
+  {
+    "filename": "punch-drunk-love.json",
+    "publishedAt": "2026-03-15T04:13:21Z",
+    "confidence": "HIGH",
+    "title": "Punch-Drunk Love",
+    "writer": "Paul Thomas Anderson",
+    "genre": "Romantic Drama/Dark Comedy",
+    "structureType": "linear"
+  },
+  {
+    "filename": "a-history-of-violence.json",
+    "publishedAt": "2026-03-15T04:09:23Z",
+    "confidence": "HIGH",
+    "title": "A History of Violence",
+    "writer": "Josh Olson",
+    "genre": "Crime Thriller/Drama",
+    "structureType": "linear"
+  },
+  {
+    "filename": "hamnet.json",
+    "publishedAt": "2026-03-15T04:04:05Z",
+    "confidence": "HIGH",
+    "title": "Hamnet",
+    "writer": "Chloé Zhao & Maggie O'Farrell",
+    "genre": "Historical Drama / Biographical",
+    "structureType": "circular"
+  },
+  {
+    "filename": "jackie-brown.json",
+    "publishedAt": "2026-03-15T03:57:49Z",
+    "confidence": "LOW",
+    "title": "Jackie Brown",
+    "writer": "Quentin Tarantino",
+    "genre": "Crime thriller",
+    "structureType": "linear"
+  },
+  {
+    "filename": "reservoir-dogs.json",
+    "publishedAt": "2026-03-15T03:53:37Z",
+    "confidence": "LOW",
+    "title": "Reservoir Dogs",
+    "writer": "Quentin Tarantino",
+    "genre": "Crime Thriller",
+    "structureType": "non-linear"
+  },
+  {
+    "filename": "pulp-fiction.json",
+    "publishedAt": "2026-03-14T21:56:14Z",
+    "confidence": "LOW",
+    "title": "Pulp Fiction",
+    "writer": "Quentin Tarantino & Roger Avary",
+    "genre": "Crime/Black Comedy",
+    "structureType": "non-linear"
+  },
+  {
+    "filename": "true-romance.json",
+    "publishedAt": "2026-03-14T21:43:22Z",
+    "confidence": "MEDIUM",
+    "title": "TRUE ROMANCE",
+    "writer": "Quentin Tarantino",
+    "genre": "Crime Romance / Action Thriller",
+    "structureType": ""
+  },
+  {
+    "filename": "stranger-than-fiction.json",
+    "publishedAt": "2026-03-14T19:43:29Z",
+    "confidence": "HIGH",
+    "title": "Stranger Than Fiction",
+    "writer": "Zach Helm",
+    "genre": "Fantasy Drama / Romantic Comedy",
+    "structureType": ""
+  },
+  {
+    "filename": "bugonia.json",
+    "publishedAt": "2026-03-14T19:36:27Z",
+    "confidence": "HIGH",
+    "title": "BUGONIA",
+    "writer": "Will Tracy",
+    "genre": "Dark Comedy / Sci-Fi Thriller",
+    "structureType": ""
+  },
+  {
+    "filename": "dumb-money.json",
+    "publishedAt": "2026-03-14T19:32:07Z",
+    "confidence": "HIGH",
+    "title": "DUMB MONEY",
+    "writer": "Rebecca Angelo & Lauren Schuker Blum",
+    "genre": "Biographical Drama / Financial Thriller",
+    "structureType": ""
+  },
+  {
+    "filename": "sing-sing.json",
+    "publishedAt": "2026-03-14T18:59:37Z",
+    "confidence": "HIGH",
+    "title": "SING SING",
+    "writer": "CLINT BENTLEY & GREG KWEDAR",
+    "genre": "Drama",
+    "structureType": ""
+  },
+  {
+    "filename": "eddington.json",
+    "publishedAt": "2026-03-14T18:59:36Z",
+    "confidence": "HIGH",
+    "title": "Eddington",
+    "writer": "Ari Aster",
+    "genre": "Crime Thriller / Dark Political Drama",
+    "structureType": ""
+  },
+  {
+    "filename": "the-brutalist.json",
+    "publishedAt": "2026-03-14T18:59:36Z",
+    "confidence": "HIGH",
+    "title": "The Brutalist",
+    "writer": "Brady Corbet + Mona Fastvold",
+    "genre": "Historical Drama",
+    "structureType": ""
+  },
+  {
+    "filename": "moonlight.json",
+    "publishedAt": "2026-03-14T04:52:43Z",
+    "confidence": "HIGH",
+    "title": "Moonlight",
+    "writer": "Barry Jenkins",
+    "genre": "Drama",
+    "structureType": ""
+  },
+  {
+    "filename": "sinners.json",
+    "publishedAt": "2026-03-14T04:52:43Z",
+    "confidence": "HIGH",
+    "title": "SINNERS",
+    "writer": "Ryan Coogler",
+    "genre": "Horror/Period Thriller",
+    "structureType": ""
+  },
+  {
+    "filename": "train-dreams.json",
+    "publishedAt": "2026-03-14T04:52:43Z",
+    "confidence": "HIGH",
+    "title": "Train Dreams",
+    "writer": "Clint Bentley & Greg Kwedar",
+    "genre": "Period Drama / Magical Realism",
+    "structureType": ""
+  },
+  {
+    "filename": "get-out.json",
+    "publishedAt": "2026-03-12T18:16:50Z",
+    "confidence": "HIGH",
+    "title": "Get Out",
+    "writer": "Jordan Peele",
+    "genre": "Horror/Thriller",
+    "structureType": ""
+  },
+  {
+    "filename": "uncut-gems.json",
+    "publishedAt": "2026-03-12T03:58:18Z",
+    "confidence": "HIGH",
+    "title": "Uncut Gems",
+    "writer": "Safdie & Bronstein",
+    "genre": "Crime Thriller",
+    "structureType": "linear"
+  },
+  {
+    "filename": "scream.json",
+    "publishedAt": "2026-03-12T03:58:07Z",
+    "confidence": "HIGH",
+    "title": "Scream",
+    "writer": "",
+    "genre": "Horror/Slasher/Thriller",
+    "structureType": ""
+  },
+  {
+    "filename": "marty-supreme.json",
+    "publishedAt": "2026-03-12T03:58:00Z",
+    "confidence": "HIGH",
+    "title": "MARTY SUPREME",
+    "writer": "Ronald Bronstein and Josh Safdie",
+    "genre": "Drama / Sports",
+    "structureType": "linear"
+  }
 ]
