@@ -1,6 +1,12 @@
 [
   {
     "action": "delete",
+    "filename": "may-december.json",
+    "title": "May December",
+    "timestamp": "2026-03-22T04:51:55.112Z"
+  },
+  {
+    "action": "delete",
     "filename": "maestro.json",
     "title": "MAESTRO",
     "timestamp": "2026-03-22T04:51:53.859Z"
