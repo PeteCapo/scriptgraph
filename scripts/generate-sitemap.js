@@ -28,7 +28,9 @@ try {
 }
 
 // Build script routes from manifest filenames
-const scriptRoutes = files.map((filename) => {
+// Handles both legacy flat-string entries and new enriched object entries
+const scriptRoutes = files.map((entry) => {
+  const filename = typeof entry === "string" ? entry : entry.filename;
   const slug = filename.replace(/\.json$/, "");
   return {
     path: `/script/${slug}`,
