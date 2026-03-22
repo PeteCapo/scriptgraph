@@ -1,5 +1,14 @@
 [
   {
+    "filename": "barbie.json",
+    "publishedAt": "2026-03-22T16:05:55.846Z",
+    "confidence": "MEDIUM",
+    "title": "BARBIE",
+    "writer": "Greta Gerwig & Noah Baumbach",
+    "genre": "Fantasy Comedy",
+    "structureType": "circular"
+  },
+  {
     "filename": "anora.json",
     "publishedAt": "2026-03-22T16:05:54.361Z",
     "confidence": "HIGH",
