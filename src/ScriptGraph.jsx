@@ -2664,9 +2664,12 @@ function PublishStudio({ T, insights = [], onDownloadInsight, onOpenCarousel, li
   // ── Delete tab state ──
   const [manifestFiles, setManifestFiles] = useState([]);
   const [libraryLoading, setLibraryLoading] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleteTargets, setDeleteTargets] = useState(new Set());
   const [deleteStatus, setDeleteStatus] = useState(null);
   const [deleteMessage, setDeleteMessage] = useState("");
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [deleteSort, setDeleteSort] = useState("date-desc"); // date-desc | date-asc | title-asc | title-desc | confidence-desc | confidence-asc
+  const [deleteSearch, setDeleteSearch] = useState("");
 
   // ── Insights tab state ──
   // insightView: "list" | "form"
@@ -2688,14 +2691,20 @@ function PublishStudio({ T, insights = [], onDownloadInsight, onOpenCarousel, li
   });
   const [form, setForm] = useState(blankForm());
 
-  const reserved = ["manifest.json", "index.json", "config.json"];
+  const reserved = ["manifest.json", "index.json", "config.json", "activity-log.json"];
 
   // Load script library manifest once — for Delete tab
   useEffect(() => {
     setLibraryLoading(true);
     fetch("/library/manifest.json")
       .then(r => r.json())
-      .then(m => setManifestFiles(m.filter(f => !reserved.includes(f))))
+      .then(m => {
+        // Normalise: handle legacy flat-string entries and new enriched object entries
+        const normalised = m
+          .map(e => typeof e === "string" ? { filename: e } : e)
+          .filter(e => e.filename && !reserved.includes(e.filename));
+        setManifestFiles(normalised);
+      })
       .catch(() => setManifestFiles([]))
       .finally(() => setLibraryLoading(false));
   }, []);
@@ -2794,24 +2803,36 @@ function PublishStudio({ T, insights = [], onDownloadInsight, onOpenCarousel, li
 
   // ── Delete tab logic ─────────────────────────────────────────────────────────
   const handleDelete = async () => {
-    if (!deleteTarget || !password) return;
-    setDeleteStatus("loading"); setDeleteMessage(`Deleting ${deleteTarget}...`);
-    try {
-      const res = await fetch("/api/delete", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password, filename: deleteTarget }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setDeleteStatus("success"); setDeleteMessage(data.message);
-        setDeleteTarget(null);
-        setManifestFiles(prev => prev.filter(f => f !== deleteTarget));
-      } else {
-        setDeleteStatus("error"); setDeleteMessage(data.error || "Delete failed");
+    if (!deleteTargets.size || !password) return;
+    setDeleteConfirm(false);
+    setDeleteStatus("loading");
+    const targets = [...deleteTargets];
+    let succeeded = 0, failed = 0;
+    for (const filename of targets) {
+      setDeleteMessage(`Deleting ${filename}... (${succeeded + failed + 1} of ${targets.length})`);
+      try {
+        const res = await fetch("/api/delete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ password, filename }),
+        });
+        if (res.ok) {
+          succeeded++;
+          setManifestFiles(prev => prev.filter(f => f.filename !== filename));
+        } else {
+          failed++;
+        }
+      } catch {
+        failed++;
       }
-    } catch {
-      setDeleteStatus("error"); setDeleteMessage("Network error — try again");
+    }
+    setDeleteTargets(new Set());
+    if (failed === 0) {
+      setDeleteStatus("success");
+      setDeleteMessage(`${succeeded} script${succeeded !== 1 ? "s" : ""} deleted successfully`);
+    } else {
+      setDeleteStatus("error");
+      setDeleteMessage(`${succeeded} deleted, ${failed} failed — check password and try again`);
     }
   };
 
@@ -3150,50 +3171,249 @@ function PublishStudio({ T, insights = [], onDownloadInsight, onOpenCarousel, li
             <div style={{ fontSize: 12, color: T.textMuted, fontFamily: T.fontMono, padding: "20px 0" }}>Loading library...</div>
           ) : manifestFiles.length === 0 ? (
             <div style={{ fontSize: 12, color: T.textMuted, fontFamily: T.fontSans, padding: "20px 0" }}>No scripts in library.</div>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 20 }}>
-              {manifestFiles.map(f => {
-                const title = f.replace(".json", "").replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
-                const isSelected = deleteTarget === f;
+          ) : (() => {
+            // ── Sort + filter ──────────────────────────────────────────────
+            const confRank = { HIGH: 3, MEDIUM: 2, LOW: 1 };
+            const filtered = manifestFiles
+              .filter(e => {
+                if (!deleteSearch.trim()) return true;
+                const q = deleteSearch.toLowerCase();
                 return (
-                  <div key={f} onClick={() => setDeleteTarget(isSelected ? null : f)}
-                    style={{
-                      display: "flex", alignItems: "center", justifyContent: "space-between",
-                      padding: "10px 14px", borderRadius: T.radiusSm, cursor: "pointer",
-                      border: `1px solid ${isSelected ? T.colorError + "60" : T.borderSubtle}`,
-                      background: isSelected ? `${T.colorError}10` : T.bgPanel,
-                      transition: "all 0.15s",
-                    }}>
-                    <div>
-                      <div style={{ fontSize: 13, color: isSelected ? T.colorError : T.textPrimary, fontFamily: T.fontSans }}>{title}</div>
-                      <div style={{ fontSize: 10, color: T.textMuted, fontFamily: T.fontMono }}>{f}</div>
-                    </div>
-                    {isSelected && <div style={{ fontSize: 11, color: T.colorError, fontFamily: T.fontMono }}>selected</div>}
-                  </div>
+                  (e.title || e.filename).toLowerCase().includes(q) ||
+                  (e.genre || "").toLowerCase().includes(q) ||
+                  (e.writer || "").toLowerCase().includes(q)
                 );
-              })}
-            </div>
-          )}
+              })
+              .sort((a, b) => {
+                switch (deleteSort) {
+                  case "date-desc": {
+                    if (!a.publishedAt && !b.publishedAt) return (a.title || a.filename).localeCompare(b.title || b.filename);
+                    if (!a.publishedAt) return 1;
+                    if (!b.publishedAt) return -1;
+                    return new Date(b.publishedAt) - new Date(a.publishedAt);
+                  }
+                  case "date-asc": {
+                    if (!a.publishedAt && !b.publishedAt) return (a.title || a.filename).localeCompare(b.title || b.filename);
+                    if (!a.publishedAt) return 1;
+                    if (!b.publishedAt) return -1;
+                    return new Date(a.publishedAt) - new Date(b.publishedAt);
+                  }
+                  case "title-asc":  return (a.title || a.filename).localeCompare(b.title || b.filename);
+                  case "title-desc": return (b.title || b.filename).localeCompare(a.title || a.filename);
+                  case "confidence-desc": return (confRank[b.confidence] || 0) - (confRank[a.confidence] || 0);
+                  case "confidence-asc":  return (confRank[a.confidence] || 0) - (confRank[b.confidence] || 0);
+                  default: return 0;
+                }
+              });
 
-          {deleteMessage && (
-            <div style={{ marginBottom: 16, padding: "10px 14px", borderRadius: T.radiusSm, background: `${delMsgColor}15`, border: `1px solid ${delMsgColor}40`, fontSize: 13, color: delMsgColor, fontFamily: T.fontSans }}>
-              {deleteMessage}
-            </div>
-          )}
+            const allFilteredSelected = filtered.length > 0 && filtered.every(e => deleteTargets.has(e.filename));
+            const someSelected = deleteTargets.size > 0;
 
-          <button onClick={handleDelete} disabled={!deleteTarget || !password || deleteStatus === "loading"}
-            style={{
-              width: "100%", padding: "12px", borderRadius: T.radiusSm,
-              background: (!deleteTarget || !password || deleteStatus === "loading") ? T.borderMid : T.colorError,
-              color: T.bgPage, border: "none", cursor: (!deleteTarget || !password || deleteStatus === "loading") ? "not-allowed" : "pointer",
-              fontSize: 13, fontFamily: T.fontMono, fontWeight: 600, letterSpacing: 1.5, textTransform: "uppercase",
-            }}
-          >
-            {deleteStatus === "loading" ? "Deleting..." : deleteTarget ? `Delete ${deleteTarget}` : "Select a Script to Delete"}
-          </button>
-          <div style={{ marginTop: 12, fontSize: 11, color: T.textMuted, fontFamily: T.fontSans, textAlign: "center" }}>
-            Deletion is permanent and cannot be undone
-          </div>
+            const confColor = (c) => c === "HIGH" ? T.colorSuccess : c === "MEDIUM" ? T.colorWarning : c === "LOW" ? T.colorError : T.textDim;
+
+            const formatDate = (iso) => {
+              if (!iso) return "";
+              try { return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }); }
+              catch { return ""; }
+            };
+
+            return (
+              <>
+                {/* ── Search ── */}
+                <div style={{ marginBottom: 10 }}>
+                  <input
+                    type="text"
+                    value={deleteSearch}
+                    onChange={e => setDeleteSearch(e.target.value)}
+                    placeholder="Search by title, genre, or writer..."
+                    style={inputStyle({ fontSize: 12, padding: "8px 12px" })}
+                  />
+                </div>
+
+                {/* ── Sort + Select All row ── */}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10, gap: 10 }}>
+                  <select
+                    value={deleteSort}
+                    onChange={e => setDeleteSort(e.target.value)}
+                    style={{
+                      background: T.bgPanel, border: `1px solid ${T.borderMid}`,
+                      borderRadius: T.radiusSm, padding: "6px 10px",
+                      color: T.textSecondary, fontFamily: T.fontMono, fontSize: 10,
+                      letterSpacing: 1, textTransform: "uppercase", cursor: "pointer", outline: "none",
+                    }}
+                  >
+                    <option value="date-desc">Date — Newest First</option>
+                    <option value="date-asc">Date — Oldest First</option>
+                    <option value="title-asc">Title — A to Z</option>
+                    <option value="title-desc">Title — Z to A</option>
+                    <option value="confidence-desc">Confidence — High to Low</option>
+                    <option value="confidence-asc">Confidence — Low to High</option>
+                  </select>
+
+                  <button
+                    onClick={() => {
+                      if (allFilteredSelected) {
+                        // Deselect all filtered
+                        setDeleteTargets(prev => {
+                          const next = new Set(prev);
+                          filtered.forEach(e => next.delete(e.filename));
+                          return next;
+                        });
+                      } else {
+                        // Select all filtered
+                        setDeleteTargets(prev => {
+                          const next = new Set(prev);
+                          filtered.forEach(e => next.add(e.filename));
+                          return next;
+                        });
+                      }
+                    }}
+                    style={{
+                      padding: "6px 12px", borderRadius: T.radiusSm, cursor: "pointer", border: `1px solid ${T.borderMid}`,
+                      background: "transparent", color: T.textMuted,
+                      fontSize: 10, fontFamily: T.fontMono, letterSpacing: 1, textTransform: "uppercase", whiteSpace: "nowrap",
+                    }}
+                  >
+                    {allFilteredSelected ? "Deselect All" : `Select All${deleteSearch ? " Filtered" : ""}`}
+                  </button>
+                </div>
+
+                {/* ── Script list ── */}
+                {filtered.length === 0 ? (
+                  <div style={{ fontSize: 12, color: T.textMuted, fontFamily: T.fontSans, padding: "16px 0" }}>No scripts match your search.</div>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 16 }}>
+                    {filtered.map(e => {
+                      const isSelected = deleteTargets.has(e.filename);
+                      const displayTitle = e.title || e.filename.replace(".json", "").replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+                      return (
+                        <div
+                          key={e.filename}
+                          onClick={() => {
+                            setDeleteTargets(prev => {
+                              const next = new Set(prev);
+                              isSelected ? next.delete(e.filename) : next.add(e.filename);
+                              return next;
+                            });
+                          }}
+                          style={{
+                            display: "flex", alignItems: "center", gap: 10,
+                            padding: "9px 12px", borderRadius: T.radiusSm, cursor: "pointer",
+                            border: `1px solid ${isSelected ? T.colorError + "50" : T.borderSubtle}`,
+                            background: isSelected ? `${T.colorError}0c` : T.bgPanel,
+                            transition: "all 0.12s",
+                          }}
+                        >
+                          {/* Checkbox */}
+                          <div style={{
+                            width: 14, height: 14, borderRadius: 2, flexShrink: 0,
+                            border: `1.5px solid ${isSelected ? T.colorError : T.borderMid}`,
+                            background: isSelected ? T.colorError : "transparent",
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            transition: "all 0.12s",
+                          }}>
+                            {isSelected && (
+                              <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
+                                <polyline points="1,4 3,6 7,2" stroke={T.bgPage} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                              </svg>
+                            )}
+                          </div>
+
+                          {/* Title + meta */}
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 12, color: isSelected ? T.colorError : T.textPrimary, fontFamily: T.fontSans, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                              {displayTitle}
+                            </div>
+                            <div style={{ display: "flex", gap: 8, marginTop: 2, alignItems: "center" }}>
+                              {e.publishedAt && (
+                                <span style={{ fontSize: 10, color: T.textDim, fontFamily: T.fontMono }}>{formatDate(e.publishedAt)}</span>
+                              )}
+                              {e.genre && (
+                                <span style={{ fontSize: 10, color: T.textDim, fontFamily: T.fontSans }}>{e.genre}</span>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Confidence badge */}
+                          {e.confidence && (
+                            <div style={{
+                              fontSize: 9, fontFamily: T.fontMono, fontWeight: 600, letterSpacing: 1,
+                              color: confColor(e.confidence),
+                              border: `1px solid ${confColor(e.confidence)}40`,
+                              borderRadius: T.radiusSm, padding: "2px 6px",
+                              flexShrink: 0,
+                            }}>
+                              {e.confidence}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* ── Status message ── */}
+                {deleteMessage && (
+                  <div style={{ marginBottom: 14, padding: "10px 14px", borderRadius: T.radiusSm, background: `${delMsgColor}15`, border: `1px solid ${delMsgColor}40`, fontSize: 12, color: delMsgColor, fontFamily: T.fontSans }}>
+                    {deleteMessage}
+                  </div>
+                )}
+
+                {/* ── Confirm step ── */}
+                {deleteConfirm && someSelected && (
+                  <div style={{ marginBottom: 12, padding: "12px 14px", borderRadius: T.radiusSm, background: `${T.colorError}10`, border: `1px solid ${T.colorError}40` }}>
+                    <div style={{ fontSize: 12, color: T.colorError, fontFamily: T.fontSans, marginBottom: 10 }}>
+                      Permanently delete <strong>{deleteTargets.size}</strong> script{deleteTargets.size !== 1 ? "s" : ""}? This cannot be undone.
+                    </div>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <button
+                        onClick={handleDelete}
+                        style={{ ...smallBtn(false, true), flex: 1, padding: "8px", fontSize: 11 }}
+                      >
+                        Yes, Delete {deleteTargets.size} Script{deleteTargets.size !== 1 ? "s" : ""}
+                      </button>
+                      <button
+                        onClick={() => setDeleteConfirm(false)}
+                        style={{ ...smallBtn(), padding: "8px 14px", fontSize: 11 }}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* ── Delete button ── */}
+                {!deleteConfirm && (
+                  <button
+                    onClick={() => {
+                      if (!someSelected || !password || deleteStatus === "loading") return;
+                      setDeleteConfirm(true);
+                    }}
+                    disabled={!someSelected || !password || deleteStatus === "loading"}
+                    style={{
+                      width: "100%", padding: "12px", borderRadius: T.radiusSm,
+                      background: (!someSelected || !password || deleteStatus === "loading") ? T.borderMid : T.colorError,
+                      color: T.bgPage, border: "none",
+                      cursor: (!someSelected || !password || deleteStatus === "loading") ? "not-allowed" : "pointer",
+                      fontSize: 13, fontFamily: T.fontMono, fontWeight: 600, letterSpacing: 1.5, textTransform: "uppercase",
+                      transition: "background 0.15s",
+                    }}
+                  >
+                    {deleteStatus === "loading"
+                      ? "Deleting..."
+                      : someSelected
+                        ? `Delete ${deleteTargets.size} Script${deleteTargets.size !== 1 ? "s" : ""}`
+                        : "Select Scripts to Delete"}
+                  </button>
+                )}
+
+                <div style={{ marginTop: 10, fontSize: 11, color: T.textMuted, fontFamily: T.fontSans, textAlign: "center" }}>
+                  {manifestFiles.length} scripts in library{deleteSearch ? ` · ${filtered.length} shown` : ""}
+                  {someSelected ? ` · ${deleteTargets.size} selected` : ""}
+                </div>
+              </>
+            );
+          })()}
         </>
       )}
 
