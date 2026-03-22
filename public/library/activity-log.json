@@ -1,6 +1,12 @@
 [
   {
     "action": "delete",
+    "filename": "the-martian.json",
+    "title": "The Martian",
+    "timestamp": "2026-03-22T04:52:03.704Z"
+  },
+  {
+    "action": "delete",
     "filename": "the-holdovers.json",
     "title": "The Holdovers",
     "timestamp": "2026-03-22T04:52:01.894Z"
