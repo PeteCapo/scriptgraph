@@ -1,6 +1,12 @@
 [
   {
     "action": "delete",
+    "filename": "air.json",
+    "title": "Air",
+    "timestamp": "2026-03-22T04:51:44.706Z"
+  },
+  {
+    "action": "delete",
     "filename": "a-real-pain.json",
     "title": "A Real Pain",
     "timestamp": "2026-03-22T04:51:43.381Z"
