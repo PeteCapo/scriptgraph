@@ -108,15 +108,6 @@
     "structureType": "linear"
   },
   {
-    "filename": "barbie.json",
-    "publishedAt": "2026-03-22T03:24:04Z",
-    "confidence": "MEDIUM",
-    "title": "BARBIE",
-    "writer": "Greta Gerwig & Noah Baumbach",
-    "genre": "Fantasy Comedy",
-    "structureType": "linear"
-  },
-  {
     "filename": "dunkirk.json",
     "publishedAt": "2026-03-21T21:18:01Z",
     "confidence": "HIGH",
