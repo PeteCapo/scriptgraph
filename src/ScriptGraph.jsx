@@ -1157,7 +1157,10 @@ async function loadLibrary() {
       if (!res.ok) return [];
       const manifest = await res.json();
       const entries = await Promise.all(
-        manifest.map(async (filename) => {
+        manifest.map(async (entry) => {
+          // Handle both legacy flat-string entries and new enriched object entries
+          const filename = typeof entry === "string" ? entry : entry.filename;
+          if (!filename) return null;
           try {
             const r = await fetch(`/library/${filename}`);
             if (!r.ok) return null;
@@ -2671,6 +2674,12 @@ function PublishStudio({ T, insights = [], onDownloadInsight, onOpenCarousel, li
   const [deleteSort, setDeleteSort] = useState("date-desc"); // date-desc | date-asc | title-asc | title-desc | confidence-desc | confidence-asc
   const [deleteSearch, setDeleteSearch] = useState("");
 
+  // ── Log tab state ──
+  const [activityLog, setActivityLog] = useState([]);
+  const [logLoading, setLogLoading] = useState(false);
+  const [logLoaded, setLogLoaded] = useState(false);
+  const [logFilter, setLogFilter] = useState("all"); // all | publish | delete
+
   // ── Insights tab state ──
   // insightView: "list" | "form"
   const [insightView, setInsightView] = useState("list");
@@ -3096,6 +3105,17 @@ function PublishStudio({ T, insights = [], onDownloadInsight, onOpenCarousel, li
         <button style={tabStyle(tab === "publish")}  onClick={() => setTab("publish")}>Publish</button>
         <button style={tabStyle(tab === "delete")}   onClick={() => setTab("delete")}>Delete</button>
         <button style={tabStyle(tab === "insights")} onClick={() => { setTab("insights"); setInsightView("list"); }}>Insights</button>
+        <button style={tabStyle(tab === "log")} onClick={() => {
+          setTab("log");
+          if (!logLoaded) {
+            setLogLoading(true);
+            fetch("/library/activity-log.json")
+              .then(r => r.json())
+              .then(data => { setActivityLog(Array.isArray(data) ? data : []); setLogLoaded(true); })
+              .catch(() => { setActivityLog([]); setLogLoaded(true); })
+              .finally(() => setLogLoading(false));
+          }
+        }}>Log</button>
       </div>
 
       {/* Password field — shown on Publish and Delete tabs only; Insights uses it inline */}
@@ -3414,6 +3434,96 @@ function PublishStudio({ T, insights = [], onDownloadInsight, onOpenCarousel, li
               </>
             );
           })()}
+        </>
+      )}
+
+      {/* ── LOG TAB ── */}
+      {tab === "log" && (
+        <>
+          {logLoading ? (
+            <div style={{ fontSize: 12, color: T.textMuted, fontFamily: T.fontMono, padding: "20px 0" }}>Loading log...</div>
+          ) : activityLog.length === 0 && logLoaded ? (
+            <div style={{ fontSize: 12, color: T.textMuted, fontFamily: T.fontSans, padding: "20px 0" }}>No activity recorded yet.</div>
+          ) : (
+            <>
+              {/* Filter row */}
+              <div style={{ display: "flex", gap: 6, marginBottom: 16 }}>
+                {["all", "publish", "delete"].map(f => (
+                  <button key={f} onClick={() => setLogFilter(f)} style={{
+                    padding: "5px 12px", borderRadius: T.radiusSm, border: `1px solid ${logFilter === f ? T.accent + "60" : T.borderSubtle}`,
+                    background: logFilter === f ? T.accent + "15" : "transparent",
+                    color: logFilter === f ? T.accent : T.textMuted,
+                    fontSize: 10, fontFamily: T.fontMono, fontWeight: 600,
+                    letterSpacing: 1.5, textTransform: "uppercase", cursor: "pointer",
+                  }}>{f}</button>
+                ))}
+                <div style={{ marginLeft: "auto", fontSize: 10, color: T.textDim, fontFamily: T.fontMono, alignSelf: "center" }}>
+                  {activityLog.length} total events
+                </div>
+              </div>
+
+              {/* Log entries */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                {activityLog
+                  .filter(e => logFilter === "all" || e.action === logFilter)
+                  .map((e, i) => {
+                    const isPublish = e.action === "publish";
+                    const actionColor = isPublish ? T.colorSuccess : T.colorError;
+                    const dateStr = (() => {
+                      try {
+                        const d = new Date(e.timestamp);
+                        return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) +
+                          " · " + d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+                      } catch { return e.timestamp || ""; }
+                    })();
+                    return (
+                      <div key={i} style={{
+                        display: "flex", alignItems: "center", gap: 10,
+                        padding: "9px 12px", borderRadius: T.radiusSm,
+                        background: T.bgPanel, border: `1px solid ${T.borderSubtle}`,
+                      }}>
+                        {/* Action pill */}
+                        <div style={{
+                          fontSize: 9, fontFamily: T.fontMono, fontWeight: 600, letterSpacing: 1,
+                          color: actionColor, border: `1px solid ${actionColor}40`,
+                          borderRadius: T.radiusSm, padding: "2px 6px", flexShrink: 0,
+                          textTransform: "uppercase",
+                        }}>
+                          {e.action}
+                        </div>
+
+                        {/* Title */}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 12, color: T.textPrimary, fontFamily: T.fontSans, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                            {e.title || e.filename}
+                          </div>
+                          {e.filename && e.title && e.title !== e.filename && (
+                            <div style={{ fontSize: 10, color: T.textDim, fontFamily: T.fontMono }}>{e.filename}</div>
+                          )}
+                        </div>
+
+                        {/* Confidence badge — only on publish entries */}
+                        {isPublish && e.confidence && (
+                          <div style={{
+                            fontSize: 9, fontFamily: T.fontMono, fontWeight: 600, letterSpacing: 1,
+                            color: e.confidence === "HIGH" ? T.colorSuccess : e.confidence === "MEDIUM" ? T.colorWarning : T.colorError,
+                            border: `1px solid ${(e.confidence === "HIGH" ? T.colorSuccess : e.confidence === "MEDIUM" ? T.colorWarning : T.colorError)}40`,
+                            borderRadius: T.radiusSm, padding: "2px 6px", flexShrink: 0,
+                          }}>
+                            {e.confidence}
+                          </div>
+                        )}
+
+                        {/* Timestamp */}
+                        <div style={{ fontSize: 10, color: T.textDim, fontFamily: T.fontMono, flexShrink: 0, whiteSpace: "nowrap" }}>
+                          {dateStr}
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            </>
+          )}
         </>
       )}
 
