@@ -1,6 +1,12 @@
 [
   {
     "action": "delete",
+    "filename": "nickel-boys.json",
+    "title": "Nickel Boys",
+    "timestamp": "2026-03-22T04:51:56.525Z"
+  },
+  {
+    "action": "delete",
     "filename": "may-december.json",
     "title": "May December",
     "timestamp": "2026-03-22T04:51:55.112Z"
