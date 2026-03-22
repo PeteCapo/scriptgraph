@@ -1,6 +1,12 @@
 [
   {
     "action": "delete",
+    "filename": "american-fiction.json",
+    "title": "American Fiction",
+    "timestamp": "2026-03-22T04:51:46.154Z"
+  },
+  {
+    "action": "delete",
     "filename": "air.json",
     "title": "Air",
     "timestamp": "2026-03-22T04:51:44.706Z"
