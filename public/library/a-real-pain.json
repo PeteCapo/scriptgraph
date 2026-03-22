@@ -1,20 +1,20 @@
 {
-  "title": "A REAL PAIN",
+  "title": "A Real Pain",
   "writer": "Jesse Eisenberg",
-  "logline": "Two mismatched Jewish-American cousins travel to Poland to honor their recently deceased grandmother, joining a Holocaust tour that forces them to confront their family history and their complicated relationship with each other.",
+  "logline": "Two mismatched cousins travel to Poland on a Holocaust tour to honor their deceased grandmother, confronting their relationship and family history.",
   "totalPages": 101,
   "totalScenes": 128,
   "protagonist": "David and Benji Kaplan (dual protagonists - cousins)",
-  "antagonistOrConflict": "The cousins' unresolved grief, guilt, and family trauma; Benji's self-destructive behavior and David's repressed emotions",
+  "antagonistOrConflict": "The painful dynamics of their relationship, grief over their grandmother's death, and confronting family Holocaust history",
   "genre": "Comedy-Drama",
-  "tone": "Melancholic, darkly comedic, introspective with moments of levity",
+  "tone": "Bittersweet, melancholic, with moments of dark humor and emotional intimacy",
   "themes": [
-    "Generational trauma",
-    "Jewish identity and history",
     "Family dysfunction",
     "Grief and loss",
-    "Privilege and suffering",
-    "Connection and isolation"
+    "Holocaust remembrance",
+    "Mental health",
+    "Jewish identity",
+    "Guilt and privilege"
   ],
   "naturalStructure": {
     "actCount": 3,
@@ -22,123 +22,111 @@
     "actBreaks": [
       {
         "actNumber": 1,
-        "sceneNumber": 24,
-        "page": 25,
-        "position": 24.8,
-        "description": "Setup ends when cousins meet tour group at hotel restaurant and begin their journey",
+        "sceneNumber": 34,
+        "page": 36,
+        "position": 35.6,
+        "description": "The cousins arrive at their Warsaw hotel after the first day of touring, establishing their dynamic and the tour group.",
         "validation": {
-          "verdict": "replaced",
-          "confidence": "high",
-          "ruling": "Scene #22 is designated as an act break but also serves as the inciting incident launching the tour. Scene #24 at the Warsaw Ghetto Uprising Monument marks the true end of Act 1 setup and beginning of the journey proper."
+          "verdict": "confirmed",
+          "confidence": "medium",
+          "ruling": "Scene #34 shows the group entering the Warsaw hotel after their day of sightseeing, with David feeling left out of the group dynamic. This marks the end of the setup phase and David's growing awareness of his disconnect from both Benji and the tour experience."
         }
       },
       {
         "actNumber": 2,
-        "sceneNumber": 105,
-        "page": 84,
-        "position": 83.2,
-        "description": "Second act ends after Majdanek concentration camp visit - the emotional climax of their historical journey",
-        "validation": {
-          "verdict": "replaced",
-          "confidence": "medium",
-          "ruling": "Scene #84 is designated as an act break but the more significant turning point is Scene #105 (p84, 83%) where the cousins have their rooftop conversation overlooking Majdanek, representing the transition into the final act of resolution and departure."
-        }
-      },
-      {
-        "actNumber": 3,
-        "sceneNumber": 116,
-        "page": 93,
-        "position": 92.1,
-        "description": "Final act begins when they reach grandmother's actual hometown and house",
+        "sceneNumber": 94,
+        "page": 79,
+        "position": 78.2,
+        "description": "The group returns from visiting Majdanek concentration camp, marking the emotional climax of their Holocaust education.",
         "validation": {
           "verdict": "confirmed",
           "confidence": "high",
-          "ruling": "Scene #116 at their grandmother's childhood home (p93, 92%) properly marks the end of Act 3, representing the completion of their heritage journey and emotional resolution before returning home."
+          "ruling": "Scene #94 in the van after visiting Majdanek shows Benji openly crying while David watches heartbroken, representing the emotional devastation that transforms both characters. This moment fundamentally changes the story's direction as they process the weight of their heritage and trauma together."
         }
       }
     ],
-    "structuralPersonality": "Character-driven journey structure with geographic and emotional progression from New York to Warsaw to Lublin to grandmother's village, mirroring internal journey from surface conflict to deeper family trauma",
-    "pacingNotes": "Deliberately paced with extended dialogue scenes and quiet character moments. Heavy concentration of short transitional scenes in the middle section during travel sequences. Extended rooftop conversation scene serves as emotional centerpiece."
+    "structuralPersonality": "This is a character-driven journey film that follows the classic three-act structure while maintaining an intimate, observational tone. The first act establishes the cousins' contrasting personalities through their travel to Poland and introduction to the tour group. The second act deepens their exploration of both their family history and personal tensions, culminating in the visit to Majdanek. The third act focuses on their final bonding and separation, ending with a return to the opening airport imagery. The structure mirrors the physical journey from New York to Poland and back, but the emotional journey moves from avoidance to confrontation to acceptance.",
+    "pacingNotes": "The pacing shifts dramatically between rapid-fire dialogue scenes (like the extended restaurant conversation in scene 70) and contemplative, slower moments (the rooftop scene 104-105). The middle section maintains steady momentum through the tour activities, while the final act deliberately slows down for the emotional climax and resolution."
   },
   "keyMoments": {
     "incitingIncident": {
-      "sceneNumber": 24,
-      "page": 25,
-      "position": 24.8,
-      "description": "At the Warsaw Ghetto Uprising Monument, James begins the tour by addressing myths about Jewish resistance during WWII.",
-      "sceneHeading": "EXT. WARSAW GHETTO UPRISING MONUMENT - DAY",
-      "validation": {
-        "verdict": "replaced",
-        "confidence": "high",
-        "ruling": "Scene #22 is an act break and cannot be selected. Scene #24 at the Warsaw Ghetto Uprising Monument (p25, 25%) is the true inciting incident where James begins the Holocaust tour by addressing myths about Jewish resistance. This launches the central dramatic journey of the screenplay and occurs at the perfect structural position at the end of Act 1."
-      }
-    },
-    "midpoint": {
-      "sceneNumber": 43,
-      "page": 39,
-      "position": 38.6,
-      "description": "On the hotel roof overlooking Warsaw, they share weed and Benji reflects on their past adventures in New York, remembering how David would always fall asleep during their all-night walks.",
-      "sceneHeading": "EXT. WARSAW HOTEL ROOF — NIGHT",
-      "validation": {
-        "verdict": "replaced",
-        "confidence": "high",
-        "ruling": "Scene #84 is an act break and cannot be selected. Scene #43 on the Warsaw Hotel roof (p41, 41%) serves as the midpoint where David has a contemplative moment alone on the rooftop at night, representing the emotional center and turning point of his internal journey during this heritage trip."
-      }
-    },
-    "climax": {
-      "sceneNumber": 104,
-      "page": 84,
-      "position": 83.2,
-      "description": "The cousins emerge onto the quiet rooftop overlooking Lublin after struggling with a rusty industrial door.",
-      "sceneHeading": "EXT. ROOF - NIGHT",
+      "sceneNumber": 5,
+      "page": 3,
+      "position": 3,
+      "description": "David arrives at JFK still leaving messages when Benji surprises him from behind, and they reunite with warm hugs and playful banter.",
+      "sceneHeading": "INT. JFK AIRPORT - DAY",
       "validation": {
         "verdict": "confirmed",
         "confidence": "high",
-        "ruling": "Scene #104 on the Lublin rooftop (p84, 83%) is the emotional climax where the cousins share their final meaningful moment together, smoking and reflecting while overlooking the city that contains the Majdanek concentration camp. This creates the story's emotional peak before their departure."
+        "ruling": "Scene #5 establishes the central relationship and journey when David and Benji reunite at JFK Airport before their Poland trip. This moment launches the main narrative conflict by bringing together these two cousins with unresolved tension, forcing David into a situation he cannot avoid and setting up the emotional stakes that will drive the entire story."
+      }
+    },
+    "midpoint": {
+      "sceneNumber": 68,
+      "page": 60,
+      "position": 59.4,
+      "description": "At the Jewish cemetery, James discusses the history while Benji grows visibly frustrated with James's constant talking, leading to nonverbal communication between the cousins and Benji approaching James and Eloge.",
+      "sceneHeading": "EXT. CEMETERY – DUSK",
+      "validation": {
+        "verdict": "confirmed",
+        "confidence": "high",
+        "ruling": "Scene #68 at the Jewish cemetery serves as the midpoint where Benji shifts from passive participation to actively confronting James about treating the dead as 'factoids' rather than real people. This eruption marks Benji's transition from reactive to proactive behavior, significantly raising the personal stakes and revealing his deeper emotional wounds that will drive the second half of the story."
+      }
+    },
+    "climax": {
+      "sceneNumber": 105,
+      "page": 84,
+      "position": 83.2,
+      "description": "While sharing a joint on the rooftop, David and Benji spot the Majdanek concentration camp in the distance, then David asks about Benji's plans for returning to Binghamton, making Benji uncomfortable.",
+      "sceneHeading": "EXT. ROOF – NIGHT",
+      "validation": {
+        "verdict": "confirmed",
+        "confidence": "medium",
+        "ruling": "Scene #105 on the rooftop represents the emotional climax where the cousins share an intimate moment overlooking Majdanek concentration camp, leading to a crucial conversation about Benji's future that exposes the deep gulf between their life paths. This scene resolves the main emotional question about their relationship while demonstrating both characters' growth through their ability to have this vulnerable exchange."
       }
     }
   },
   "overallTension": [
-    3,
+    2.8,
+    3.2,
     3.4,
+    3.9,
+    3.7,
+    3.6,
+    3.6,
+    3.7,
+    3.7,
+    3.6,
     3.8,
     4.2,
-    4,
-    3.7,
-    3.2,
-    2.9,
-    3.1,
-    3.4,
-    4.2,
-    4.8,
-    5.3,
-    5,
+    4.5,
+    4.7,
     4.4,
-    4.4,
+    4.6,
     4.6,
     5.1,
     5.2,
-    5,
+    5.1,
     4.6,
     4.5,
     4.8,
-    5.9,
-    6.8,
-    7.5,
-    7.5,
-    7.1,
-    6.8,
-    7.2,
-    7.3,
-    7.1,
-    6.4,
-    6.1,
-    6.3,
+    5.7,
+    6.2,
     6.6,
     6.6,
+    6.2,
+    6,
     6.4,
-    6.5,
-    6.6
+    6.6,
+    6.4,
+    5.6,
+    5.3,
+    5.2,
+    5.2,
+    5.3,
+    5.5,
+    5.2,
+    5
   ],
   "scenes": [
     {
@@ -150,8 +138,8 @@
       "position": 2,
       "lineStart": 4,
       "lineEnd": 13,
-      "summary": "Opening credits over Benji sitting alone at JFK Airport, looking melancholy as travelers pass by, establishing the film's tone.",
-      "tension": 2,
+      "summary": "Benji Kaplan sits alone on an airport bench with a melancholy expression as credits roll and the title appears.",
+      "tension": 3,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -164,7 +152,7 @@
       "position": 2,
       "lineStart": 14,
       "lineEnd": 22,
-      "summary": "David hurriedly leaves his Brooklyn apartment, calling Benji about airport timing and early arrival requirements.",
+      "summary": "David hurries down a Brooklyn street while leaving a voicemail for Benji about meeting at the airport.",
       "tension": 2,
       "turningPoint": false,
       "turningPointNote": ""
@@ -178,8 +166,8 @@
       "position": 2,
       "lineStart": 23,
       "lineEnd": 24,
-      "summary": "David's Uber stuck in traffic on the BQE highway, building travel anxiety.",
-      "tension": 3,
+      "summary": "David's Uber sits stuck in traffic on the BQE.",
+      "tension": 1,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -192,7 +180,7 @@
       "position": 2,
       "lineStart": 25,
       "lineEnd": 47,
-      "summary": "David leaves multiple frantic voicemails for Benji from the Uber, showing his anxious nature and need for control.",
+      "summary": "David frantically leaves multiple voicemails for Benji from the backseat of his Uber.",
       "tension": 4,
       "turningPoint": false,
       "turningPointNote": ""
@@ -206,10 +194,10 @@
       "position": 3,
       "lineStart": 48,
       "lineEnd": 158,
-      "summary": "David arrives at JFK still leaving messages when Benji surprises him from behind; they reunite warmly but David tries to rush the check-in process.",
-      "tension": 3,
-      "turningPoint": false,
-      "turningPointNote": ""
+      "summary": "David arrives at JFK still leaving messages when Benji surprises him from behind, and they reunite with warm hugs and playful banter.",
+      "tension": 2,
+      "turningPoint": true,
+      "turningPointNote": "The cousins finally meet, establishing their dynamic and launching the story forward"
     },
     {
       "number": 6,
@@ -220,7 +208,7 @@
       "position": 5,
       "lineStart": 159,
       "lineEnd": 162,
-      "summary": "The cousins walk through the airport hallway toward security, David discretely throwing away yogurt.",
+      "summary": "The cousins walk toward security as David subtly throws away his yogurt.",
       "tension": 2,
       "turningPoint": false,
       "turningPointNote": ""
@@ -234,8 +222,8 @@
       "position": 5.9,
       "lineStart": 163,
       "lineEnd": 180,
-      "summary": "At airport security, David nervously watches Benji's bag while Benji charmingly flirts with TSA agent Jasmine, showcasing their contrasting personalities.",
-      "tension": 4,
+      "summary": "Benji charms a TSA agent named Jasmine while going through security as David watches nervously then admiringly.",
+      "tension": 3,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -248,7 +236,7 @@
       "position": 5.9,
       "lineStart": 181,
       "lineEnd": 245,
-      "summary": "At the gate, Benji takes David's trail mix and claims he's been 'great' lately, with unspoken tension about recent months they avoid discussing.",
+      "summary": "At the gate, Benji claims he's been 'great' when David asks how he's been, creating unspoken tension as David wants to discuss 'the last few months' but can't.",
       "tension": 5,
       "turningPoint": false,
       "turningPointNote": ""
@@ -262,8 +250,8 @@
       "position": 7.9,
       "lineStart": 246,
       "lineEnd": 259,
-      "summary": "On the plane, Benji gets the window seat and asks David to take the uncomfortable middle seat.",
-      "tension": 3,
+      "summary": "The cousins board the plane and Benji asks David to take the middle seat.",
+      "tension": 2,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -276,7 +264,7 @@
       "position": 7.9,
       "lineStart": 260,
       "lineEnd": 339,
-      "summary": "David cramped in middle seat discusses his digital ad sales job while Benji dismisses it as something 'everybody hates,' revealing their different life paths.",
+      "summary": "David sits cramped in the middle seat while Benji spreads out comfortably, and Benji dismisses David's digital ad sales job as something 'everybody hates.'",
       "tension": 4,
       "turningPoint": false,
       "turningPointNote": ""
@@ -290,7 +278,7 @@
       "position": 9.9,
       "lineStart": 340,
       "lineEnd": 371,
-      "summary": "During the night flight, David stays awake missing his son Abe while watching videos, as Benji sleeps peacefully with empty wine bottles.",
+      "summary": "David stays awake watching videos of his son Abe while Benji sleeps with empty wine bottles on his tray.",
       "tension": 3,
       "turningPoint": false,
       "turningPointNote": ""
@@ -304,7 +292,7 @@
       "position": 10.9,
       "lineStart": 372,
       "lineEnd": 377,
-      "summary": "Exhausted at Warsaw airport, Benji has a dark mood and declines breakfast, showing his emotional volatility.",
+      "summary": "The exhausted cousins walk through Warsaw airport as David suggests breakfast but Benji shakes his head with a dark look.",
       "tension": 4,
       "turningPoint": false,
       "turningPointNote": ""
@@ -318,8 +306,8 @@
       "position": 10.9,
       "lineStart": 378,
       "lineEnd": 385,
-      "summary": "David nervously watches Benji's bag go through customs while Benji remains completely unfazed by security.",
-      "tension": 5,
+      "summary": "David panics silently as they go through customs while Benji remains unfazed.",
+      "tension": 4,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -332,8 +320,8 @@
       "position": 11.9,
       "lineStart": 386,
       "lineEnd": 398,
-      "summary": "After clearing customs, Benji's mood suddenly shifts from bleak to bright when he spots their Heritage Tours driver.",
-      "tension": 4,
+      "summary": "Benji looks bleak but suddenly brightens when he spots their Heritage Tours driver.",
+      "tension": 3,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -346,7 +334,7 @@
       "position": 11.9,
       "lineStart": 399,
       "lineEnd": 437,
-      "summary": "In the car to Warsaw, David watches videos of his son while Benji stares out the window, both dealing with separation and homesickness differently.",
+      "summary": "In the car, David watches videos of his son while Benji stares out the window, and Benji asks to see the video of Abe.",
       "tension": 3,
       "turningPoint": false,
       "turningPointNote": ""
@@ -360,8 +348,8 @@
       "position": 12.9,
       "lineStart": 438,
       "lineEnd": 439,
-      "summary": "They arrive at the upscale Warsaw Central Hotel for their heritage tour.",
-      "tension": 2,
+      "summary": "They arrive at the Warsaw Central Hotel.",
+      "tension": 1,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -374,7 +362,7 @@
       "position": 12.9,
       "lineStart": 440,
       "lineEnd": 488,
-      "summary": "Checking in at the hotel, Benji receives a mysterious package that's been waiting for days, puzzling David.",
+      "summary": "At check-in, Benji receives a mysterious package that has been waiting for days, baffling David.",
       "tension": 4,
       "turningPoint": false,
       "turningPointNote": ""
@@ -388,7 +376,7 @@
       "position": 13.9,
       "lineStart": 489,
       "lineEnd": 499,
-      "summary": "In the hotel hallway, Benji affectionately tells David how happy he is to be there together.",
+      "summary": "Walking to their room, Benji throws his arm around David's neck and expresses happiness about being there together.",
       "tension": 2,
       "turningPoint": false,
       "turningPointNote": ""
@@ -402,7 +390,7 @@
       "position": 14.9,
       "lineStart": 500,
       "lineEnd": 588,
-      "summary": "In their hotel room, Benji compliments David's feet and reminisces about their grandmother's feet, connecting family memories to their trip.",
+      "summary": "In their hotel room, Benji compliments David's feet and compares them to their grandmother's, sparking a memory about her pink plastic sandals.",
       "tension": 3,
       "turningPoint": false,
       "turningPointNote": ""
@@ -416,7 +404,7 @@
       "position": 16.8,
       "lineStart": 589,
       "lineEnd": 591,
-      "summary": "The cousins walk down the hotel hallway, Benji refreshed while David remains exhausted from travel.",
+      "summary": "The cousins walk down the hallway with Benji freshly showered and David sweaty and exhausted.",
       "tension": 2,
       "turningPoint": false,
       "turningPointNote": ""
@@ -430,7 +418,7 @@
       "position": 16.8,
       "lineStart": 592,
       "lineEnd": 612,
-      "summary": "In the hotel lobby, they meet James, their young British tour guide, who intercepts them before the group meeting.",
+      "summary": "James, their British tour guide, intercepts them in the hotel lobby.",
       "tension": 2,
       "turningPoint": false,
       "turningPointNote": ""
@@ -444,10 +432,10 @@
       "position": 17.8,
       "lineStart": 613,
       "lineEnd": 900,
-      "summary": "James introduces David and Benji to their small heritage tour group and explains his background as an Oxford scholar of Eastern European Jewish history, while Benji immediately charms everyone and David observes his cousin's social ease.",
-      "tension": 3,
+      "summary": "James introduces the cousins to their tour group and gives a lengthy introduction about himself and the tour, while Benji immediately charms everyone and David feels overwhelmed by the group dynamics.",
+      "tension": 4,
       "turningPoint": true,
-      "turningPointNote": "Introduction to the tour group and establishment of group dynamics that will drive much of the film's interpersonal conflict"
+      "turningPointNote": "Introduction of the tour group and establishment of group dynamics that will drive much of the story"
     },
     {
       "number": 23,
@@ -458,8 +446,8 @@
       "position": 24.8,
       "lineStart": 901,
       "lineEnd": 903,
-      "summary": "Montage of Warsaw's bustling city life set to Chopin's racing Etude, establishing the setting.",
-      "tension": 2,
+      "summary": "A montage of Warsaw buildings and streets set to Chopin's racing Etude.",
+      "tension": 1,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -472,7 +460,7 @@
       "position": 24.8,
       "lineStart": 904,
       "lineEnd": 928,
-      "summary": "At the Warsaw Ghetto Uprising Monument, James begins the tour by addressing myths about Jewish resistance during WWII.",
+      "summary": "James gathers the group at the Warsaw Ghetto Uprising Monument and explains its significance in dispelling myths about Jewish resistance.",
       "tension": 4,
       "turningPoint": false,
       "turningPointNote": ""
@@ -486,8 +474,8 @@
       "position": 24.8,
       "lineStart": 929,
       "lineEnd": 931,
-      "summary": "The group walks along a street lined with Soviet-era apartment blocks.",
-      "tension": 2,
+      "summary": "The group walks along a street in front of Soviet-era apartment buildings.",
+      "tension": 1,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -500,7 +488,7 @@
       "position": 24.8,
       "lineStart": 932,
       "lineEnd": 940,
-      "summary": "Benji buys water for the group but has no money, requiring David to pay, showing their financial dynamic.",
+      "summary": "Benji buys water for the group but realizes he has no money, so David gives him złotys to pay.",
       "tension": 3,
       "turningPoint": false,
       "turningPointNote": ""
@@ -514,7 +502,7 @@
       "position": 25.7,
       "lineStart": 941,
       "lineEnd": 1020,
-      "summary": "In Krasinski Garden, Benji philosophizes about alternate histories where they might have been Polish Jews, while David reflects on seeing Hasidic men in New York.",
+      "summary": "Walking through Krasinski Garden, Benji muses about how they might have lived in Poland if not for the war while David seems less engaged with the philosophical speculation.",
       "tension": 4,
       "turningPoint": false,
       "turningPointNote": ""
@@ -528,8 +516,8 @@
       "position": 27.7,
       "lineStart": 1021,
       "lineEnd": 1025,
-      "summary": "The group walks through Warsaw's ruins mixed with modern reconstruction, seeing the contrast of old and new.",
-      "tension": 3,
+      "summary": "The group walks through Warsaw's ruins that abut modern Central European architecture.",
+      "tension": 2,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -542,7 +530,7 @@
       "position": 27.7,
       "lineStart": 1026,
       "lineEnd": 1030,
-      "summary": "Benji playfully skips across stones in a pond while the patient group waits for his antics to finish.",
+      "summary": "Benji playfully skips along stones jutting from a pond while the group waits patiently for him to finish.",
       "tension": 2,
       "turningPoint": false,
       "turningPointNote": ""
@@ -556,7 +544,7 @@
       "position": 27.7,
       "lineStart": 1031,
       "lineEnd": 1091,
-      "summary": "At a cafe, Benji reveals he's learned intimate details about Marcia's recent divorce and dating life, showing his ability to connect with people quickly.",
+      "summary": "David sits alone at a cafe until Benji joins him, and Benji reveals intimate details about Marcia's recent divorce and dating life that she confided in him.",
       "tension": 4,
       "turningPoint": false,
       "turningPointNote": ""
@@ -570,8 +558,8 @@
       "position": 29.7,
       "lineStart": 1092,
       "lineEnd": 1093,
-      "summary": "The group walks through a bohemian neighborhood street in Warsaw.",
-      "tension": 2,
+      "summary": "The group walks through a bohemian street from a high vantage point.",
+      "tension": 1,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -584,7 +572,7 @@
       "position": 29.7,
       "lineStart": 1094,
       "lineEnd": 1095,
-      "summary": "The group passes a fragment of the old Warsaw Ghetto Wall.",
+      "summary": "The group passes a fragment of the old Ghetto Wall.",
       "tension": 3,
       "turningPoint": false,
       "turningPointNote": ""
@@ -598,10 +586,10 @@
       "position": 29.7,
       "lineStart": 1096,
       "lineEnd": 1330,
-      "summary": "At the Warsaw Uprising Monument, James explains Polish-Russian-German conflicts while Benji insists on taking inappropriate photos with the bronze soldiers, embarrassing David and revealing his lack of social boundaries.",
-      "tension": 6,
-      "turningPoint": true,
-      "turningPointNote": "Benji's inappropriate behavior at a solemn memorial reveals his inability to read social situations and begins to strain his relationship with David"
+      "summary": "At the Warsaw Uprising Monument, James explains Polish history while Benji enthusiastically poses for photos with the bronze soldiers, embarrassing David who reluctantly participates.",
+      "tension": 5,
+      "turningPoint": false,
+      "turningPointNote": ""
     },
     {
       "number": 34,
@@ -612,8 +600,8 @@
       "position": 35.6,
       "lineStart": 1331,
       "lineEnd": 1333,
-      "summary": "The group returns to the hotel with good energy from the day, though David feels somewhat left out.",
-      "tension": 3,
+      "summary": "The group enters the hotel with good energy from the day while David feels left out.",
+      "tension": 4,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -626,7 +614,7 @@
       "position": 35.6,
       "lineStart": 1334,
       "lineEnd": 1340,
-      "summary": "In the hotel elevator, Benji warmly bids goodnight to the group members who respond fondly to him.",
+      "summary": "In the elevator, Benji warmly says goodnight to the other tour members as he and David get off at their floor.",
       "tension": 2,
       "turningPoint": false,
       "turningPointNote": ""
@@ -640,8 +628,8 @@
       "position": 35.6,
       "lineStart": 1341,
       "lineEnd": 1342,
-      "summary": "The cousins walk down the hotel hallway toward their room after the elevator ride.",
-      "tension": 2,
+      "summary": "The cousins walk down the hotel hallway toward their room.",
+      "tension": 1,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -654,7 +642,7 @@
       "position": 35.6,
       "lineStart": 1343,
       "lineEnd": 1353,
-      "summary": "Benji asks David to come into the cramped bathroom for a private conversation.",
+      "summary": "Benji asks David to come into the bathroom with him.",
       "tension": 4,
       "turningPoint": false,
       "turningPointNote": ""
@@ -668,8 +656,8 @@
       "position": 35.6,
       "lineStart": 1354,
       "lineEnd": 1390,
-      "summary": "In the bathroom, Benji intensely thanks David for the trip and acknowledges David's social discomfort, while David denies being uncomfortable with groups.",
-      "tension": 5,
+      "summary": "In the cramped bathroom, Benji intensely thanks David for the trip and acknowledges David's discomfort with groups, while David denies being uncomfortable socially.",
+      "tension": 6,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -682,7 +670,7 @@
       "position": 36.6,
       "lineStart": 1391,
       "lineEnd": 1425,
-      "summary": "Benji wants to smoke weed but the window only opens slightly; he pressures exhausted David to stay awake and smoke together on their first night.",
+      "summary": "Benji tries to open the hotel window to smoke but it only opens a few inches, frustrating him as David wants to sleep and Benji insists on staying up together.",
       "tension": 5,
       "turningPoint": false,
       "turningPointNote": ""
@@ -696,7 +684,7 @@
       "position": 37.6,
       "lineStart": 1426,
       "lineEnd": 1428,
-      "summary": "David and Benji ride the elevator with Benji carrying a blunt, both in good spirits about their smoking plan.",
+      "summary": "David and Benji ride the elevator with Benji carrying a blunt and a fun spirit between them.",
       "tension": 3,
       "turningPoint": false,
       "turningPointNote": ""
@@ -710,7 +698,7 @@
       "position": 37.6,
       "lineStart": 1429,
       "lineEnd": 1462,
-      "summary": "On the top floor, they find a door with an alarm warning, but Benji convinces reluctant David to try the stairwell instead.",
+      "summary": "The cousins find a door to the roof but David worries about the alarm while Benji wants to risk it.",
       "tension": 5,
       "turningPoint": false,
       "turningPointNote": ""
@@ -724,8 +712,8 @@
       "position": 38.6,
       "lineStart": 1463,
       "lineEnd": 1465,
-      "summary": "The cousins giggle as they race up the hotel stairwell to access the roof.",
-      "tension": 3,
+      "summary": "The boys giggle as they race up the stairwell and Benji opens the roof door.",
+      "tension": 4,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -738,10 +726,10 @@
       "position": 38.6,
       "lineStart": 1466,
       "lineEnd": 1523,
-      "summary": "On the hotel roof overlooking Warsaw, they share weed and Benji reflects on their past adventures in New York, remembering how David would always fall asleep during their all-night walks.",
+      "summary": "On the hotel roof overlooking Warsaw, the cousins share a joint and Benji tells David he's 'an awesome guy stuck inside the body of someone who's always running late' while reminiscing about their past adventures.",
       "tension": 4,
       "turningPoint": true,
-      "turningPointNote": "Intimate moment revealing their shared history and the patterns in their relationship, with hints of deeper issues"
+      "turningPointNote": "Key bonding moment that reveals the core of their relationship dynamic and shared history"
     },
     {
       "number": 44,
@@ -752,8 +740,8 @@
       "position": 40.6,
       "lineStart": 1524,
       "lineEnd": 1525,
-      "summary": "The cousins ride the elevator back down in contemplative silence after their rooftop conversation.",
-      "tension": 3,
+      "summary": "The cousins ride the elevator back down in silence.",
+      "tension": 2,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -766,7 +754,7 @@
       "position": 40.6,
       "lineStart": 1526,
       "lineEnd": 1569,
-      "summary": "In their hotel room, stoned and eating minibar snacks, they apologize to each other - Benji for calling David a lightweight, David for always falling asleep during their adventures.",
+      "summary": "The stoned cousins lie on their beds eating chips and watching TV, with Benji apologizing for calling David a lightweight and David apologizing for always falling asleep during their past adventures.",
       "tension": 3,
       "turningPoint": false,
       "turningPointNote": ""
@@ -780,7 +768,7 @@
       "position": 41.6,
       "lineStart": 1570,
       "lineEnd": 1573,
-      "summary": "David wakes up to find Benji still sleeping surrounded by empty vodka bottles, showing Benji's continued drinking.",
+      "summary": "David wakes up to find Benji still sleeping surrounded by empty mini vodka bottles.",
       "tension": 4,
       "turningPoint": false,
       "turningPointNote": ""
@@ -794,8 +782,8 @@
       "position": 41.6,
       "lineStart": 1574,
       "lineEnd": 1578,
-      "summary": "David whispers on FaceTime with his wife Priya about their son, then takes medication while getting ready, showing his routine and homesickness.",
-      "tension": 3,
+      "summary": "David FaceTimes with Priya in the bathroom, showers, and takes a pill.",
+      "tension": 2,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -808,7 +796,7 @@
       "position": 41.6,
       "lineStart": 1579,
       "lineEnd": 1589,
-      "summary": "David tries to wake sleeping Benji, who has a pained expression even in sleep, as they need to catch their train.",
+      "summary": "David tries to wake the sleeping Benji, who has a pained expression on his face and groans when roused.",
       "tension": 4,
       "turningPoint": false,
       "turningPointNote": ""
@@ -822,7 +810,7 @@
       "position": 42.6,
       "lineStart": 1590,
       "lineEnd": 1591,
-      "summary": "Benji reluctantly follows David through the hotel hallway, moving slowly and reluctantly.",
+      "summary": "Benji reluctantly follows David through the hotel hallway.",
       "tension": 3,
       "turningPoint": false,
       "turningPointNote": ""
@@ -836,7 +824,7 @@
       "position": 42.6,
       "lineStart": 1592,
       "lineEnd": 1601,
-      "summary": "The group waits outside the hotel as David apologizes for being late, while Benji's charismatic energy immediately returns when he sees the others.",
+      "summary": "The group waits outside as David apologizes for being late, while Benji suddenly perks up and charms everyone after claiming David woke him up two minutes ago.",
       "tension": 4,
       "turningPoint": false,
       "turningPointNote": ""
@@ -850,7 +838,7 @@
       "position": 42.6,
       "lineStart": 1602,
       "lineEnd": 1604,
-      "summary": "The group walks through Warsaw train station, with Benji taking everything in with childlike wonder",
+      "summary": "The group walks through Warsaw train station while Benji takes it all in like a little kid.",
       "tension": 2,
       "turningPoint": false,
       "turningPointNote": ""
@@ -864,7 +852,7 @@
       "position": 42.6,
       "lineStart": 1605,
       "lineEnd": 1617,
-      "summary": "James leads the group to first class train seats, explaining it's included in the tour fee. David looks happy while Benji appears skeptical about the accommodation",
+      "summary": "James leads the group to board the train, announcing they have first class seats, while David looks happy and Benji looks skeptical.",
       "tension": 3,
       "turningPoint": false,
       "turningPointNote": ""
@@ -878,7 +866,7 @@
       "position": 42.6,
       "lineStart": 1618,
       "lineEnd": 1620,
-      "summary": "External shot of the train moving southeast through Central Poland's countryside",
+      "summary": "The train moves southeast through Central Poland's countryside.",
       "tension": 1,
       "turningPoint": false,
       "turningPointNote": ""
@@ -892,7 +880,7 @@
       "position": 43.6,
       "lineStart": 1621,
       "lineEnd": 1795,
-      "summary": "Benji becomes uncomfortable riding first class as Jews on a train in Poland, confronting the group about the historical implications. He disrupts James's tour presentation about Lublin destinations",
+      "summary": "Benji interrupts James's tour narration to suggest they move train cars because he feels uncomfortable being Jews in first class on a Polish train, creating an awkward moment with the group.",
       "tension": 6,
       "turningPoint": false,
       "turningPointNote": ""
@@ -906,7 +894,7 @@
       "position": 47.5,
       "lineStart": 1796,
       "lineEnd": 1798,
-      "summary": "David searches through crowded train cars looking for Benji after he left the first class compartment",
+      "summary": "David walks through a crowded part of the train looking for Benji but doesn't see him.",
       "tension": 4,
       "turningPoint": false,
       "turningPointNote": ""
@@ -920,7 +908,7 @@
       "position": 47.5,
       "lineStart": 1799,
       "lineEnd": 1823,
-      "summary": "David finds Benji sitting alone in a second train car. Benji expresses frustration that everyone wants a 'joyride' and people can't just be happy all the time while dealing with serious history",
+      "summary": "David finds Benji sitting alone in another train car and joins him, with Benji expressing sadness that everyone just wants to have a joyride while David tries to comfort him.",
       "tension": 5,
       "turningPoint": false,
       "turningPointNote": ""
@@ -934,7 +922,7 @@
       "position": 48.5,
       "lineStart": 1824,
       "lineEnd": 1825,
-      "summary": "External shots of the train speeding through various Polish countryside locations",
+      "summary": "The train speeds past various locations in the Polish countryside.",
       "tension": 1,
       "turningPoint": false,
       "turningPointNote": ""
@@ -948,8 +936,8 @@
       "position": 48.5,
       "lineStart": 1826,
       "lineEnd": 1840,
-      "summary": "David falls asleep on the train with Benji watching him. When David wakes at a station, they prepare to disembark together",
-      "tension": 2,
+      "summary": "David wakes up from sleep to find Benji watching him, and they prepare to exit as the train pulls into a station.",
+      "tension": 3,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -962,7 +950,7 @@
       "position": 48.5,
       "lineStart": 1841,
       "lineEnd": 1951,
-      "summary": "The cousins emerge at Krasnik platform and realize they missed their Lublin stop. Benji admits he let David sleep through their destination, leading to David's frustration about Benji's priorities",
+      "summary": "The boys discover they're at the wrong station (Krasnik instead of Lublin) because Benji didn't wake David when they passed their stop, leading to David's frustration with Benji's priorities.",
       "tension": 6,
       "turningPoint": false,
       "turningPointNote": ""
@@ -976,7 +964,7 @@
       "position": 51.5,
       "lineStart": 1952,
       "lineEnd": 2032,
-      "summary": "Benji outlines an elaborate plan to avoid paying for return tickets by evading the conductor, using anti-corporate rhetoric to justify their ticket dodging scheme",
+      "summary": "Benji explains his plan to avoid the ticket conductor on their way back to Lublin while philosophizing about the corporatization of travel and class inequality.",
       "tension": 5,
       "turningPoint": false,
       "turningPointNote": ""
@@ -990,7 +978,7 @@
       "position": 53.5,
       "lineStart": 2033,
       "lineEnd": 2052,
-      "summary": "The cousins successfully reach first class seats on the return train. Despite David pointing out the irony of ending up in first class again, Benji feels they've earned it",
+      "summary": "The boys successfully reach the front car and sit in first class seats, with Benji deciding they've earned it this time.",
       "tension": 3,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1004,7 +992,7 @@
       "position": 54.5,
       "lineStart": 2053,
       "lineEnd": 2055,
-      "summary": "The train arrives at Lublin Glowny Station and the boys walk along the platform looking for the exit",
+      "summary": "The train arrives at Lublin station and the boys walk along the platform looking for the exit.",
       "tension": 2,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1018,7 +1006,7 @@
       "position": 54.5,
       "lineStart": 2056,
       "lineEnd": 2061,
-      "summary": "Benji and David emerge to find James and the irritated tour group waiting. Benji immediately blames David for falling asleep",
+      "summary": "The boys emerge from the station to find James and the group waiting in various stages of irritation, with Benji blaming their lateness on David falling asleep.",
       "tension": 4,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1032,7 +1020,7 @@
       "position": 54.5,
       "lineStart": 2062,
       "lineEnd": 2086,
-      "summary": "James leads the group up castle stairs, describing Lublin as 'The Jewish Oxford' - a diverse, progressive, welcoming city with rich Jewish intellectual and cultural history",
+      "summary": "James guides the group up the castle stairs while explaining Lublin's rich Jewish history as 'The Jewish Oxford' and setting expectations for an enlightening day.",
       "tension": 2,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1046,7 +1034,7 @@
       "position": 54.5,
       "lineStart": 2087,
       "lineEnd": 2237,
-      "summary": "David questions Eloge about his religious practices while Marcia approaches Benji to discuss his train comments about understanding suffering. She shares concerns about her wealthy son-in-law",
+      "summary": "David questions Eloge about his religious practices while Marcia approaches Benji to discuss his train comments about understanding suffering, leading to her sharing concerns about her wealthy daughter.",
       "tension": 4,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1060,7 +1048,7 @@
       "position": 58.4,
       "lineStart": 2238,
       "lineEnd": 2262,
-      "summary": "Montage of hidden Jewish historical sites around Lublin accompanied by James's voiceover about memories trapped in amber - former theaters, medical centers, and other unmarked locations",
+      "summary": "A montage shows various hidden remnants of Jewish life throughout Lublin while James narrates about memories frozen in time.",
       "tension": 3,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1074,7 +1062,7 @@
       "position": 59.4,
       "lineStart": 2263,
       "lineEnd": 2266,
-      "summary": "The group walks along an uneven gravel path at town's edge. Benji throws his arm around David and pinches his cheek in an affectionate moment",
+      "summary": "The group walks along an uneven gravel path while Benji throws his arm around David and pinches his cheek.",
       "tension": 2,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1088,10 +1076,10 @@
       "position": 59.4,
       "lineStart": 2267,
       "lineEnd": 2477,
-      "summary": "At the Jewish cemetery dating to 1541, James discusses historical significance while Benji becomes visibly annoyed with the constant lecturing. Tension builds as Benji approaches James and Eloge",
+      "summary": "At the Jewish cemetery, James discusses the history while Benji grows visibly frustrated with James's constant talking, leading to nonverbal communication between the cousins and Benji approaching James and Eloge.",
       "tension": 6,
-      "turningPoint": false,
-      "turningPointNote": ""
+      "turningPoint": true,
+      "turningPointNote": "Benji's mounting frustration with James's lecturing style creates visible tension and sets up conflict"
     },
     {
       "number": 69,
@@ -1102,7 +1090,7 @@
       "position": 64.4,
       "lineStart": 2478,
       "lineEnd": 2479,
-      "summary": "Establishing shot of a lively restaurant in old town Lublin at night",
+      "summary": "Establishing shot of a lively restaurant in old town Lublin.",
       "tension": 1,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1116,10 +1104,10 @@
       "position": 64.4,
       "lineStart": 2480,
       "lineEnd": 2833,
-      "summary": "During dinner with Hava Nagila playing, Benji erupts about antisemitic atmosphere and 'essentializing' Jewish history. His outburst disrupts Marcia's family story, leading to his dramatic exit",
-      "tension": 8,
+      "summary": "At dinner, Benji calls the restaurant's Hava Nagila music antisemitic while Marcia tells a story about her uncle, leading to Benji eventually performing his own music and creating an uncomfortable scene.",
+      "tension": 7,
       "turningPoint": true,
-      "turningPointNote": "Benji's explosive confrontation reveals his deep anger about trivializing Jewish suffering"
+      "turningPointNote": "Benji's outburst and performance creates a major disruption and embarrassment for David"
     },
     {
       "number": 71,
@@ -1130,7 +1118,7 @@
       "position": 73.3,
       "lineStart": 2834,
       "lineEnd": 2840,
-      "summary": "David emerges from the restaurant alone, hearing Benji's music becoming insistent and grating as it follows him psychologically on his walk back to the hotel",
+      "summary": "David emerges from the restaurant alone while Benji's music continues playing inside, becoming more grating as David walks back to the hotel.",
       "tension": 5,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1144,7 +1132,7 @@
       "position": 73.3,
       "lineStart": 2841,
       "lineEnd": 2843,
-      "summary": "David enters the Lublin hotel while Benji's music continues to play in his head, representing his psychological state",
+      "summary": "David enters the Lublin hotel while a bastardized version of Benji's music continues in his head.",
       "tension": 4,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1158,8 +1146,8 @@
       "position": 73.3,
       "lineStart": 2844,
       "lineEnd": 2856,
-      "summary": "Alone in his room, David takes anxiety medication, tries unsuccessfully to call Priya, and examines his bare feet while contemplating his situation",
-      "tension": 6,
+      "summary": "David takes a pill that gets stuck in his throat, tries unsuccessfully to FaceTime Priya, and lies in bed looking at his bare feet while alone in the room.",
+      "tension": 5,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1172,8 +1160,8 @@
       "position": 73.3,
       "lineStart": 2857,
       "lineEnd": 2864,
-      "summary": "Middle of the night, David pretends to sleep as Benji enters, rifles through belongings, and leaves at 2:40 AM, leaving David confused and concerned",
-      "tension": 7,
+      "summary": "David wakes up at 2:40 AM to hear Benji enter the room, rifle through stuff, and leave again, leaving David confused and concerned.",
+      "tension": 6,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1186,8 +1174,8 @@
       "position": 74.3,
       "lineStart": 2865,
       "lineEnd": 2869,
-      "summary": "David checks the empty hallway for Benji after his mysterious departure",
-      "tension": 6,
+      "summary": "David peeks into the empty hallway looking for Benji.",
+      "tension": 5,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1200,8 +1188,8 @@
       "position": 74.3,
       "lineStart": 2870,
       "lineEnd": 2871,
-      "summary": "David hurriedly gets dressed, irritated and worried about Benji's disappearance",
-      "tension": 6,
+      "summary": "David hurriedly gets dressed, irritated by Benji's disappearance.",
+      "tension": 5,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1214,8 +1202,8 @@
       "position": 74.3,
       "lineStart": 2872,
       "lineEnd": 2873,
-      "summary": "David searches the hotel hallway looking for Benji",
-      "tension": 6,
+      "summary": "David walks through the hotel hallway searching for Benji.",
+      "tension": 5,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1228,8 +1216,8 @@
       "position": 74.3,
       "lineStart": 2874,
       "lineEnd": 2875,
-      "summary": "David asks the front desk about Benji, but they haven't seen him",
-      "tension": 6,
+      "summary": "David speaks with hotel front desk staff who haven't seen Benji.",
+      "tension": 5,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1242,8 +1230,8 @@
       "position": 74.3,
       "lineStart": 2876,
       "lineEnd": 2877,
-      "summary": "David lies awake in bed, both angry and worried about Benji's whereabouts",
-      "tension": 7,
+      "summary": "David lies in bed, angry and worried about Benji's whereabouts.",
+      "tension": 6,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1256,7 +1244,7 @@
       "position": 74.3,
       "lineStart": 2878,
       "lineEnd": 2886,
-      "summary": "After sleeping sitting up, David is startled by a phone call from Benji saying everyone's waiting downstairs",
+      "summary": "David is startled awake by a phone call from Benji, who tells him everyone is waiting downstairs.",
       "tension": 5,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1270,7 +1258,7 @@
       "position": 74.3,
       "lineStart": 2887,
       "lineEnd": 2888,
-      "summary": "David rides the elevator down, visibly angry about the previous night",
+      "summary": "David rides the elevator down to the lobby, visibly angry.",
       "tension": 5,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1284,8 +1272,8 @@
       "position": 74.3,
       "lineStart": 2889,
       "lineEnd": 2920,
-      "summary": "David confronts Benji about his disappearance. Benji casually explains he was with Marcia and didn't want to wake David, showing no awareness of David's distress",
-      "tension": 7,
+      "summary": "David confronts Benji about disappearing all night while Benji casually explains he was with Marcia and didn't want to wake David.",
+      "tension": 6,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1298,10 +1286,10 @@
       "position": 75.2,
       "lineStart": 2921,
       "lineEnd": 2938,
-      "summary": "James addresses the group about the challenging day ahead visiting a concentration camp, explaining the broad spectrum of emotional reactions people experience",
-      "tension": 6,
-      "turningPoint": false,
-      "turningPointNote": ""
+      "summary": "James addresses the group about the upcoming taxing visit to a concentration camp while David and Benji sit separately in the van, and the massive camp comes into view.",
+      "tension": 7,
+      "turningPoint": true,
+      "turningPointNote": "The arrival at the concentration camp marks a major tonal and emotional shift in the story"
     },
     {
       "number": 84,
@@ -1312,10 +1300,10 @@
       "position": 76.2,
       "lineStart": 2939,
       "lineEnd": 2945,
-      "summary": "The bus arrives at Majdanek concentration camp parking lot. The preserved camp appears eerily sparse and unadorned compared to other Holocaust museum sites",
-      "tension": 8,
-      "turningPoint": true,
-      "turningPointNote": "Arrival at Majdanek marks the emotional climax of their historical journey"
+      "summary": "The bus arrives at the eerily sparse Majdanek concentration camp parking lot, a preserved camp without museum-style adornments.",
+      "tension": 7,
+      "turningPoint": false,
+      "turningPointNote": ""
     },
     {
       "number": 85,
@@ -1326,7 +1314,7 @@
       "position": 76.2,
       "lineStart": 2946,
       "lineEnd": 2958,
-      "summary": "James explains Majdanek's proximity to Lublin town square - only two miles away - as the group comprehends the scope and unsettling nature of the preserved camp",
+      "summary": "James explains that Majdanek was only two miles from bustling Lublin as the group takes in the scope of the unnerving place and walks toward the entrance.",
       "tension": 8,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1340,7 +1328,7 @@
       "position": 76.2,
       "lineStart": 2959,
       "lineEnd": 2987,
-      "summary": "James describes how the Nazis' hasty evacuation left Majdanek uniquely well-preserved as evidence. The cousins are visibly awed by the enormity of the place",
+      "summary": "James explains how the Nazis left Majdanek well-preserved in their haste as Benji and David look around, cowed by the enormity of the place.",
       "tension": 8,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1354,8 +1342,8 @@
       "position": 77.2,
       "lineStart": 2988,
       "lineEnd": 2995,
-      "summary": "Inside the barracks built for 250 but often housing 500-1000 people. James reads survivor testimony to the group",
-      "tension": 9,
+      "summary": "The group enters the barracks as James explains they were built for 250 people but often housed 500 to 1000, and he reads from a survivor's account.",
+      "tension": 8,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1368,8 +1356,8 @@
       "position": 77.2,
       "lineStart": 2996,
       "lineEnd": 2999,
-      "summary": "The group stands silently in the bare, windowless undressing room as James identifies the space",
-      "tension": 9,
+      "summary": "The group stands in the bare windowless undressing room as James identifies the location.",
+      "tension": 8,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1382,8 +1370,8 @@
       "position": 77.2,
       "lineStart": 3000,
       "lineEnd": 3006,
-      "summary": "In the dank, low-ceiling shower room, James continues reading harrowing personal accounts from survivors",
-      "tension": 9,
+      "summary": "The group enters the dank, low-ceiling shower room as James reads another harrowing personal account.",
+      "tension": 8,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1396,10 +1384,10 @@
       "position": 78.2,
       "lineStart": 3007,
       "lineEnd": 3015,
-      "summary": "Inside the gas chamber, James points out blue Zyklon B stains on walls. The group experiences various stages of nausea as Benji unconsciously reaches for David's shoulder",
-      "tension": 10,
-      "turningPoint": true,
-      "turningPointNote": "The gas chamber represents the peak of horror and brings the cousins together"
+      "summary": "In the gas chamber, James points out blue stains on the walls as Zyklon B residue while the group looks around in various stages of nausea and Benji unconsciously puts his hand on David's shoulder.",
+      "tension": 9,
+      "turningPoint": false,
+      "turningPointNote": ""
     },
     {
       "number": 91,
@@ -1410,8 +1398,8 @@
       "position": 78.2,
       "lineStart": 3016,
       "lineEnd": 3018,
-      "summary": "The group silently observes the perfectly preserved body-sized crematorium ovens. James offers no commentary",
-      "tension": 10,
+      "summary": "The group silently observes the completely preserved body-sized crematorium ovens while James says nothing.",
+      "tension": 9,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1424,7 +1412,7 @@
       "position": 78.2,
       "lineStart": 3019,
       "lineEnd": 3023,
-      "summary": "Benji and David stand together before a display of victims' shoes, overwhelmed by the visual representation of mass murder",
+      "summary": "Benji and David stand together staring at an overwhelming mound of discarded victims' shoes displayed in the barrack.",
       "tension": 9,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1438,7 +1426,7 @@
       "position": 78.2,
       "lineStart": 3024,
       "lineEnd": 3027,
-      "summary": "The group stands dwarfed beneath the enormous spaceship-like Mausoleum structure",
+      "summary": "The group arrives at the enormous spaceship-like Mausoleum, standing dwarfed beneath the massive structure.",
       "tension": 8,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1452,10 +1440,10 @@
       "position": 78.2,
       "lineStart": 3028,
       "lineEnd": 3034,
-      "summary": "Returning to the hotel in shell-shocked silence, David sees Benji openly crying while staring out the window, breaking David's heart",
-      "tension": 9,
+      "summary": "The group rides back to the hotel in various stages of shell-shock, with Benji openly crying while staring out the window as David watches heartbroken.",
+      "tension": 8,
       "turningPoint": true,
-      "turningPointNote": "Benji's raw emotional breakdown reveals his deep capacity for feeling and connection to suffering"
+      "turningPointNote": "The emotional impact of the concentration camp visit creates a profound shift, with Benji breaking down and David deeply affected"
     },
     {
       "number": 95,
@@ -1466,7 +1454,7 @@
       "position": 79.2,
       "lineStart": 3035,
       "lineEnd": 3036,
-      "summary": "The emotionally drained group walks toward the hotel entrance",
+      "summary": "The group walks toward the hotel entrance after their concentration camp visit.",
       "tension": 6,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1480,10 +1468,10 @@
       "position": 79.2,
       "lineStart": 3037,
       "lineEnd": 3144,
-      "summary": "James facilitates group processing in the hotel lobby. The group acknowledges feeling nauseous and overwhelmed. James announces Benji and David's departure from the tour",
-      "tension": 5,
+      "summary": "James gathers the group in the lobby to discuss their feelings about the camp visit, with members expressing nausea and distress before announcing that Benji and David are leaving the tour.",
+      "tension": 6,
       "turningPoint": true,
-      "turningPointNote": "The cousins' departure marks their transition from group experience to private reckoning"
+      "turningPointNote": "The cousins' departure from the tour group marks a significant structural shift toward their private journey"
     },
     {
       "number": 97,
@@ -1494,7 +1482,7 @@
       "position": 81.2,
       "lineStart": 3145,
       "lineEnd": 3150,
-      "summary": "The cousins walk around Lublin together with a noticeable thawing in their relationship, walking above the Czechówka River mural",
+      "summary": "The cousins walk around Lublin with a nice thawing between them, strolling above the Czechówka River mural.",
       "tension": 3,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1508,7 +1496,7 @@
       "position": 82.2,
       "lineStart": 3151,
       "lineEnd": 3158,
-      "summary": "At an outdoor market, Benji tries on a Polish folk hat. Despite David's logical argument against buying it, Benji purchases it anyway",
+      "summary": "At a makeshift bazaar, Benji tries on a Polish folk hat, David takes a picture, and despite David questioning the purchase, Benji buys and wears the hat.",
       "tension": 2,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1522,7 +1510,7 @@
       "position": 82.2,
       "lineStart": 3159,
       "lineEnd": 3161,
-      "summary": "The cousins eat greasy shawarma and climb a hill as the sun sets behind them",
+      "summary": "The cousins eat greasy shawarma and trudge up a hill as the sun sets behind them.",
       "tension": 2,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1536,7 +1524,7 @@
       "position": 82.2,
       "lineStart": 3162,
       "lineEnd": 3165,
-      "summary": "Walking under illuminated flowers and butterflies on Brewery Street, Benji playfully jumps to swat a butterfly while David laughs",
+      "summary": "The cousins walk under illuminated flowers and butterflies while Benji playfully jumps to swat a butterfly, missing completely as David laughs.",
       "tension": 2,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1550,7 +1538,7 @@
       "position": 82.2,
       "lineStart": 3166,
       "lineEnd": 3183,
-      "summary": "Benji and David arrive at a tall office building on the outskirts of Lublin at night. Benji reveals he has one last joint and they plan to access the building's roof by following a smoker inside.",
+      "summary": "David and Benji stand outside a tall office building as Benji reveals he has one last joint and they watch a smoker exit the building.",
       "tension": 3,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1564,7 +1552,7 @@
       "position": 83.2,
       "lineStart": 3184,
       "lineEnd": 3189,
-      "summary": "The cousins successfully sneak into the building lobby by following the smoker past an indifferent security guard to the elevator bank.",
+      "summary": "The cousins follow the smoker into the building lobby, awkwardly trying to act casual as they pass an indifferent security guard.",
       "tension": 4,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1578,8 +1566,8 @@
       "position": 83.2,
       "lineStart": 3190,
       "lineEnd": 3199,
-      "summary": "In the elevator to the top floor, Benji and David endure awkward silence with the Polish smoker who makes small talk in Polish about tomorrow's rain.",
-      "tension": 3,
+      "summary": "In the elevator with the smoker, Benji and David ride to the top floor in awkward silence until the smoker speaks in Polish and Benji responds with 'Cool.'",
+      "tension": 4,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1592,8 +1580,8 @@
       "position": 83.2,
       "lineStart": 3200,
       "lineEnd": 3204,
-      "summary": "The cousins emerge onto the quiet rooftop overlooking Lublin after struggling with a rusty industrial door.",
-      "tension": 4,
+      "summary": "The boys struggle with a rusty industrial door on a quiet rooftop before it pops open and they emerge.",
+      "tension": 3,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1606,10 +1594,10 @@
       "position": 83.2,
       "lineStart": 3205,
       "lineEnd": 3475,
-      "summary": "On the rooftop, Benji and David share a joint while overlooking the city. David spots the Majdanek concentration camp in the distance, creating a somber moment. When David asks about Benji's future plans in Binghamton, Benji deflects and asks for the joint.",
-      "tension": 7,
+      "summary": "While sharing a joint on the rooftop, David and Benji spot the Majdanek concentration camp in the distance, then David asks about Benji's plans for returning to Binghamton, making Benji uncomfortable.",
+      "tension": 6,
       "turningPoint": true,
-      "turningPointNote": "The visual confrontation with the concentration camp and David's probing about Benji's future crystallizes their unresolved issues"
+      "turningPointNote": "The visual confrontation with the concentration camp and David's probing question about Benji's future create a moment of reckoning that shifts their dynamic"
     },
     {
       "number": 106,
@@ -1620,8 +1608,8 @@
       "position": 90.1,
       "lineStart": 3476,
       "lineEnd": 3478,
-      "summary": "The cousins return to their hotel in slow motion, suggesting a contemplative or altered state from their rooftop experience.",
-      "tension": 4,
+      "summary": "The boys walk back to their hotel room in slow motion.",
+      "tension": 3,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1634,8 +1622,8 @@
       "position": 90.1,
       "lineStart": 3479,
       "lineEnd": 3492,
-      "summary": "Back in their hotel room, the cousins maintain silence. They take turns showering and go to sleep in separate beds, the mood notably bleak between them.",
-      "tension": 6,
+      "summary": "David and Benji enter their hotel room silently, take turns showering with minimal interaction, and go to sleep in separate beds.",
+      "tension": 5,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1662,8 +1650,8 @@
       "position": 91.1,
       "lineStart": 3497,
       "lineEnd": 3502,
-      "summary": "The cousins eat breakfast in silence at the hotel dining area until David's phone buzzes with their taxi arrival notification.",
-      "tension": 5,
+      "summary": "The cousins eat breakfast in silence until David's phone buzzes and he announces their taxi has arrived.",
+      "tension": 4,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1677,7 +1665,7 @@
       "lineStart": 3503,
       "lineEnd": 3505,
       "summary": "David and Benji load their bags into a colorful taxi outside the hotel lobby.",
-      "tension": 3,
+      "tension": 2,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1690,8 +1678,8 @@
       "position": 91.1,
       "lineStart": 3506,
       "lineEnd": 3508,
-      "summary": "The taxi travels through the Polish countryside, passing a road marker for Krasnystaw.",
-      "tension": 3,
+      "summary": "The taxi drives through countryside, passing a road marker for Krasnystaw.",
+      "tension": 2,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1704,8 +1692,8 @@
       "position": 91.1,
       "lineStart": 3509,
       "lineEnd": 3511,
-      "summary": "The cousins ride silently in the back of the taxi on their way to their grandmother's hometown.",
-      "tension": 4,
+      "summary": "The boys sit in the back of the taxi traveling to their grandmother's town.",
+      "tension": 3,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1718,8 +1706,8 @@
       "position": 91.1,
       "lineStart": 3512,
       "lineEnd": 3516,
-      "summary": "The taxi arrives at Krasnystaw's quiet town square, surrounded by shops and simple three-story apartment buildings. The cousins retrieve their luggage.",
-      "tension": 4,
+      "summary": "The taxi arrives at Krasnystaw's quiet town square and the cousins get out with their bags.",
+      "tension": 3,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1732,8 +1720,8 @@
       "position": 91.1,
       "lineStart": 3517,
       "lineEnd": 3526,
-      "summary": "David and Benji search the town square for address number 25, with David consulting his phone for directions.",
-      "tension": 4,
+      "summary": "David and Benji walk across the town square carrying luggage, searching for address number 25.",
+      "tension": 3,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1746,8 +1734,8 @@
       "position": 92.1,
       "lineStart": 3527,
       "lineEnd": 3531,
-      "summary": "David leads Benji around a corner past St. Francis Xavier Church, which has a massive wooden cross in its parking lot, toward an alley.",
-      "tension": 4,
+      "summary": "David leads Benji around a corner past St. Francis Xavier Church toward an alley.",
+      "tension": 3,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1760,10 +1748,10 @@
       "position": 92.1,
       "lineStart": 3532,
       "lineEnd": 3686,
-      "summary": "The cousins find their grandmother's childhood home at address 25 in an unchanged alley, but feel underwhelmed by its unremarkable appearance. Benji shares a memory of their grandmother slapping him for being late and high to dinner, describing it as the best thing that ever happened to him because it showed how much she cared.",
-      "tension": 8,
+      "summary": "The cousins find their grandmother's unremarkable childhood home at address 25, and Benji shares a story about how their grandmother once slapped him for being late and high to dinner, calling it the best thing that ever happened to him.",
+      "tension": 6,
       "turningPoint": true,
-      "turningPointNote": "The discovery of their grandmother's home and Benji's vulnerable memory about being slapped represents a key emotional breakthrough about love and care"
+      "turningPointNote": "Finding their grandmother's childhood home and Benji's revelation about being slapped provides emotional catharsis and deeper understanding of their grandmother's love"
     },
     {
       "number": 117,
@@ -1774,8 +1762,8 @@
       "position": 96,
       "lineStart": 3687,
       "lineEnd": 3689,
-      "summary": "The cousins walk through the town square with their bags and exit frame, leaving the town to continue without them.",
-      "tension": 5,
+      "summary": "David and Benji walk through the town square with their bags and exit as the town continues without them.",
+      "tension": 2,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1788,8 +1776,8 @@
       "position": 96,
       "lineStart": 3690,
       "lineEnd": 3691,
-      "summary": "David and Benji ride in a taxi heading back to Warsaw Airport.",
-      "tension": 4,
+      "summary": "The cousins sit in a taxi traveling back to Warsaw Airport.",
+      "tension": 2,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1802,8 +1790,8 @@
       "position": 96,
       "lineStart": 3692,
       "lineEnd": 3694,
-      "summary": "The taxi approaches Warsaw Chopin Airport and takes the exit.",
-      "tension": 3,
+      "summary": "The taxi approaches Warsaw Chopin Airport and turns off the exit.",
+      "tension": 2,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1816,8 +1804,8 @@
       "position": 96,
       "lineStart": 3695,
       "lineEnd": 3697,
-      "summary": "The cousins walk through Warsaw Airport without speaking but appear comfortable in each other's presence.",
-      "tension": 4,
+      "summary": "David and Benji walk through the airport not speaking but comfortable in each other's presence.",
+      "tension": 3,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1830,8 +1818,8 @@
       "position": 96,
       "lineStart": 3698,
       "lineEnd": 3700,
-      "summary": "On the airplane home, both David and Benji are awake and lost in their own thoughts.",
-      "tension": 4,
+      "summary": "The cousins sit awake on the airplane, each lost in his own thoughts.",
+      "tension": 3,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1844,8 +1832,8 @@
       "position": 96,
       "lineStart": 3701,
       "lineEnd": 3703,
-      "summary": "The cousins exit their flight gate at JFK Airport with other passengers and walk through the terminal.",
-      "tension": 3,
+      "summary": "David and Benji exit the gate at JFK and walk through the airport with other passengers.",
+      "tension": 2,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1858,10 +1846,10 @@
       "position": 96,
       "lineStart": 3704,
       "lineEnd": 3799,
-      "summary": "At JFK baggage area, David invites Benji for dinner with his family, but Benji declines. When David offers to share a cab and drop Benji at Penn Station, Benji surprisingly chooses to stay at the airport alone, claiming he likes meeting people there.",
+      "summary": "David invites Benji to dinner with his family, but Benji declines and chooses to stay at the airport alone, saying he likes meeting people there.",
       "tension": 7,
       "turningPoint": true,
-      "turningPointNote": "Benji's decision to remain at the airport rather than reconnect with family represents his continued isolation and avoidance of stability"
+      "turningPointNote": "Benji's decision to stay at the airport rather than connect with David's family represents the final separation and his choice of isolation"
     },
     {
       "number": 124,
@@ -1872,8 +1860,8 @@
       "position": 99,
       "lineStart": 3800,
       "lineEnd": 3802,
-      "summary": "David rides alone in a cab heading home from the airport, looking out the window.",
-      "tension": 5,
+      "summary": "David sits alone in a cab riding back home, looking out the window.",
+      "tension": 4,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1886,8 +1874,8 @@
       "position": 99,
       "lineStart": 3803,
       "lineEnd": 3806,
-      "summary": "David's cab passes LeFrak City and the massive Machpelah cemetery, representing Jewish history, upward mobility, and death. David takes it all in as part of his heritage.",
-      "tension": 6,
+      "summary": "David's cab passes LeFrak City and Machpelah cemetery as he takes in the Jewish history around him.",
+      "tension": 3,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1900,10 +1888,10 @@
       "position": 99,
       "lineStart": 3807,
       "lineEnd": 3810,
-      "summary": "David walks down his Brooklyn street toward his apartment, stopping to place a memorial stone on his stoop.",
-      "tension": 6,
-      "turningPoint": true,
-      "turningPointNote": "The placement of the memorial stone represents David's integration of his grief and heritage into his daily life"
+      "summary": "David walks down his Brooklyn street, stops in front of his building, and places a stone on his stoop.",
+      "tension": 4,
+      "turningPoint": false,
+      "turningPointNote": ""
     },
     {
       "number": 127,
@@ -1914,10 +1902,10 @@
       "position": 99,
       "lineStart": 3811,
       "lineEnd": 3818,
-      "summary": "David enters his apartment and calls out to his family. Priya and his son Abe run to embrace him, and he lifts Abe into the air and kisses his wife, surrounded by the warmth of his seemingly nice life.",
-      "tension": 5,
-      "turningPoint": true,
-      "turningPointNote": "David's return to his loving family contrasts sharply with Benji's isolation, highlighting their different coping mechanisms"
+      "summary": "David enters his apartment, calls out to his family, and is embraced by his wife Priya and son Abe as his life seems nice.",
+      "tension": 3,
+      "turningPoint": false,
+      "turningPointNote": ""
     },
     {
       "number": 128,
@@ -1928,13 +1916,14 @@
       "position": 100,
       "lineStart": 3819,
       "lineEnd": 3828,
-      "summary": "Back at JFK Airport, in a mirror of the opening shot, the camera slowly zooms through crowds of travelers to reveal Benji sitting alone on the same airport bench. He watches strangers pass by, and the film's title reappears over his face as the camera moves closer.",
-      "tension": 8,
+      "summary": "Back at JFK, Benji sits alone on the same airport bench where the film began, watching strangers pass by as the camera zooms in on his face.",
+      "tension": 5,
       "turningPoint": true,
-      "turningPointNote": "The circular ending with Benji alone at the airport emphasizes his continued state of limbo and emotional paralysis, bringing the story full circle"
+      "turningPointNote": "The circular ending with Benji back on the airport bench reinforces his isolation and completes the film's emotional arc"
     }
   ],
-  "id": "mn1atl6c2p21l",
-  "savedAt": "2026-03-22T05:10:46.644Z",
-  "slug": "a-real-pain"
+  "id": "mn1cferf8g8gx",
+  "savedAt": "2026-03-22T05:55:44.379Z",
+  "slug": "a-real-pain",
+  "confidence": "MEDIUM"
 }
