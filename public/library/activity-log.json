@@ -1,6 +1,12 @@
 [
   {
     "action": "delete",
+    "filename": "past-lives.json",
+    "title": "Past Lives",
+    "timestamp": "2026-03-22T04:51:57.975Z"
+  },
+  {
+    "action": "delete",
     "filename": "nickel-boys.json",
     "title": "Nickel Boys",
     "timestamp": "2026-03-22T04:51:56.525Z"
