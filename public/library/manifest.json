@@ -1,5 +1,14 @@
 [
   {
+    "filename": "sentimental-value.json",
+    "publishedAt": "2026-03-22T16:06:03.481Z",
+    "confidence": "HIGH",
+    "title": "Sentimental Value",
+    "writer": "Eskil Vogt & Joachim Trier",
+    "genre": "Family Drama",
+    "structureType": "non-linear"
+  },
+  {
     "filename": "past-lives.json",
     "publishedAt": "2026-03-22T16:06:01.916Z",
     "confidence": "HIGH",
