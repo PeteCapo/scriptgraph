@@ -1,6 +1,13 @@
 [
   {
     "action": "publish",
+    "filename": "anora.json",
+    "title": "Anora",
+    "confidence": "HIGH",
+    "timestamp": "2026-03-22T16:05:54.361Z"
+  },
+  {
+    "action": "publish",
     "filename": "american-fiction.json",
     "title": "American Fiction",
     "confidence": "HIGH",
