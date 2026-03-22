@@ -1,6 +1,13 @@
 [
   {
     "action": "publish",
+    "filename": "sentimental-value.json",
+    "title": "Sentimental Value",
+    "confidence": "HIGH",
+    "timestamp": "2026-03-22T16:06:03.481Z"
+  },
+  {
+    "action": "publish",
     "filename": "past-lives.json",
     "title": "Past Lives",
     "confidence": "HIGH",
