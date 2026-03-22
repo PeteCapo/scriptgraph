@@ -1,6 +1,12 @@
 [
   {
     "action": "delete",
+    "filename": "sentimental-value.json",
+    "title": "SENTIMENTAL VALUE",
+    "timestamp": "2026-03-22T04:51:59.237Z"
+  },
+  {
+    "action": "delete",
     "filename": "past-lives.json",
     "title": "Past Lives",
     "timestamp": "2026-03-22T04:51:57.975Z"
