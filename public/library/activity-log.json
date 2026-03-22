@@ -1,6 +1,13 @@
 [
   {
     "action": "publish",
+    "filename": "barbie.json",
+    "title": "BARBIE",
+    "confidence": "MEDIUM",
+    "timestamp": "2026-03-22T16:05:55.846Z"
+  },
+  {
+    "action": "publish",
     "filename": "anora.json",
     "title": "Anora",
     "confidence": "HIGH",
