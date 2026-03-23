@@ -1,5 +1,14 @@
 [
   {
+    "filename": "beau-is-afraid.json",
+    "publishedAt": "2026-03-23T03:43:07.596Z",
+    "confidence": "HIGH",
+    "title": "Beau Is Afraid",
+    "writer": "Ari Aster",
+    "genre": "Psychological Horror/Dark Comedy",
+    "structureType": "triptych"
+  },
+  {
     "filename": "anora.json",
     "publishedAt": "2026-03-22T20:21:33.643Z",
     "confidence": "HIGH",
