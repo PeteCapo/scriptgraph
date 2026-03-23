@@ -1,6 +1,13 @@
 [
   {
     "action": "publish",
+    "filename": "nickel-boys.json",
+    "title": "Nickel Boys",
+    "confidence": "LOW",
+    "timestamp": "2026-03-23T16:51:30.944Z"
+  },
+  {
+    "action": "publish",
     "filename": "killers-of-the-flower-moon.json",
     "title": "Killers of the Flower Moon",
     "confidence": "LOW",
