@@ -1,6 +1,13 @@
 [
   {
     "action": "publish",
+    "filename": "it-was-just-an-accident.json",
+    "title": "IT WAS JUST AN ACCIDENT",
+    "confidence": "MEDIUM",
+    "timestamp": "2026-03-23T03:43:09.211Z"
+  },
+  {
+    "action": "publish",
     "filename": "beau-is-afraid.json",
     "title": "Beau Is Afraid",
     "confidence": "HIGH",
