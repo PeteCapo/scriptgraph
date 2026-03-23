@@ -1,6 +1,13 @@
 [
   {
     "action": "publish",
+    "filename": "killers-of-the-flower-moon.json",
+    "title": "Killers of the Flower Moon",
+    "confidence": "LOW",
+    "timestamp": "2026-03-23T16:44:21.219Z"
+  },
+  {
+    "action": "publish",
     "filename": "blue-moon.json",
     "title": "Blue Moon",
     "confidence": "LOW",
