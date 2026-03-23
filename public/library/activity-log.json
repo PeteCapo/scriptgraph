@@ -1,6 +1,13 @@
 [
   {
     "action": "publish",
+    "filename": "maestro.json",
+    "title": "MAESTRO",
+    "confidence": "HIGH",
+    "timestamp": "2026-03-23T17:01:31.830Z"
+  },
+  {
+    "action": "publish",
     "filename": "nickel-boys.json",
     "title": "Nickel Boys",
     "confidence": "LOW",
