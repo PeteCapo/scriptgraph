@@ -1,5 +1,14 @@
 [
   {
+    "filename": "killers-of-the-flower-moon.json",
+    "publishedAt": "2026-03-23T16:44:21.219Z",
+    "confidence": "LOW",
+    "title": "Killers of the Flower Moon",
+    "writer": "Eric Roth and Martin Scorsese",
+    "genre": "Crime Drama",
+    "structureType": "linear"
+  },
+  {
     "filename": "blue-moon.json",
     "publishedAt": "2026-03-23T16:38:18.545Z",
     "confidence": "LOW",
