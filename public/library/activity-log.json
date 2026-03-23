@@ -1,6 +1,13 @@
 [
   {
     "action": "publish",
+    "filename": "beau-is-afraid.json",
+    "title": "Beau Is Afraid",
+    "confidence": "HIGH",
+    "timestamp": "2026-03-23T03:43:07.596Z"
+  },
+  {
+    "action": "publish",
     "filename": "anora.json",
     "title": "ANORA",
     "confidence": "HIGH",
