@@ -7743,6 +7743,10 @@ export default function ScriptGraph() {
             <div style={{ marginTop: 48, maxWidth: 620 }}>
               <H1>About the Project</H1>
 
+              <p style={{ margin: "0 0 32px", fontSize: 20, lineHeight: 1.6, fontWeight: 300, color: T.textSecondary, fontFamily: T.fontSans, borderLeft: `3px solid ${T.accent}`, paddingLeft: 20 }}>
+                ScriptGraph maps the tension arc of produced screenplays — where pressure builds, where it releases, and how structure shapes the experience of watching a film. It's for writers who want to understand why something works, directors who think about pacing, and anyone curious about the architecture of storytelling.
+              </p>
+
               <P>I built ScriptGraph because I kept asking the same question while writing and studying scripts:</P>
               <P><em style={{ color: T.textPrimary, fontStyle: "italic" }}>Why do some movies feel the way they do?</em></P>
               <P>Not just whether they're good or bad. But the sensation of watching them. Some films feel like they're tightening a screw the entire time. Some feel calm until suddenly they aren't. Some escalate in waves. Others climb steadily and never look back.</P>
