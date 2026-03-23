@@ -1,5 +1,14 @@
 [
   {
+    "filename": "maestro.json",
+    "publishedAt": "2026-03-23T17:01:31.830Z",
+    "confidence": "HIGH",
+    "title": "MAESTRO",
+    "writer": "Bradley Cooper & Josh Singer",
+    "genre": "Biographical Drama / Romance",
+    "structureType": "non-linear"
+  },
+  {
     "filename": "nickel-boys.json",
     "publishedAt": "2026-03-23T16:51:30.944Z",
     "confidence": "LOW",
