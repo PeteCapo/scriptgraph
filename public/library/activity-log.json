@@ -1,6 +1,13 @@
 [
   {
     "action": "publish",
+    "filename": "top-gun-maverick.json",
+    "title": "Top Gun: Maverick",
+    "confidence": "HIGH",
+    "timestamp": "2026-03-24T21:15:25.563Z"
+  },
+  {
+    "action": "publish",
     "filename": "the-white-tiger.json",
     "title": "The White Tiger",
     "confidence": "HIGH",
