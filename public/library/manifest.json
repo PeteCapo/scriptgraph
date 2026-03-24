@@ -1,5 +1,14 @@
 [
   {
+    "filename": "jojo-rabbit.json",
+    "publishedAt": "2026-03-24T21:14:58.410Z",
+    "confidence": "HIGH",
+    "title": "Jojo Rabbit",
+    "writer": "",
+    "genre": "Dark Comedy/Coming-of-Age Drama",
+    "structureType": "linear"
+  },
+  {
     "filename": "elvis.json",
     "publishedAt": "2026-03-24T21:14:56.242Z",
     "confidence": "HIGH",
