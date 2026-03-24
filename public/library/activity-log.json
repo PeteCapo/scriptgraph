@@ -1,6 +1,13 @@
 [
   {
     "action": "publish",
+    "filename": "a-man-called-otto.json",
+    "title": "A Man Called Otto",
+    "confidence": "HIGH",
+    "timestamp": "2026-03-24T21:31:27.996Z"
+  },
+  {
+    "action": "publish",
     "filename": "women-talking.json",
     "title": "Women Talking",
     "confidence": "LOW",
