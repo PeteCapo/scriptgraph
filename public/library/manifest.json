@@ -1,5 +1,14 @@
 [
   {
+    "filename": "nomadland.json",
+    "publishedAt": "2026-03-24T21:31:31.421Z",
+    "confidence": "HIGH",
+    "title": "Nomadland",
+    "writer": "Chloé Zhao",
+    "genre": "Drama",
+    "structureType": "circular"
+  },
+  {
     "filename": "marriage-story.json",
     "publishedAt": "2026-03-24T21:31:29.722Z",
     "confidence": "MEDIUM",
