@@ -1,6 +1,13 @@
 [
   {
     "action": "publish",
+    "filename": "marriage-story.json",
+    "title": "Marriage Story",
+    "confidence": "MEDIUM",
+    "timestamp": "2026-03-24T21:31:29.722Z"
+  },
+  {
+    "action": "publish",
     "filename": "a-man-called-otto.json",
     "title": "A Man Called Otto",
     "confidence": "HIGH",
