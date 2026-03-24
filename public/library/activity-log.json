@@ -1,6 +1,13 @@
 [
   {
     "action": "publish",
+    "filename": "the-whale.json",
+    "title": "The Whale",
+    "confidence": "LOW",
+    "timestamp": "2026-03-24T21:26:26.375Z"
+  },
+  {
+    "action": "publish",
     "filename": "black-panther-wakanda-forever-2022.json",
     "title": "Black Panther Wakanda Forever",
     "confidence": "HIGH",
