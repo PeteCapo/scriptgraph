@@ -1,6 +1,13 @@
 [
   {
     "action": "publish",
+    "filename": "elvis.json",
+    "title": "Elvis",
+    "confidence": "HIGH",
+    "timestamp": "2026-03-24T21:14:56.242Z"
+  },
+  {
+    "action": "publish",
     "filename": "dune.json",
     "title": "Dune",
     "confidence": "HIGH",
