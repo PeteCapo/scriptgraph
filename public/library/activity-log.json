@@ -1,6 +1,13 @@
 [
   {
     "action": "publish",
+    "filename": "all-quiet-on-the-western-front.json",
+    "title": "All Quiet on the Western Front",
+    "confidence": "HIGH",
+    "timestamp": "2026-03-24T21:14:47.257Z"
+  },
+  {
+    "action": "publish",
     "filename": "aftersun.json",
     "title": "Aftersun",
     "confidence": "HIGH",
