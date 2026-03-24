@@ -1,6 +1,13 @@
 [
   {
     "action": "publish",
+    "filename": "the-banshees-of-inisherin.json",
+    "title": "The Banshees of Inisherin",
+    "confidence": "HIGH",
+    "timestamp": "2026-03-24T21:31:34.620Z"
+  },
+  {
+    "action": "publish",
     "filename": "she-said.json",
     "title": "She Said",
     "confidence": "HIGH",
