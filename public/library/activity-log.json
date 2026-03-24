@@ -1,6 +1,13 @@
 [
   {
     "action": "publish",
+    "filename": "sound-of-metal.json",
+    "title": "Sound of Metal",
+    "confidence": "HIGH",
+    "timestamp": "2026-03-24T21:15:09.676Z"
+  },
+  {
+    "action": "publish",
     "filename": "one-night-in-miami.json",
     "title": "One Night in Miami...",
     "confidence": "MEDIUM",
