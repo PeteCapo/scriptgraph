@@ -1,5 +1,11 @@
 [
   {
+    "action": "delete",
+    "filename": "summer-break.json",
+    "title": "Summer Break",
+    "timestamp": "2026-03-24T21:20:53.913Z"
+  },
+  {
     "action": "publish",
     "filename": "triangle-of-sadness.json",
     "title": "Triangle of Sadness",
