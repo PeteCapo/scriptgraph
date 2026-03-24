@@ -3855,6 +3855,10 @@ Return JSON only — no preamble, no markdown:
   try { return JSON.parse(raw); } catch { return { slide2_context:[], slide3_body:"" }; }
 }
 
+// XML escape for carousel SVG — handles all 5 special characters including apostrophe.
+// Must be applied to every user-supplied string before SVG interpolation.
+const _cEsc = s => (s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
+
 // ── SVG constants (carousel-specific — different canvas than share cards) ─────
 const _cCW  = 1080;
 const _cCH  = 1350;
@@ -4013,7 +4017,7 @@ function generateCarouselSlide1({ mode, films, headline, imageDataUrl }) {
   const dividerY = 580;
   let headlineY = dividerY + fs + 32;
   const headlineSvg = lines.map(line => {
-    const svg = `<text x="${_cPAD}" y="${headlineY}" font-family="${THEME.fontDisplay}" font-weight="800" font-size="${fs}" fill="${CREAM}" letter-spacing="2">${line}</text>`;
+    const svg = `<text x="${_cPAD}" y="${headlineY}" font-family="${THEME.fontDisplay}" font-weight="800" font-size="${fs}" fill="${CREAM}" letter-spacing="2">${_cEsc(line)}</text>`;
     headlineY += lh;
     return svg;
   }).join("\n");
@@ -4022,12 +4026,12 @@ function generateCarouselSlide1({ mode, films, headline, imageDataUrl }) {
   let creditSvg = `<line x1="${_cPAD}" y1="${creditRuleY}" x2="${_cPAD+160}" y2="${creditRuleY}" stroke="${GOLD}" stroke-width="2" opacity="0.5"/>`;
   if (isSingle) {
     const label = [s1?.title, s1?.writer].filter(Boolean).join(" — ");
-    if (label) creditSvg += `<text x="${_cPAD}" y="${creditRuleY+52}" font-family="${THEME.fontDisplay}" font-weight="300" font-size="32" fill="#b8b0a4">${label}</text>`;
+    if (label) creditSvg += `<text x="${_cPAD}" y="${creditRuleY+52}" font-family="${THEME.fontDisplay}" font-weight="300" font-size="32" fill="#b8b0a4">${_cEsc(label)}</text>`;
   } else {
     const lA = [s1?.title, s1?.writer].filter(Boolean).join(" — ");
     const lB = [s2?.title, s2?.writer].filter(Boolean).join(" — ");
-    if (lA) creditSvg += `<text x="${_cPAD}" y="${creditRuleY+48}" font-family="${THEME.fontDisplay}" font-weight="400" font-size="32" fill="${RED}">${lA}</text>`;
-    if (lB) creditSvg += `<text x="${_cPAD}" y="${creditRuleY+90}" font-family="${THEME.fontDisplay}" font-weight="400" font-size="32" fill="${BLUE}">${lB}</text>`;
+    if (lA) creditSvg += `<text x="${_cPAD}" y="${creditRuleY+48}" font-family="${THEME.fontDisplay}" font-weight="400" font-size="32" fill="${RED}">${_cEsc(lA)}</text>`;
+    if (lB) creditSvg += `<text x="${_cPAD}" y="${creditRuleY+90}" font-family="${THEME.fontDisplay}" font-weight="400" font-size="32" fill="${BLUE}">${_cEsc(lB)}</text>`;
   }
 
   return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${_cCW}" height="${_cCH}" viewBox="0 0 ${_cCW} ${_cCH}">
@@ -4134,23 +4138,23 @@ ${[0,25,50,75,100].map(p=>{
   if (isSingle && s1) {
     const label = s1.title + (s1.writer ? ` — ${s1.writer}` : "");
     pills = `<rect x="${_cPAD}" y="1226" width="${_cPW}" height="64" rx="4" fill="${GOLD}14" stroke="${GOLD}" stroke-width="1.5" opacity="0.8"/>
-<text x="${_cPAD+_cPW/2}" y="1268" text-anchor="middle" font-family="${THEME.fontDisplay}" font-weight="400" font-size="28" fill="${GOLD}">${label}</text>`;
+<text x="${_cPAD+_cPW/2}" y="1268" text-anchor="middle" font-family="${THEME.fontDisplay}" font-weight="400" font-size="28" fill="${GOLD}">${_cEsc(label)}</text>`;
   } else if (!isSingle && s1 && s2) {
     const pillW = (_cPW-24)/2;
     const t1 = (s1.title||"").substring(0,22), t2 = (s2.title||"").substring(0,22);
     pills = `<rect x="${_cPAD}" y="1226" width="${pillW}" height="64" rx="4" fill="${RED}12" stroke="${RED}" stroke-width="1.5" opacity="0.8"/>
-<text x="${_cPAD+pillW/2}" y="1268" text-anchor="middle" font-family="${THEME.fontDisplay}" font-weight="400" font-size="26" fill="${RED}">${t1}</text>
+<text x="${_cPAD+pillW/2}" y="1268" text-anchor="middle" font-family="${THEME.fontDisplay}" font-weight="400" font-size="26" fill="${RED}">${_cEsc(t1)}</text>
 <rect x="${_cPAD+pillW+24}" y="1226" width="${pillW}" height="64" rx="4" fill="${BLUE}12" stroke="${BLUE}" stroke-width="1.5" opacity="0.8"/>
-<text x="${_cPAD+pillW+24+pillW/2}" y="1268" text-anchor="middle" font-family="${THEME.fontDisplay}" font-weight="400" font-size="26" fill="${BLUE}">${t2}</text>`;
+<text x="${_cPAD+pillW+24+pillW/2}" y="1268" text-anchor="middle" font-family="${THEME.fontDisplay}" font-weight="400" font-size="26" fill="${BLUE}">${_cEsc(t2)}</text>`;
   }
 
   // Context text zone
   const eyebrow = isSingle
-    ? `DIRECTOR'S NOTE · ${(title||s1?.title||"").toUpperCase()}${year?` · ${year}`:""}`
-    : `STRUCTURAL COMPARISON · ${(title||"").toUpperCase()}`;
+    ? `DIRECTOR&apos;S NOTE · ${_cEsc((title||s1?.title||"").toUpperCase())}${year?` · ${_cEsc(year)}`:""}`
+    : `STRUCTURAL COMPARISON · ${_cEsc((title||"").toUpperCase())}`;
   const ctxLines = (contextLines||[]).slice(0,3);
   const ctxSvg = [158,212,266].slice(0,ctxLines.length).map((y,i) =>
-    `<text x="${_cPAD}" y="${y}" font-family="${THEME.fontSans}" font-weight="300" font-size="42" fill="${i<2?MUTED:DIM}" line-height="54">${ctxLines[i]||""}</text>`
+    `<text x="${_cPAD}" y="${y}" font-family="${THEME.fontSans}" font-weight="300" font-size="42" fill="${i<2?MUTED:DIM}" line-height="54">${_cEsc(ctxLines[i]||"")}</text>`
   ).join("");
 
   // Curves — compare draws B first (underneath), then A on top
@@ -4211,8 +4215,8 @@ function generateCarouselSlide3({ mode, films, bodyText, title, year }) {
   const s1 = films[0]?.entry;
 
   const eyebrow = isSingle
-    ? `${(s1?.title||title||"").toUpperCase()} · ${(s1?.writer||"").toUpperCase()}${year?` · ${year}`:""}`
-    : (title||"").toUpperCase();
+    ? `${_cEsc((s1?.title||title||"").toUpperCase())} · ${_cEsc((s1?.writer||"").toUpperCase())}${year?` · ${_cEsc(year)}`:""}`
+    : _cEsc((title||"").toUpperCase());
 
   // Word-wrap the body paragraph
   const fs = 58;           // font size — large, readable, fits a full paragraph
@@ -4222,7 +4226,7 @@ function generateCarouselSlide3({ mode, films, bodyText, title, year }) {
 
   let y = 290;
   const textLines = lines.map(line => {
-    const svg = `<text x="${_cPAD}" y="${y}" font-family="${THEME.fontDisplay}" font-weight="300" font-size="${fs}" fill="${CREAM}" letter-spacing="0.5">${line}</text>`;
+    const svg = `<text x="${_cPAD}" y="${y}" font-family="${THEME.fontDisplay}" font-weight="300" font-size="${fs}" fill="${CREAM}" letter-spacing="0.5">${_cEsc(line)}</text>`;
     y += lh;
     return svg;
   }).join("\n");
