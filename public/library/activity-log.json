@@ -1,6 +1,13 @@
 [
   {
     "action": "publish",
+    "filename": "the-white-tiger.json",
+    "title": "The White Tiger",
+    "confidence": "HIGH",
+    "timestamp": "2026-03-24T21:15:23.756Z"
+  },
+  {
+    "action": "publish",
     "filename": "the-two-popes.json",
     "title": "The Two Popes",
     "confidence": "HIGH",
