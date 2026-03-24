@@ -1,6 +1,13 @@
 [
   {
     "action": "publish",
+    "filename": "aftersun.json",
+    "title": "Aftersun",
+    "confidence": "HIGH",
+    "timestamp": "2026-03-24T21:14:45.512Z"
+  },
+  {
+    "action": "publish",
     "filename": "maestro.json",
     "title": "MAESTRO",
     "confidence": "HIGH",
