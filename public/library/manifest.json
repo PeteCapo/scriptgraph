@@ -1,5 +1,14 @@
 [
   {
+    "filename": "white-noise.json",
+    "publishedAt": "2026-03-24T21:26:28.251Z",
+    "confidence": "LOW",
+    "title": "White Noise",
+    "writer": "Noah Baumbach",
+    "genre": "Dark Comedy/Drama",
+    "structureType": "linear"
+  },
+  {
     "filename": "the-whale.json",
     "publishedAt": "2026-03-24T21:26:26.375Z",
     "confidence": "LOW",
