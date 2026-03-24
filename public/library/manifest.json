@@ -1,5 +1,14 @@
 [
   {
+    "filename": "the-lost-daughter.json",
+    "publishedAt": "2026-03-24T21:15:18.565Z",
+    "confidence": "HIGH",
+    "title": "The Lost Daughter",
+    "writer": "Maggie Gyllenhaal",
+    "genre": "Psychological Drama",
+    "structureType": "circular"
+  },
+  {
     "filename": "the-irishman.json",
     "publishedAt": "2026-03-24T21:15:16.891Z",
     "confidence": "HIGH",
