@@ -1,6 +1,13 @@
 [
   {
     "action": "publish",
+    "filename": "jojo-rabbit.json",
+    "title": "Jojo Rabbit",
+    "confidence": "HIGH",
+    "timestamp": "2026-03-24T21:14:58.410Z"
+  },
+  {
+    "action": "publish",
     "filename": "elvis.json",
     "title": "Elvis",
     "confidence": "HIGH",
