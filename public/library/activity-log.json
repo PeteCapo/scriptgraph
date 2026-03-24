@@ -1,6 +1,13 @@
 [
   {
     "action": "publish",
+    "filename": "living.json",
+    "title": "Living",
+    "confidence": "HIGH",
+    "timestamp": "2026-03-24T21:15:04.003Z"
+  },
+  {
+    "action": "publish",
     "filename": "knives-out.json",
     "title": "Knives Out",
     "confidence": "HIGH",
