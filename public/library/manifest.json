@@ -1,5 +1,14 @@
 [
   {
+    "filename": "the-trial-of-the-chicago-7.json",
+    "publishedAt": "2026-03-24T21:31:36.139Z",
+    "confidence": "LOW",
+    "title": "The Trial of the Chicago 7",
+    "writer": "Aaron Sorkin",
+    "genre": "Legal Drama",
+    "structureType": "linear"
+  },
+  {
     "filename": "the-banshees-of-inisherin.json",
     "publishedAt": "2026-03-24T21:31:34.620Z",
     "confidence": "HIGH",
