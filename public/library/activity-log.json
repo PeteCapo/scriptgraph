@@ -1,6 +1,13 @@
 [
   {
     "action": "publish",
+    "filename": "the-power-of-the-dog.json",
+    "title": "The Power of the Dog",
+    "confidence": "HIGH",
+    "timestamp": "2026-03-24T21:15:20.284Z"
+  },
+  {
+    "action": "publish",
     "filename": "the-lost-daughter.json",
     "title": "The Lost Daughter",
     "confidence": "HIGH",
