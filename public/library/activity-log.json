@@ -1,6 +1,13 @@
 [
   {
     "action": "publish",
+    "filename": "the-lost-daughter.json",
+    "title": "The Lost Daughter",
+    "confidence": "HIGH",
+    "timestamp": "2026-03-24T21:15:18.565Z"
+  },
+  {
+    "action": "publish",
     "filename": "the-irishman.json",
     "title": "The Irishman",
     "confidence": "HIGH",
