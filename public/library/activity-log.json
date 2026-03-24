@@ -1,6 +1,34 @@
 [
   {
     "action": "publish",
+    "filename": "maestro.json",
+    "title": "MAESTRO",
+    "confidence": "HIGH",
+    "timestamp": "2026-03-23T17:01:31.830Z"
+  },
+  {
+    "action": "publish",
+    "filename": "nickel-boys.json",
+    "title": "Nickel Boys",
+    "confidence": "LOW",
+    "timestamp": "2026-03-23T16:51:30.944Z"
+  },
+  {
+    "action": "publish",
+    "filename": "killers-of-the-flower-moon.json",
+    "title": "Killers of the Flower Moon",
+    "confidence": "LOW",
+    "timestamp": "2026-03-23T16:44:21.219Z"
+  },
+  {
+    "action": "publish",
+    "filename": "blue-moon.json",
+    "title": "Blue Moon",
+    "confidence": "LOW",
+    "timestamp": "2026-03-23T16:38:18.545Z"
+  },
+  {
+    "action": "publish",
     "filename": "past-lives.json",
     "title": "Past Lives",
     "confidence": "HIGH",

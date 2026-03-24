@@ -1,0 +1,19 @@
+{
+  "id": "the-pattern-critics-keep-rewarding",
+  "title": "THE PATTERN CRITICS KEEP REWARDING",
+  "subtitle": "The Late Peak Theory",
+  "body": "Three acclaimed films, three delayed climaxes, one pattern emerges. \"Air,\" \"American Fiction,\" and \"Conclave\" all peak between 85-95% through their narratives. The data reveals critical darlings consistently withhold maximum tension until final moments. Late-peaking structure correlates strongly with 93%+ Rotten Tomatoes scores across diverse genres and storytelling approaches.",
+  "films": [
+    {
+      "slug": "american-fiction",
+      "color": "red",
+      "label": "American Fiction"
+    },
+    {
+      "slug": "conclave",
+      "color": "blue",
+      "label": "CONCLAVE"
+    }
+  ],
+  "createdAt": "2026-03-23T15:52:50.507Z"
+}
