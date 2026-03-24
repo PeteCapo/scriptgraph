@@ -1,6 +1,13 @@
 [
   {
     "action": "publish",
+    "filename": "triangle-of-sadness.json",
+    "title": "Triangle of Sadness",
+    "confidence": "HIGH",
+    "timestamp": "2026-03-24T21:15:27.312Z"
+  },
+  {
+    "action": "publish",
     "filename": "top-gun-maverick.json",
     "title": "Top Gun: Maverick",
     "confidence": "HIGH",
