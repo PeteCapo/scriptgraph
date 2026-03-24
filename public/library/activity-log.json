@@ -1,6 +1,13 @@
 [
   {
     "action": "publish",
+    "filename": "minari.json",
+    "title": "Minari",
+    "confidence": "HIGH",
+    "timestamp": "2026-03-24T21:15:05.671Z"
+  },
+  {
+    "action": "publish",
     "filename": "living.json",
     "title": "Living",
     "confidence": "HIGH",
