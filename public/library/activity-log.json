@@ -1,6 +1,13 @@
 [
   {
     "action": "publish",
+    "filename": "whiplash.json",
+    "title": "Whiplash",
+    "confidence": "HIGH",
+    "timestamp": "2026-03-25T23:07:03.325Z"
+  },
+  {
+    "action": "publish",
     "filename": "vice.json",
     "title": "Vice",
     "confidence": "HIGH",
