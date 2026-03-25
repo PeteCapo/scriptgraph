@@ -1,6 +1,13 @@
 [
   {
     "action": "publish",
+    "filename": "the-wrestler.json",
+    "title": "The Wrestler",
+    "confidence": "HIGH",
+    "timestamp": "2026-03-25T23:07:00.338Z"
+  },
+  {
+    "action": "publish",
     "filename": "the-big-short.json",
     "title": "The Big Short",
     "confidence": "HIGH",
