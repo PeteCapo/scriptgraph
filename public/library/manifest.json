@@ -1,5 +1,14 @@
 [
   {
+    "filename": "joker.json",
+    "publishedAt": "2026-03-25T15:35:41.489Z",
+    "confidence": "HIGH",
+    "title": "Joker",
+    "writer": "Todd Phillips & Scott Silver",
+    "genre": "Psychological thriller / Character study / Crime drama",
+    "structureType": "linear"
+  },
+  {
     "filename": "glass-onion.json",
     "publishedAt": "2026-03-25T15:35:39.193Z",
     "confidence": "MEDIUM",
