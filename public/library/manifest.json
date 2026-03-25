@@ -1,5 +1,14 @@
 [
   {
+    "filename": "vice.json",
+    "publishedAt": "2026-03-25T23:07:01.891Z",
+    "confidence": "HIGH",
+    "title": "Vice",
+    "writer": "Adam McKay",
+    "genre": "Political Biography/Dark Comedy",
+    "structureType": "non-linear"
+  },
+  {
     "filename": "the-wrestler.json",
     "publishedAt": "2026-03-25T23:07:00.338Z",
     "confidence": "HIGH",
