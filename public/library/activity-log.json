@@ -1,6 +1,13 @@
 [
   {
     "action": "publish",
+    "filename": "dune.json",
+    "title": "Dune",
+    "confidence": "MEDIUM",
+    "timestamp": "2026-03-25T23:06:47.820Z"
+  },
+  {
+    "action": "publish",
     "filename": "don-t-look-up.json",
     "title": "Don't Look Up",
     "confidence": "HIGH",
