@@ -1,20 +1,25 @@
 {
+  "id": "1774406577687",
+  "savedAt": 1774406577687,
+  "isOutline": false,
+  "formatTransition": null,
   "title": "Glass Onion",
+  "logline": "Detective Benoit Blanc travels to a Greek island to investigate a murder mystery weekend that turns deadly when the tech billionaire host's former business partner is shot, only to discover she was already murdered days earlier and her twin sister has been posing as her to expose the killer.",
   "writer": "Rian Johnson",
-  "logline": "Detective Benoit Blanc investigates the murder of tech billionaire Miles Bron's former business partner during a murder mystery game weekend on a Greek island, uncovering layers of deception among Bron's wealthy friends.",
   "totalPages": 135,
   "totalScenes": 148,
-  "protagonist": "Benoit Blanc and Helen Brand (Andi's twin sister)",
-  "antagonistOrConflict": "Miles Bron, who murdered Andi Brand and Duke Cody to protect his stolen empire",
-  "genre": "Mystery/Comedy",
-  "tone": "Satirical and witty with dark undertones, blending murder mystery conventions with sharp social commentary",
+  "protagonist": "Helen Brand (posing as her murdered twin sister Andi)",
+  "antagonistOrConflict": "Miles Bron, tech billionaire who murdered Andi and frames the weekend murder mystery",
+  "genre": "Mystery/Thriller",
+  "tone": "Darkly comedic, satirical, twisty",
   "themes": [
-    "Truth vs. deception",
-    "The corrupting nature of wealth and power",
-    "Loyalty and betrayal among friends",
-    "Justice for the marginalized",
-    "The hollow nature of tech disruption culture"
+    "The emptiness behind wealth and genius",
+    "Complicity and moral compromise",
+    "Truth versus perception",
+    "Sisterhood and justice",
+    "The fragility of constructed realities"
   ],
+  "avgSceneLength": "1.4",
   "naturalStructure": {
     "actCount": 3,
     "structureType": "non-linear",
@@ -24,108 +29,108 @@
         "sceneNumber": 51,
         "page": 74,
         "position": 54.8,
-        "description": "Andi is shot and killed, ending the setup and launching the investigation.",
+        "description": "Helen is shot on the island grounds, ending the murder mystery weekend and launching the investigation into what really happened.",
         "validation": {
           "verdict": "confirmed",
           "confidence": "high",
-          "ruling": "Scene #51 is the major revelation where Helen unmasks to Blanc, revealing she's not Andi but Andi's twin sister from Alabama, fundamentally shifting the story from a murder mystery party to a real murder investigation and changing everything we thought we knew."
+          "ruling": "Scene #51 (p73-74, 54%) functions as Act 1 break: the lights come back on revealing 'Andi' dead with a chest wound and Blanc standing over the body—this is the major plot twist that fundamentally changes the story's direction from a weekend game into a murder investigation, forcing all characters into new, higher-stakes conflict with no possibility of returning to the pre-break state."
         }
       },
       {
         "actNumber": 2,
-        "sceneNumber": 132,
-        "page": 123,
-        "position": 91.1,
-        "description": "Blanc completes his revelation of Miles as the murderer, shifting to the final confrontation.",
+        "sceneNumber": 89,
+        "page": 103,
+        "position": 76.3,
+        "description": "The narrative returns to the island in present time after extensive flashbacks revealing Helen's true identity and mission, shifting into active investigation mode.",
         "validation": {
           "verdict": "confirmed",
           "confidence": "high",
-          "ruling": "Scene #132 shows Blanc beginning to reveal how Duke was murdered through pineapple juice in his drink, marking the transition from investigation to full solution revelation as the truth about both murders is finally exposed."
+          "ruling": "Scene #89 (p103-105, 76%) functions as Act 2 break: Birdie reveals to Peg that Miles will pay her $30 million to take full responsibility for the sweatshop scandal, declaring 'He's my only lifeline'—this completes Helen's investigation by revealing the final suspect's motive and Miles's hold over everyone, fundamentally shifting the story from gathering evidence to the final confrontation phase where Helen must act on what she's learned."
         }
       }
     ],
-    "structuralPersonality": "This script employs a sophisticated non-linear structure that mirrors its central metaphor of peeling back layers. The first act establishes the puzzle box invitation and island gathering, building to Andi's apparent murder. The second act reveals Helen's true identity and uses extensive flashbacks to reconstruct both Andi's real murder and the events leading to Duke's poisoning. The structure cleverly withholds key information, allowing Blanc's deduction sequence to recontextualize everything we've seen. The screenplay uses a 'double reveal' approach - first showing us the murder mystery game, then revealing the real murders underneath.",
-    "pacingNotes": "The pacing accelerates dramatically after scene 51 with Andi's death, then slows for the extended flashback sequence (scenes 54-89) that resets our understanding. The investigation phase (scenes 90-132) builds methodically through clue-gathering and deduction. The final act moves at breakneck speed through Blanc's revelation and the explosive climax, with very short scenes creating urgency."
+    "structuralPersonality": "This is a triptych mystery that plays with audience perception through strategic withholding and revelation. The first act presents a seemingly straightforward murder mystery weekend that ends with an apparent shooting. The second act rewinds completely, revealing that 'Andi' is actually her twin sister Helen, and replays the island events with new context while intercutting flashbacks to Andi's actual murder days earlier. The third act returns to linear time for the confrontation and climax. The structure mirrors its central metaphor—the glass onion—by appearing complex and layered while actually being transparent once you know where to look. It's a magic trick that depends on misdirection in the first act, revelation in the second, and cathartic destruction in the third.",
+    "pacingNotes": "The opening 15 scenes establish the ensemble through rapid crosscutting during the puzzle box sequence, creating momentum before the 40-scene island arrival and setup. The pace deliberately slows during Miles's tour and dinner (scenes 26-35) to build unease. The murder mystery game accelerates through scenes 36-50 with mounting tension. Scene 51 provides a hard stop. The flashback structure of Act 2 (scenes 53-88) allows for controlled information release while maintaining urgency. The final act (scenes 106-150) is a sustained 45-scene sprint of revelation, confrontation, and literal destruction."
   },
   "keyMoments": {
     "incitingIncident": {
-      "sceneNumber": 53,
-      "page": 75,
-      "position": 55.6,
-      "description": "Helen tells Blanc about her sister Cassandra Brand, describing how Andi transformed from their shared childhood \"rich bitch\" character into a genuinely successful entrepreneur, and begins explaining the circumstances of Andi's death.",
-      "sceneHeading": "55 EXT. TERRACE 55",
+      "sceneNumber": 20,
+      "page": 25,
+      "position": 18.5,
+      "description": "Blanc asks Lionel about the tension surrounding a woman named Andi, learning she co-founded Alpha with Miles but was legally cut out completely.",
+      "sceneHeading": "21 INT. BOAT - AT SEA - DAY 21",
       "validation": {
         "verdict": "replaced",
         "confidence": "high",
-        "ruling": "Scene #16 is just a transition shot of water that doesn't shatter any status quo. Scene #53 is the true inciting incident where Helen reveals her identity to Blanc and explains she's Andi's twin sister seeking justice for what she believes was murder, fundamentally launching the main investigation plot."
+        "ruling": "Scene #16 is merely a title card transition over water with no story content. Scene #20 (p21-25, 15-19%) is the true inciting incident: Blanc and the group arrive at the jetty where they board Miles's boat to his private island, forcing all characters into the isolated setting where the central mystery will unfold—this is the irreversible commitment that shatters their ordinary worlds and establishes the main conflict."
       }
     },
     "midpoint": {
-      "sceneNumber": 75,
-      "page": 94,
-      "position": 69.6,
-      "description": "In a bathroom with a Matisse painting, Blanc praises Helen's snooping skills and explains that Lionel and Claire both have strong motives to protect Miles since they've bet everything on him, while Helen ticks off their motive boxes but doubts they could kill.",
-      "sceneHeading": "77 INT. BATHROOM - LATER 77",
+      "sceneNumber": 72,
+      "page": 91,
+      "position": 67.4,
+      "description": "Whiskey tells Helen this is her second event with the group, complains that Duke treats her like arm candy and they all ignore her, and reveals she's building her brand through Duke's channel but is uncertain about his harder-right man-dom content if she wants to get into politics eventually.",
+      "sceneHeading": "74 EXT. GROUNDS - CONTINUOUS 74",
       "validation": {
         "verdict": "replaced",
         "confidence": "high",
-        "ruling": "Scene #75 is just exposition in a bathroom. Scene #74 at the pool is the true midpoint where Claire and Lionel privately reveal their devastating secrets - Claire signed off on a dangerous power plant and Lionel approved deadly Klear for space missions - establishing the life-or-death stakes that make them complicit and desperate enough to protect Miles at all costs."
+        "ruling": "Scene #72 is casual conversation between Whiskey and Helen with no transformation. Scene #76 (p92-94, 68-70%) is the true midpoint: Helen eavesdrops underwater as both Lionel and Claire confess they've already signed off on Miles's dangerous plans despite knowing Andi was right, revealing that all the suspects have bet everything on Miles and will be ruined if he fails—this is the key revelation that shifts Helen from reactive snooping to understanding the full stakes and conspiracy against her sister."
       }
     },
     "climax": {
-      "sceneNumber": 147,
-      "page": 134,
-      "position": 99.3,
-      "description": "Miles confronts Helen about her destruction, but she reveals that his fuel burning the Mona Lisa will end his career and empire.",
-      "sceneHeading": "149 EXT. THE GLASS ONION - MOMENTS LATER 149",
+      "sceneNumber": 144,
+      "page": 127,
+      "position": 94.1,
+      "description": "Everyone looks at Miles as Lionel asks why he kept the envelope, Miles looks confused, Helen pulls out the original napkin with Andi's handwriting and the bar's embossed name, Miles ignites a lighter and burns the napkin to ash in a fraction of a second, then the Mona Lisa glass case comes down and Helen smashes the painting with the Klear scepter, causing Miles to scream as she throws the scepter into the Klear contraption which explodes.",
+      "sceneHeading": "146 INT. LOUNGE AREA - NIGHT 146",
       "validation": {
-        "verdict": "confirmed",
+        "verdict": "replaced",
         "confidence": "high",
-        "ruling": "Scene #147 is the peak confrontation where Miles verbally attacks Helen after she destroys his compound, but Helen delivers the killing blow by revealing his Klear fuel destroyed the Mona Lisa, ruining him publicly, followed by all the disruptors turning against him and providing testimony that will convict him."
+        "ruling": "Scene #146 is the aftermath of the climax, showing the destruction already complete. Scene #144 (p127-133, 94-99%) is the true climax: Helen confronts Miles with the original napkin proving Andi's ownership, Miles burns it in desperation, then Helen smashes the Mona Lisa and throws the Klear scepter into the fuel source causing the massive explosion—this is the peak confrontation where the protagonist directly faces the antagonist, resolves the main story question, and demonstrates her character arc by choosing destruction over justice."
       }
     }
   },
   "overallTension": [
-    2.9,
+    3,
+    3.1,
+    3.4,
+    3.5,
+    3.8,
+    4.1,
+    4.3,
+    4.4,
+    4.3,
+    4.3,
+    4.1,
+    3.9,
     3.6,
-    4.5,
-    5.3,
-    5.3,
-    5.2,
-    5.2,
-    5.4,
-    5.3,
-    5.3,
-    5.1,
-    5.2,
-    5.2,
-    5.4,
-    5.7,
-    5.9,
-    6.1,
-    7,
-    7.8,
-    8.6,
-    7.7,
-    6.6,
-    5.2,
-    4.5,
-    5,
+    3.9,
+    4.1,
+    4.4,
+    4.3,
     5.6,
+    7,
+    8.3,
+    7.4,
     6.4,
+    5.1,
+    4.7,
+    5.2,
+    5.8,
+    6.4,
+    6.4,
+    6.3,
     6.6,
+    6.7,
+    7.1,
+    7,
     6.9,
-    7.1,
     7.2,
-    7.2,
-    7.2,
-    7.1,
-    7.3,
-    8,
+    7.9,
     8.7,
     9.1,
-    8.9,
-    8.7
+    8.6,
+    8.3
   ],
   "scenes": [
     {
@@ -137,8 +142,8 @@
       "position": 1.5,
       "lineStart": 15,
       "lineEnd": 23,
-      "summary": "A courier delivers a package to Claire at her suburban house, with a title card establishing the date as May 13, 2020.",
-      "tension": 2,
+      "summary": "A courier delivers a package to Claire at her suburban Connecticut home.",
+      "tension": 1,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -151,8 +156,8 @@
       "position": 1.5,
       "lineStart": 24,
       "lineEnd": 65,
-      "summary": "Claire brings the mysterious box inside where her husband Devon manages their kids, then rushes to prepare for a CNN interview in her makeshift home studio.",
-      "tension": 3,
+      "summary": "Claire brings the mysterious box inside to her husband Devon and rushes to prepare for a CNN interview.",
+      "tension": 2,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -165,8 +170,8 @@
       "position": 2.2,
       "lineStart": 66,
       "lineEnd": 84,
-      "summary": "In an empty aerospace factory, a worker moves through the space while a CNN interview about Miles Bron plays on an unattended TV.",
-      "tension": 2,
+      "summary": "A worker rolls a cart through an empty aerospace factory while Claire's CNN interview plays on an unattended TV.",
+      "tension": 1,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -179,8 +184,8 @@
       "position": 3,
       "lineStart": 85,
       "lineEnd": 142,
-      "summary": "Lionel sits alone in a conference room facing frustrated scientists on Zoom who tell him he should say no to Miles Bron's demands.",
-      "tension": 5,
+      "summary": "Lionel sits in a conference room facing frustrated scientists on Zoom who tell him to say no to Miles Bron's insane whims.",
+      "tension": 4,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -193,7 +198,7 @@
       "position": 3.7,
       "lineStart": 143,
       "lineEnd": 144,
-      "summary": "An establishing shot shows the Dakota apartment building in Manhattan on a clear day.",
+      "summary": "Exterior establishing shot of the Dakota apartment building in Manhattan.",
       "tension": 1,
       "turningPoint": false,
       "turningPointNote": ""
@@ -207,8 +212,8 @@
       "position": 3.7,
       "lineStart": 145,
       "lineEnd": 217,
-      "summary": "Claire's TV interview plays in an apartment filled with partying people, while ex-model Birdie Jay lounges among admirers looking bored.",
-      "tension": 3,
+      "summary": "Birdie Jay lounges in her apartment filled with partying people during the pandemic, watching Claire's interview and complaining of boredom.",
+      "tension": 2,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -221,8 +226,8 @@
       "position": 5.2,
       "lineStart": 218,
       "lineEnd": 273,
-      "summary": "Claire calls Lionel on speaker to discuss the mysterious wooden box, with Devon helping examine it for opening mechanisms.",
-      "tension": 4,
+      "summary": "Claire and Devon examine the mysterious box on speakerphone with Lionel, who identifies the wood grain pattern as a stereogram puzzle.",
+      "tension": 3,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -235,8 +240,8 @@
       "position": 5.9,
       "lineStart": 274,
       "lineEnd": 362,
-      "summary": "Duke broadcasts his YouTube show from his garage, defending his controversial comments about women with his girlfriend Whiskey making a brief appearance.",
-      "tension": 4,
+      "summary": "Duke Cody broadcasts a YouTube video defending himself against accusations while his mother solves the stereogram box puzzle off-screen.",
+      "tension": 2,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -249,8 +254,8 @@
       "position": 8.1,
       "lineStart": 363,
       "lineEnd": 369,
-      "summary": "The group continues their split-screen call as Lionel examines his box with a loupe and Birdie patches in Duke.",
-      "tension": 4,
+      "summary": "The group on split-screen speakerphone works together to solve the stereogram puzzle, revealing intricate mechanisms inside the box.",
+      "tension": 3,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -263,10 +268,10 @@
       "position": 8.1,
       "lineStart": 370,
       "lineEnd": 578,
-      "summary": "Duke's mother helps him realize the box is a stereogram, and Lionel successfully opens his box by pressing a hidden button revealed through the Magic Eye pattern.",
-      "tension": 6,
+      "summary": "Duke and his mother discuss the opened box while the group on speakerphone discovers it contains an invitation to Miles Bron's private Greek island.",
+      "tension": 4,
       "turningPoint": true,
-      "turningPointNote": "The puzzle boxes are solved, revealing the invitations and setting the mystery weekend in motion"
+      "turningPointNote": "The invitation to the island sets the entire story in motion and brings all characters together."
     },
     {
       "number": 11,
@@ -277,8 +282,8 @@
       "position": 11.9,
       "lineStart": 579,
       "lineEnd": 590,
-      "summary": "Duke excitedly prepares to pack his spear fishing gear while Whiskey and his mother examine the opened invitation box.",
-      "tension": 3,
+      "summary": "Duke excitedly prepares to pack for the trip while Whiskey asks about the box.",
+      "tension": 2,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -291,7 +296,7 @@
       "position": 11.9,
       "lineStart": 591,
       "lineEnd": 593,
-      "summary": "Lionel leans back with his invitation and turns off the bank of monitors in his conference room.",
+      "summary": "Lionel leans back with the invitation and turns off his monitors.",
       "tension": 2,
       "turningPoint": false,
       "turningPointNote": ""
@@ -305,8 +310,8 @@
       "position": 11.9,
       "lineStart": 594,
       "lineEnd": 601,
-      "summary": "Birdie celebrates wildly, dancing around her party after receiving her invitation.",
-      "tension": 3,
+      "summary": "Birdie dances around her party in excitement about the invitation.",
+      "tension": 2,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -319,10 +324,10 @@
       "position": 12.6,
       "lineStart": 602,
       "lineEnd": 625,
-      "summary": "An unknown woman sits in a darkened garage staring at her unopened box, then returns with a hammer and smashes it to pieces.",
-      "tension": 7,
-      "turningPoint": true,
-      "turningPointNote": "A mysterious character violently destroys their invitation, suggesting conflict and setting up Andi's antagonistic relationship with Miles"
+      "summary": "An unidentified woman stares at the unsolved box in a darkened garage, then returns with a hammer and smashes it open to retrieve the invitation.",
+      "tension": 5,
+      "turningPoint": false,
+      "turningPointNote": ""
     },
     {
       "number": 15,
@@ -333,7 +338,7 @@
       "position": 12.6,
       "lineStart": 626,
       "lineEnd": 704,
-      "summary": "Benoit Blanc sits in his bathtub playing an online game with famous friends including Angela Lansbury and Stephen Sondheim, expressing confusion and disinterest in the game.",
+      "summary": "Benoit Blanc sits in his bathtub playing Among Us with celebrity friends who vote him out, frustrated that he doesn't understand the game.",
       "tension": 3,
       "turningPoint": false,
       "turningPointNote": ""
@@ -347,7 +352,7 @@
       "position": 14.1,
       "lineStart": 705,
       "lineEnd": 706,
-      "summary": "Opening title appears over shimmering water.",
+      "summary": "Opening title card appears over shimmering water.",
       "tension": 1,
       "turningPoint": false,
       "turningPointNote": ""
@@ -361,7 +366,7 @@
       "position": 14.1,
       "lineStart": 707,
       "lineEnd": 788,
-      "summary": "At a Greek port, the invited guests gather on a jetty with their luggage, maintaining social distance with masks, while Blanc sits alone and ignored.",
+      "summary": "Blanc waits alone on a jetty in Greece until Lionel, Claire, Birdie, and Peg arrive separately, all keeping distance and ignoring Blanc.",
       "tension": 4,
       "turningPoint": false,
       "turningPointNote": ""
@@ -375,8 +380,8 @@
       "position": 15.6,
       "lineStart": 789,
       "lineEnd": 792,
-      "summary": "Duke arrives dramatically on a motorcycle with Whiskey, who fires a gun into the air, joining the group at the jetty.",
-      "tension": 5,
+      "summary": "Duke roars through Greek streets on a motorcycle with Whiskey, who fires a gun into the air.",
+      "tension": 3,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -389,8 +394,8 @@
       "position": 15.6,
       "lineStart": 793,
       "lineEnd": 923,
-      "summary": "The group greets Duke and Whiskey, with Duke suspiciously questioning Blanc's presence and connection to Miles, until an efficient man arrives to transport them.",
-      "tension": 6,
+      "summary": "Duke greets the group on the jetty with Whiskey while everyone reacts with confusion to Blanc's presence, and an efficient man directs them to a boat.",
+      "tension": 5,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -403,10 +408,10 @@
       "position": 18.5,
       "lineStart": 924,
       "lineEnd": 958,
-      "summary": "On the boat, Blanc approaches Lionel who explains that Andi is Cassandra Brand, Miles's former business partner who was legally cut out of Alpha completely.",
-      "tension": 5,
-      "turningPoint": true,
-      "turningPointNote": "Key exposition reveals Andi's identity and her contentious history with Miles, establishing major conflict"
+      "summary": "Blanc asks Lionel about the tension surrounding a woman named Andi, learning she co-founded Alpha with Miles but was legally cut out completely.",
+      "tension": 4,
+      "turningPoint": false,
+      "turningPointNote": ""
     },
     {
       "number": 21,
@@ -417,8 +422,8 @@
       "position": 19.3,
       "lineStart": 959,
       "lineEnd": 961,
-      "summary": "Aerial shot shows the boat approaching a small Greek island with a single compound built on it.",
-      "tension": 2,
+      "summary": "Aerial shot shows the boat approaching a small Greek island with a single compound.",
+      "tension": 1,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -431,8 +436,8 @@
       "position": 19.3,
       "lineStart": 962,
       "lineEnd": 965,
-      "summary": "As the boat approaches the beach, a glass dock with political art magically rises from the sea piece by piece.",
-      "tension": 3,
+      "summary": "A glass dock with political art magically rises from the sea as the boat approaches.",
+      "tension": 2,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -445,8 +450,8 @@
       "position": 19.3,
       "lineStart": 966,
       "lineEnd": 977,
-      "summary": "Lionel asks Captain Andino about the dock and the island's name, learning it's called 'Peet-cha-chite.'",
-      "tension": 2,
+      "summary": "Lionel asks Captain Andino about the dock and the island's name in Greek.",
+      "tension": 1,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -459,8 +464,8 @@
       "position": 19.3,
       "lineStart": 978,
       "lineEnd": 1100,
-      "summary": "Miles Bron sits on the beach playing guitar, greeting his arriving friends with warm hugs and showing off Paul McCartney's guitar.",
-      "tension": 4,
+      "summary": "Miles Bron greets his arriving friends on the beach, playing guitar and hugging them warmly, then tosses Paul McCartney's guitar onto his chair.",
+      "tension": 3,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -473,8 +478,8 @@
       "position": 21.5,
       "lineStart": 1101,
       "lineEnd": 1177,
-      "summary": "The group walks up to the compound and sees the main building - a massive glass orb that Miles calls his 'glass onion' representing past, present, and future.",
-      "tension": 4,
+      "summary": "The group walks through the compound and sees the main building, a massive glass orb structure, while Miles describes it and Andi joins them.",
+      "tension": 3,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -487,10 +492,10 @@
       "position": 23,
       "lineStart": 1178,
       "lineEnd": 1287,
-      "summary": "Miles shows Blanc his office in the glass dome, including his car on the roof, then directly confronts Blanc about not inviting him to the island.",
-      "tension": 7,
+      "summary": "Miles shows Blanc his office in the glass onion and his blue Porsche on the roof, then reveals he did not invite Blanc to the island.",
+      "tension": 6,
       "turningPoint": true,
-      "turningPointNote": "Miles reveals he didn't invite Blanc, creating immediate tension and mystery about who did"
+      "turningPointNote": "The revelation that Miles didn't invite Blanc introduces a central mystery and raises immediate suspicion about who did."
     },
     {
       "number": 27,
@@ -501,8 +506,8 @@
       "position": 25.2,
       "lineStart": 1288,
       "lineEnd": 1625,
-      "summary": "At the pool, the friends relax and banter while Miles serves drinks, with underlying tensions visible as Claire watches Andi disappear into the distance.",
-      "tension": 5,
+      "summary": "At the pool, the group socializes while Blanc joins Miles, who discusses his murder mystery game plans and Duke livestreams about sweatshops.",
+      "tension": 4,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -515,8 +520,8 @@
       "position": 31.1,
       "lineStart": 1626,
       "lineEnd": 1637,
-      "summary": "Claire tells Lionel she's concerned about Andi's changed behavior and what she might be planning.",
-      "tension": 6,
+      "summary": "Claire watches Andi walk away into the greenery and tells Lionel something is off and she doesn't like it.",
+      "tension": 5,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -529,8 +534,8 @@
       "position": 31.1,
       "lineStart": 1638,
       "lineEnd": 1687,
-      "summary": "Peg confronts Miles about a statement he wants Birdie to make regarding Bangladesh, pleading with him not to destroy Birdie's reputation.",
-      "tension": 7,
+      "summary": "Peg begs Miles not to make Birdie issue a statement about Bangladesh that would destroy her reputation and Peg's career.",
+      "tension": 6,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -543,10 +548,10 @@
       "position": 31.9,
       "lineStart": 1688,
       "lineEnd": 1705,
-      "summary": "Duke spies on Miles and Whiskey kissing in a bedroom window, with Blanc secretly observing Duke's reaction of rage.",
-      "tension": 8,
-      "turningPoint": true,
-      "turningPointNote": "Duke discovers Miles's affair with his girlfriend, creating a powerful motive for murder"
+      "summary": "Duke spies through a window and sees Miles kissing Whiskey on a bed while Blanc secretly watches Duke's enraged reaction.",
+      "tension": 7,
+      "turningPoint": false,
+      "turningPointNote": ""
     },
     {
       "number": 31,
@@ -557,8 +562,8 @@
       "position": 32.6,
       "lineStart": 1706,
       "lineEnd": 1709,
-      "summary": "The glass onion structure glows softly in the evening light as the hourly chime sounds.",
-      "tension": 2,
+      "summary": "The glass onion structure glows softly as evening arrives and the hourly chime sounds.",
+      "tension": 1,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -571,8 +576,8 @@
       "position": 32.6,
       "lineStart": 1710,
       "lineEnd": 1939,
-      "summary": "Miles welcomes everyone for pre-murder drinks in the glass onion's main floor, serving personalized cocktails and explaining the murder mystery game setup.",
-      "tension": 5,
+      "summary": "Miles greets guests in the atrium with personalized drinks and snacks, discussing each person's favorite beverage while Blanc tries hot sauce.",
+      "tension": 3,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -585,8 +590,8 @@
       "position": 36.3,
       "lineStart": 1940,
       "lineEnd": 2086,
-      "summary": "During dinner, Miles explains the murder mystery game rules while the guests look uncomfortable, then Blanc solves the fake murder instantly by identifying Birdie as the killer.",
-      "tension": 6,
+      "summary": "Miles explains the murder mystery game rules at dinner, then Blanc immediately solves it by identifying Whiskey as the killer using the crossbow.",
+      "tension": 5,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -599,8 +604,8 @@
       "position": 39.3,
       "lineStart": 2087,
       "lineEnd": 2217,
-      "summary": "Miles angrily confronts Blanc in his office about solving the elaborate murder mystery too quickly, complaining about the expense and effort involved.",
-      "tension": 6,
+      "summary": "Miles angrily confronts Blanc in his office for ruining the expensive murder mystery game he hired Gillian Flynn to create.",
+      "tension": 5,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -613,8 +618,8 @@
       "position": 41.5,
       "lineStart": 2218,
       "lineEnd": 2545,
-      "summary": "The group drinks heavily in the lounge area while Duke checks his phone alerts, announces he's leaving in the morning, and Claire ignores calls from her husband.",
-      "tension": 6,
+      "summary": "The group drinks heavily after dinner while Duke's phone alerts repeatedly, and Andi announces she's going to bed early.",
+      "tension": 4,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -627,8 +632,8 @@
       "position": 47.4,
       "lineStart": 2546,
       "lineEnd": 2556,
-      "summary": "Lionel discovers on the radio that the boat can't return until morning due to the malfunctioning Banksy dock being set to the wrong tide height.",
-      "tension": 7,
+      "summary": "Lionel discovers via radio that the boat cannot return until morning due to the malfunctioning Banksy dock.",
+      "tension": 5,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -641,10 +646,10 @@
       "position": 47.4,
       "lineStart": 2557,
       "lineEnd": 2701,
-      "summary": "Blanc suggests everyone retire safely to their rooms, but Miles notices Duke drank from Miles's personalized glass before collapsing, realizing the poison was meant for him.",
+      "summary": "Duke suddenly collapses and dies after drinking from Miles's glass, and Blanc discovers Duke was poisoned.",
       "tension": 9,
       "turningPoint": true,
-      "turningPointNote": "Duke's death reveals Miles was the intended target, transforming the fake murder game into a real murder investigation"
+      "turningPointNote": "Duke's death transforms the weekend from a game into a real murder investigation with everyone trapped on the island."
     },
     {
       "number": 38,
@@ -655,8 +660,8 @@
       "position": 50.4,
       "lineStart": 2702,
       "lineEnd": 2704,
-      "summary": "The entire complex goes dark as the lighthouse begins sweeping its beam across the grounds.",
-      "tension": 7,
+      "summary": "The entire compound goes dark as the lighthouse beam sweeps across the grounds.",
+      "tension": 6,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -669,8 +674,8 @@
       "position": 50.4,
       "lineStart": 2705,
       "lineEnd": 2748,
-      "summary": "In pitch darkness, the lighthouse beam reveals Miles clinging to Blanc's legs while everyone else scatters, with voices calling out in confusion.",
-      "tension": 8,
+      "summary": "In pitch darkness, Miles panics and whimpers while the group calls out to each other, unable to see.",
+      "tension": 7,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -683,8 +688,8 @@
       "position": 51.1,
       "lineStart": 2749,
       "lineEnd": 2757,
-      "summary": "Miles runs through dark hallways while Andi spots him from a distance, with Blanc's voice calling for Andi in the background.",
-      "tension": 8,
+      "summary": "Miles runs through dark hallways while Andi spots him and Blanc calls out for her.",
+      "tension": 7,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -697,8 +702,8 @@
       "position": 51.1,
       "lineStart": 2758,
       "lineEnd": 2768,
-      "summary": "Peg finds herself alone in the dark atrium with only her phone's flashlight, calling out for the others who don't respond.",
-      "tension": 7,
+      "summary": "Peg turns on her phone flashlight in the atrium and discovers she is completely alone.",
+      "tension": 6,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -711,8 +716,8 @@
       "position": 51.9,
       "lineStart": 2769,
       "lineEnd": 2773,
-      "summary": "Miles moves slowly through dark hallways, barely breathing and listening for threats as shadows loom around him.",
-      "tension": 8,
+      "summary": "Miles moves slowly through dark hallways, barely breathing and listening to shadows around him.",
+      "tension": 7,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -725,8 +730,8 @@
       "position": 51.9,
       "lineStart": 2774,
       "lineEnd": 2785,
-      "summary": "Blanc enters the kitchen as a dark figure exits, discovering a missing knife from the butcher's block and seeing someone run past the window.",
-      "tension": 8,
+      "summary": "Blanc enters the kitchen and sees someone exit, then discovers a knife missing from the butcher's block.",
+      "tension": 7,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -739,8 +744,8 @@
       "position": 51.9,
       "lineStart": 2786,
       "lineEnd": 2801,
-      "summary": "Blanc runs outside and collides with Andi, asking about Duke's gun and informing her that Duke is dead.",
-      "tension": 8,
+      "summary": "Blanc runs into Andi outside and tells her Duke is dead, asking if she took Duke's gun.",
+      "tension": 7,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -753,7 +758,7 @@
       "position": 52.6,
       "lineStart": 2802,
       "lineEnd": 2812,
-      "summary": "A gloved hand holds Duke's gun in the darkness, with a silhouette taking careful aim at Blanc and Andi outside the window.",
+      "summary": "A gloved hand holds Duke's gun in a dark hallway and takes careful aim at Blanc and Andi through the window.",
       "tension": 9,
       "turningPoint": false,
       "turningPointNote": ""
@@ -767,10 +772,10 @@
       "position": 52.6,
       "lineStart": 2813,
       "lineEnd": 2826,
-      "summary": "A gunshot shatters the window and Andi's body flies out of frame as if struck, while Blanc remains outside.",
+      "summary": "A gunshot rings out, the window shatters, and Andi's body is thrown out of frame as if struck.",
       "tension": 10,
       "turningPoint": true,
-      "turningPointNote": "Andi is shot and apparently killed, escalating the stakes to maximum as the real murderer strikes again"
+      "turningPointNote": "Andi is shot, creating a second murder and eliminating a key character who holds crucial information."
     },
     {
       "number": 47,
@@ -781,7 +786,7 @@
       "position": 52.6,
       "lineStart": 2827,
       "lineEnd": 2828,
-      "summary": "The gunshot echoes through the empty halls and rooms of the glass onion structure.",
+      "summary": "The gunshot echoes through the empty halls and rooms of the glass onion.",
       "tension": 8,
       "turningPoint": false,
       "turningPointNote": ""
@@ -795,8 +800,8 @@
       "position": 52.6,
       "lineStart": 2829,
       "lineEnd": 2846,
-      "summary": "The Mona Lisa's protective glass slides down as voices call out through the distant halls, with everyone trying to locate each other and Miles.",
-      "tension": 8,
+      "summary": "The Mona Lisa's protective glass slides down as voices echo through distant halls and everyone searches for each other.",
+      "tension": 7,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -809,7 +814,7 @@
       "position": 53.3,
       "lineStart": 2847,
       "lineEnd": 2878,
-      "summary": "The lighthouse beam sweeps over Andi's crumpled body as Blanc stands above her, then the lights return and everyone appears in windows looking down at the scene.",
+      "summary": "The lights come back on revealing Blanc standing over Andi's body with a chest wound while everyone watches from windows above.",
       "tension": 9,
       "turningPoint": false,
       "turningPointNote": ""
@@ -823,10 +828,10 @@
       "position": 54.1,
       "lineStart": 2879,
       "lineEnd": 2942,
-      "summary": "Blanc takes charge, ordering Peg to radio for boats while explaining that both murders and the entire weekend make perfect sense, though he stops short of revealing the full solution.",
+      "summary": "Blanc orders Peg to radio for boats immediately while the group struggles to understand the murders, and Blanc refuses to explain until he can prove it.",
       "tension": 8,
-      "turningPoint": true,
-      "turningPointNote": "Blanc declares he understands the entire mystery, setting up the final revelation phase"
+      "turningPoint": false,
+      "turningPointNote": ""
     },
     {
       "number": 51,
@@ -837,10 +842,10 @@
       "position": 54.8,
       "lineStart": 2943,
       "lineEnd": 2969,
-      "summary": "On Blanc's terrace, Helen removes her mask and reveals she is not Andi but Helen Brand from Alabama, showing Blanc the shattered remains of a puzzle box.",
-      "tension": 6,
+      "summary": "Blanc and Helen meet on his terrace where she removes her mask and reveals her true identity as Helen Brand, Andi's twin sister from Alabama.",
+      "tension": 4,
       "turningPoint": true,
-      "turningPointNote": "Major revelation that the woman we thought was Andi is actually her twin sister Helen, fundamentally shifting our understanding of the story"
+      "turningPointNote": "Helen's true identity is revealed to Blanc, establishing the central deception that will drive the investigation forward."
     },
     {
       "number": 52,
@@ -851,8 +856,8 @@
       "position": 55.6,
       "lineStart": 2970,
       "lineEnd": 2979,
-      "summary": "In a morgue flashback, Helen identifies her identical twin sister Andi's body on a stretcher after Andi's apparent suicide by carbon monoxide poisoning.",
-      "tension": 7,
+      "summary": "Helen identifies her twin sister Andi's body at the morgue after Andi's apparent suicide by carbon monoxide poisoning in her garage.",
+      "tension": 6,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -865,7 +870,7 @@
       "position": 55.6,
       "lineStart": 2980,
       "lineEnd": 3224,
-      "summary": "Helen tells Blanc about her sister Cassandra Brand, describing how Andi transformed from their shared childhood \"rich bitch\" character into a genuinely successful entrepreneur, and begins explaining the circumstances of Andi's death.",
+      "summary": "Helen tells Blanc about her sister Cassandra Brand's transformation from their childhood together to becoming a successful businesswoman, then describes receiving the call about Andi's death and cleaning out her house while grieving.",
       "tension": 5,
       "turningPoint": false,
       "turningPointNote": ""
@@ -879,7 +884,7 @@
       "position": 60,
       "lineStart": 3225,
       "lineEnd": 3227,
-      "summary": "A transition shot of shimmering water at night, sparkling like inky glass.",
+      "summary": "The camera tilts up from shimmering water at night to reveal the next location.",
       "tension": 1,
       "turningPoint": false,
       "turningPointNote": ""
@@ -893,7 +898,7 @@
       "position": 60,
       "lineStart": 3228,
       "lineEnd": 3230,
-      "summary": "An establishing shot pushing in on an adorable dock-side hotel lit up warm and glowing in a Grecian port town.",
+      "summary": "The camera pushes in on an adorable dockside hotel lit up at night in a Grecian port town.",
       "tension": 1,
       "turningPoint": false,
       "turningPointNote": ""
@@ -907,8 +912,8 @@
       "position": 60,
       "lineStart": 3231,
       "lineEnd": 3298,
-      "summary": "Helen, disguised as Andi, meets Blanc at a hotel terrace where he coaches her on how to behave tomorrow, telling her to arrive late, stay cold, and use Andi's \"rich bitch\" voice and posture.",
-      "tension": 4,
+      "summary": "Helen, disguised as Andi, meets Blanc at a hotel terrace where he coaches her on how to behave the next day, instructing her to arrive late, stay cold, use Andi's voice and posture, and avoid drinking.",
+      "tension": 5,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -921,7 +926,7 @@
       "position": 61.5,
       "lineStart": 3299,
       "lineEnd": 3328,
-      "summary": "In flashback at the Glass Onion bar, young Andi is shown as the warm center of the group with Birdie, Duke, Claire, and Lionel, all broke and directionless before Andi found their potential.",
+      "summary": "In flashback at the Glass Onion bar, young Andi gathers with Birdie, Duke, Claire, and Lionel as Helen explains in voiceover that Andi was the group's leader who saw potential in each of them before finding Miles.",
       "tension": 2,
       "turningPoint": false,
       "turningPointNote": ""
@@ -935,7 +940,7 @@
       "position": 61.5,
       "lineStart": 3329,
       "lineEnd": 3332,
-      "summary": "Blanc asks what Miles's leadership philosophy means.",
+      "summary": "Blanc asks Helen what it means that Andi found Miles.",
       "tension": 2,
       "turningPoint": false,
       "turningPointNote": ""
@@ -949,7 +954,7 @@
       "position": 62.2,
       "lineStart": 3333,
       "lineEnd": 3366,
-      "summary": "In flashback, the group huddles while Miles is at the bar, with Andi deciding to humor Miles's grandiose ideas about immortality despite Lionel's skepticism about his previous failed ventures.",
+      "summary": "In flashback, the group huddles at the bar discussing Miles's aspirations for immortality while Andi convinces them to humor him, leading to a time-cut montage showing Miles getting each of them career opportunities.",
       "tension": 3,
       "turningPoint": false,
       "turningPointNote": ""
@@ -963,7 +968,7 @@
       "position": 63,
       "lineStart": 3367,
       "lineEnd": 3380,
-      "summary": "Helen explains how Miles brought everyone success based on a napkin idea he and Andi created, leading to Alpha's explosive growth and Miles's increasingly ambitious projects including a dangerous hydrogen fuel called Klear.",
+      "summary": "Helen explains to Blanc that Andi and Miles created Alpha based on a napkin idea, then two years ago Miles became obsessed with launching a new hydrogen fuel called Klear after meeting a Norwegian chemist.",
       "tension": 4,
       "turningPoint": false,
       "turningPointNote": ""
@@ -977,10 +982,10 @@
       "position": 63,
       "lineStart": 3381,
       "lineEnd": 3409,
-      "summary": "In an Alpha boardroom flashback, Andi firmly refuses to sign a contract for Miles's Klear project, warning it could literally blow up the world and threatening to walk away from the company.",
+      "summary": "In an Alpha boardroom, Andi refuses to sign the Klear contract, telling Miles the fuel could literally blow up the world and threatening to walk away from the company.",
       "tension": 7,
-      "turningPoint": false,
-      "turningPointNote": ""
+      "turningPoint": true,
+      "turningPointNote": "Andi's refusal to approve Klear and threat to leave the company establishes the core conflict that led to her being cut out and eventually murdered."
     },
     {
       "number": 62,
@@ -991,7 +996,7 @@
       "position": 63.7,
       "lineStart": 3410,
       "lineEnd": 3427,
-      "summary": "Helen tells Blanc that Andi followed through on leaving the company, only to discover Miles's lawyers had structured contracts to cut her out completely, leading to her lawsuit over intellectual ownership.",
+      "summary": "Helen tells Blanc that Andi walked away, then discovered Miles's lawyers had worked the contracts to cut her out completely, leading her to sue based on intellectual ownership of the napkin idea she didn't keep.",
       "tension": 5,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1005,7 +1010,7 @@
       "position": 63.7,
       "lineStart": 3428,
       "lineEnd": 3463,
-      "summary": "In a courtroom flashback, Claire, Duke, and Birdie all testify that Miles wrote the founding idea on the napkin, with Andi standing and furiously calling Claire a liar.",
+      "summary": "In court, Claire, Duke, and Birdie each testify that Miles wrote the napkin idea while Andi stands and furiously accuses Claire of lying, demanding she look her in the eye.",
       "tension": 8,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1019,7 +1024,7 @@
       "position": 64.4,
       "lineStart": 3464,
       "lineEnd": 3475,
-      "summary": "In Andi's living room after losing the case, she stares dead-eyed at a Forbes story about Miles and his napkin, then goes into a destructive rage, throwing her iPad and destroying furniture.",
+      "summary": "After losing the trial, Andi stares dead-eyed at a Forbes article about Miles and his napkin, then goes on a destructive rampage through her living room, throwing her iPad and flipping furniture.",
       "tension": 7,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1033,7 +1038,7 @@
       "position": 64.4,
       "lineStart": 3476,
       "lineEnd": 3481,
-      "summary": "Blanc calls Miles's napkin story a bald-faced fabrication, and Helen agrees it was a damn lie that worked.",
+      "summary": "Blanc calls Miles's napkin story a bald-faced fabrication and Helen confirms it was a damn lie that worked.",
       "tension": 4,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1047,10 +1052,10 @@
       "position": 65.2,
       "lineStart": 3482,
       "lineEnd": 3488,
-      "summary": "Mid-destruction, Andi stops and finds her old copy of \"The Innovator's Dilemma,\" from which the real napkin with her handwriting falls out.",
+      "summary": "Mid-destruction, Andi stops when she spots her old copy of The Innovator's Dilemma in the pile, picks it up, and the real napkin falls out from the dust sleeve.",
       "tension": 8,
       "turningPoint": true,
-      "turningPointNote": "Discovery of the real napkin provides crucial evidence that could expose Miles's lies and restore Andi's reputation"
+      "turningPointNote": "Discovery of the real napkin in Andi's handwriting provides the proof that could destroy Miles and the disruptors, establishing the motive for murder."
     },
     {
       "number": 67,
@@ -1061,7 +1066,7 @@
       "position": 65.2,
       "lineStart": 3489,
       "lineEnd": 3532,
-      "summary": "Blanc explains they need to find motives strong enough for murder and determine who had opportunity to kill Andi, while Helen draws a suspect grid with columns for motive and opportunity.",
+      "summary": "Blanc explains they need to find whose motive was strong enough to commit murder and determine everyone's whereabouts on the night of Andi's death, while Helen draws a grid with four suspect names and columns for motive and opportunity.",
       "tension": 5,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1075,7 +1080,7 @@
       "position": 65.9,
       "lineStart": 3533,
       "lineEnd": 3548,
-      "summary": "On the ferry to Bron's island, Helen stands seasick on the back deck while Duke and Birdie watch her with suspicion and hostility, telling her she shouldn't be there.",
+      "summary": "On the ferry to Bron's island, Helen stands on the back deck sick from the boat while Duke and Birdie watch her from below, with Birdie telling her she shouldn't be there.",
       "tension": 6,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1089,8 +1094,8 @@
       "position": 65.9,
       "lineStart": 3549,
       "lineEnd": 3569,
-      "summary": "On the beach, Blanc ties his shoelace while quietly briefing Helen that Duke and Birdie seem suspicious of her, and instructs her to snoop while Miles explains Blanc's presence to the group.",
-      "tension": 4,
+      "summary": "Blanc stops to tie his shoelace while Helen hangs back with him, and he quietly instructs her to snoop while Miles pulls him aside, warning her that Duke and Birdie may be onto her.",
+      "tension": 5,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1117,7 +1122,7 @@
       "position": 66.7,
       "lineStart": 3574,
       "lineEnd": 3613,
-      "summary": "Helen wanders the grounds in a bathing suit when Whiskey approaches, offers her hard kombucha, and they walk together with Helen complimenting Whiskey's Taurus necklace.",
+      "summary": "Helen wanders the grounds in a bathing suit looking for something to snoop when Whiskey approaches, offers her hard kombucha, and they walk together to the pool while making awkward small talk about Whiskey's necklace.",
       "tension": 3,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1131,7 +1136,7 @@
       "position": 67.4,
       "lineStart": 3614,
       "lineEnd": 3648,
-      "summary": "Whiskey explains this is her second gathering with the group, complaining that Duke treats her like arm candy and she's considering distancing herself from his increasingly right-wing content for her political ambitions.",
+      "summary": "Whiskey tells Helen this is her second event with the group, complains that Duke treats her like arm candy and they all ignore her, and reveals she's building her brand through Duke's channel but is uncertain about his harder-right man-dom content if she wants to get into politics eventually.",
       "tension": 4,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1145,8 +1150,8 @@
       "position": 68.1,
       "lineStart": 3649,
       "lineEnd": 3653,
-      "summary": "Helen emerges from the herb garden lost and frustrated, taking another pull from the kombucha when she hears a gunshot and spits out her drink.",
-      "tension": 5,
+      "summary": "Helen emerges from the herb garden lost and frustrated, takes another pull from the kombucha, then hears a gunshot and looks in that direction.",
+      "tension": 4,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1159,7 +1164,7 @@
       "position": 68.1,
       "lineStart": 3654,
       "lineEnd": 3722,
-      "summary": "At the pool, Duke has just fired his pistol while Lionel and Claire swim to the deep end for privacy, where Claire reveals she signed off on a power plant and Lionel admits he approved Klear for a manned space mission despite knowing it's dangerous.",
+      "summary": "Duke fires his pistol at the pool while Lionel and Claire swim to the deep end for privacy, where Claire reveals she signed off on the power plant two weeks ago and Lionel admits he signed off on putting Klear in the manned mission despite knowing Andi was right about its dangers, as Helen lurks below listening.",
       "tension": 7,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1173,7 +1178,7 @@
       "position": 69.6,
       "lineStart": 3723,
       "lineEnd": 3745,
-      "summary": "In a bathroom with a Matisse painting, Blanc praises Helen's snooping skills and explains that Lionel and Claire both have strong motives to protect Miles since they've bet everything on him, while Helen ticks off their motive boxes but doubts they could kill.",
+      "summary": "Blanc and Helen huddle in a bathroom where he praises her snooping skills and explains that both Lionel and Claire have bet everything on Miles and will be ruined if he fails, while Helen drinks another kombucha and ticks off their motive boxes.",
       "tension": 5,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1187,7 +1192,7 @@
       "position": 69.6,
       "lineStart": 3746,
       "lineEnd": 3751,
-      "summary": "In a hypothetical scenario, Duke knocks on Andi's front door with his motorcycle nearby, appearing contrite as if coming to apologize.",
+      "summary": "Duke knocks on Andi's door with his motorcycle nearby and she answers as Blanc's voiceover suggests the killer came to apologize and make amends.",
       "tension": 4,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1201,8 +1206,8 @@
       "position": 69.6,
       "lineStart": 3752,
       "lineEnd": 3768,
-      "summary": "In hypothetical murder scenarios, Lionel slips powder into Andi's tea, Claire watches coldly as Andi's head sinks to the table, showing how any of them could have committed a gentle, non-violent murder.",
-      "tension": 6,
+      "summary": "In Andi's kitchen, Blanc's voiceover describes the murder as nonviolent and gentle as we see Lionel slip powder in Andi's tea, then Andi fade from consciousness and sink to the table with Claire watching coldly.",
+      "tension": 8,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1215,8 +1220,8 @@
       "position": 70.4,
       "lineStart": 3769,
       "lineEnd": 3773,
-      "summary": "In another hypothetical scenario, Birdie turns on a car engine with Andi slumped in the passenger seat, demonstrating how the murder could have been staged as suicide.",
-      "tension": 6,
+      "summary": "Birdie turns on the car engine and lowers the windows with Andi slumped in the passenger seat as Blanc's voiceover concludes they're all capable of murder.",
+      "tension": 7,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1229,7 +1234,7 @@
       "position": 70.4,
       "lineStart": 3774,
       "lineEnd": 3808,
-      "summary": "Back in the bathroom, Blanc realizes Helen has been drinking hard kombucha thinking it was health food, and she drunkenly insists they need to push the suspects to determine opportunity.",
+      "summary": "In the bathroom, Blanc pours out Helen's hard kombucha and fills it with water, then realizes she's had two or three bottles of nine percent alcohol kombucha and is drunk, while Helen insists they need to push the suspects for opportunity.",
       "tension": 5,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1243,7 +1248,7 @@
       "position": 71.1,
       "lineStart": 3809,
       "lineEnd": 3826,
-      "summary": "At the pool, Helen listens to Miles's speech about disruption while getting increasingly drunk, then claps and draws everyone's attention as Blanc watches with concern.",
+      "summary": "Helen listens to Miles's speech about disruption at the pool, then takes a long pull from the kombucha, straightens her posture, and claps to interrupt him, drawing everyone's attention including Blanc's alarmed look.",
       "tension": 6,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1257,8 +1262,8 @@
       "position": 71.1,
       "lineStart": 3827,
       "lineEnd": 3874,
-      "summary": "Helen bursts away from the pool area, drunk and hyped up, when Claire chases after her and confronts her, asking what she's doing and mentioning an email Andi supposedly sent.",
-      "tension": 8,
+      "summary": "Helen bursts away from the pool onto a path, steadying herself as the trees spin, then Claire runs to catch up and confronts her, asking what she's doing and why she couldn't look Claire in the eye in court, before Duke joins them and Claire asks about the email Helen supposedly sent.",
+      "tension": 7,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1271,8 +1276,8 @@
       "position": 72.6,
       "lineStart": 3875,
       "lineEnd": 3891,
-      "summary": "In flashback, Claire describes how she, Lionel, and Duke all went to Andi's house that evening, finding the lights out and no answer despite pounding on the door and calling for her.",
-      "tension": 6,
+      "summary": "In flashback, Claire's Prius arrives at Andi's house at the same time as Lionel's Tesla, joining Duke who is already pounding on the door, and Duke spots and smashes a spider on the wall while they wait.",
+      "tension": 5,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1285,8 +1290,8 @@
       "position": 72.6,
       "lineStart": 3892,
       "lineEnd": 3936,
-      "summary": "Claire explains they waited an hour before leaving, with Birdie checking later and finding the same situation, while Helen drunkenly tries to keep the timeline straight and asks for clarification.",
-      "tension": 6,
+      "summary": "Claire tells Helen they knocked and waited for an hour before leaving, then Birdie checked later with the same result, and when Helen asks what time they arrived and tries to clarify the timeline, Claire demands to know what Helen is planning and insists they need to talk about the email.",
+      "tension": 7,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1299,8 +1304,8 @@
       "position": 73.3,
       "lineStart": 3937,
       "lineEnd": 3950,
-      "summary": "Helen stumbles away from the confrontation, disoriented by flashing red lights and a soothing robot voice warning about the smokeless garden, until Blanc appears from the foliage looking panicked.",
-      "tension": 6,
+      "summary": "Helen stumbles away from the confrontation, swoons from the kombucha, then sees flashing red lights and a soothing robot voice warning about the smokeless garden before calling out to Blanc who dashes from the foliage looking panicked.",
+      "tension": 5,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1313,8 +1318,8 @@
       "position": 74.1,
       "lineStart": 3951,
       "lineEnd": 4039,
-      "summary": "In the gym, Helen reports everything Claire said while pounding Gatorade, and she and Blanc determine that all four suspects had both motive and opportunity, filling out their entire suspect grid.",
-      "tension": 5,
+      "summary": "In the gym, Helen recounts Claire's story to Blanc while pounding Gatorade, and they tick off opportunity boxes for all four suspects since Duke came early, Birdie came late, and Claire and Lionel could have killed Andi before the others arrived, as a fitness video screen behind them begins playing a workout with Serena Williams.",
+      "tension": 6,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1327,7 +1332,7 @@
       "position": 75.6,
       "lineStart": 4040,
       "lineEnd": 4081,
-      "summary": "Duke creeps through foliage to spy on Miles and Whiskey making out through a window, while Helen and Blanc watch him from a distance until Helen snaps a twig trying to get closer.",
+      "summary": "Duke kneels in the foliage watching through a window as Miles and Whiskey make out and fall onto a bed, with Whiskey asking if Miles will do it for her and pinning him down, while Helen and Blanc creep up behind Duke until Helen snaps a twig.",
       "tension": 6,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1341,7 +1346,7 @@
       "position": 76.3,
       "lineStart": 4082,
       "lineEnd": 4091,
-      "summary": "When Peg storms away from Birdie's villa, Helen dashes in to grab Birdie's bag and retrieves her phone, checking that it's still recording.",
+      "summary": "Peg storms out of Birdie's villa with Birdie chasing after her, and when they're gone Helen dashes up, grabs Birdie's bag from inside the patio, and retrieves her phone which is still recording.",
       "tension": 5,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1355,7 +1360,7 @@
       "position": 76.3,
       "lineStart": 4092,
       "lineEnd": 4101,
-      "summary": "Helen and Blanc listen to a recording on the phone of Peg demanding answers from Birdie about what Miles meant by \"it's her only chance.\"",
+      "summary": "Blanc and Helen listen to the phone recording where Peg demands to know what Miles meant by saying something is Birdie's only chance.",
       "tension": 5,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1369,7 +1374,7 @@
       "position": 76.3,
       "lineStart": 4102,
       "lineEnd": 4157,
-      "summary": "In flashback, the recording reveals Birdie crying as she shows Peg her secret phone with an email from two years ago warning about a sweatshop factory, which Birdie ignored, and now Miles is forcing her to take responsibility to protect him.",
+      "summary": "In flashback, Birdie tells Peg she's going to sign a statement taking total responsibility for the sweatshop scandal, then hands Peg her secret phone showing an email from two years ago where the contractor warned her about the Bangladesh factory being a notorious sweatshop and Birdie replied to proceed anyway.",
       "tension": 8,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1383,10 +1388,10 @@
       "position": 77.8,
       "lineStart": 4158,
       "lineEnd": 4189,
-      "summary": "Helen stops the recording and glumly fills in the final motive boxes for Birdie and Duke, completing their suspect grid, while Blanc theorizes that the killer would have brought the envelope to Miles to show what they did for him.",
+      "summary": "Helen stops the recording and glumly ticks off the motive boxes for Birdie and Duke, completing the grid, then Blanc deduces that whoever killed Andi took the envelope to show Miles what they did for him rather than destroy it.",
       "tension": 6,
-      "turningPoint": false,
-      "turningPointNote": ""
+      "turningPoint": true,
+      "turningPointNote": "Blanc's realization that the killer would have given the envelope to Miles provides a concrete objective for Helen's search and shifts the investigation strategy."
     },
     {
       "number": 91,
@@ -1397,7 +1402,7 @@
       "position": 78.5,
       "lineStart": 4190,
       "lineEnd": 4232,
-      "summary": "In the atrium at night, Miles offers Helen a whiskey soda but Blanc signals her to avoid it, so she hides it behind a statue while the Mona Lisa's protective glass slides down.",
+      "summary": "Miles offers Andi a whiskey soda at the gathering but Blanc shakes his head and Helen stashes the drink behind a statue, then the glass slides down in front of the Mona Lisa as time cuts forward to Helen enduring Duke's rant.",
       "tension": 5,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1411,8 +1416,8 @@
       "position": 79.3,
       "lineStart": 4233,
       "lineEnd": 4235,
-      "summary": "Helen sprints through the grounds toward the suspects' villas as soon as she's out of sight.",
-      "tension": 6,
+      "summary": "Helen sprints through the grounds as soon as she's out of sight.",
+      "tension": 4,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1425,7 +1430,7 @@
       "position": 79.3,
       "lineStart": 4236,
       "lineEnd": 4245,
-      "summary": "Helen tears apart Claire's villa, searching through clothes, electronics, and personal items, leaving the room looking like a tornado hit it, but finds no envelope.",
+      "summary": "Helen bursts into Claire's villa and tears it apart searching for the envelope, finding clothes, pot, iPads, laptops, and a vibrator, leaving the room looking like a tornado hit it, but finds no envelope.",
       "tension": 6,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1439,8 +1444,8 @@
       "position": 79.3,
       "lineStart": 4246,
       "lineEnd": 4248,
-      "summary": "Helen sprints through the grounds with the glowing glass onion structure looming above her as time ticks away.",
-      "tension": 7,
+      "summary": "Helen sprints through the grounds with the glowing glass onion structure looming above as time ticks away.",
+      "tension": 5,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1453,8 +1458,8 @@
       "position": 79.3,
       "lineStart": 4249,
       "lineEnd": 4250,
-      "summary": "Back in the atrium, Miles cheers as Birdie spins in her rainbow dress.",
-      "tension": 3,
+      "summary": "Miles cheers as Birdie spins in her rainbow dress in the atrium.",
+      "tension": 2,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1467,7 +1472,7 @@
       "position": 79.3,
       "lineStart": 4251,
       "lineEnd": 4255,
-      "summary": "Helen searches through Birdie's villa, finding designer clothes, prescription pills, and a dog-eared copy of Ayn Rand's \"The Fountainhead\" when her phone buzzes.",
+      "summary": "Helen searches Birdie's villa finding dresses, beach wraps, prescription pills, and a dog-eared copy of The Fountainhead, then feels her phone buzz in her pocket.",
       "tension": 5,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1481,10 +1486,10 @@
       "position": 79.3,
       "lineStart": 4256,
       "lineEnd": 4258,
-      "summary": "In the atrium, Duke grasps his throat after downing his drink.",
+      "summary": "Duke grasps his throat after downing his drink in the atrium.",
       "tension": 9,
       "turningPoint": true,
-      "turningPointNote": "Duke's apparent poisoning creates a new murder in real time, escalating the stakes dramatically"
+      "turningPointNote": "Duke's sudden physical distress after drinking marks the second murder attempt and escalates the immediate danger, transforming the investigation into an active crisis."
     },
     {
       "number": 98,
@@ -1495,8 +1500,8 @@
       "position": 80,
       "lineStart": 4259,
       "lineEnd": 4262,
-      "summary": "Helen searches Lionel's villa, finding stylish clothes, computer equipment, condoms, and LSD micro-doses, ignoring another buzz from her phone.",
-      "tension": 6,
+      "summary": "(no summary)",
+      "tension": 5,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1509,8 +1514,8 @@
       "position": 80,
       "lineStart": 4263,
       "lineEnd": 4265,
-      "summary": "In the aftermath of Duke's death, Whiskey staggers away from the group sobbing and runs off into the night.",
-      "tension": 8,
+      "summary": "(no summary)",
+      "tension": 5,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1523,8 +1528,8 @@
       "position": 80,
       "lineStart": 4266,
       "lineEnd": 4275,
-      "summary": "Helen bursts into Derol's cluttered villa where he sits in an E-Z Boy chair watching TV, greeting her casually before she immediately runs out, with him asking if she wants to hang out.",
-      "tension": 4,
+      "summary": "(no summary)",
+      "tension": 5,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1537,10 +1542,10 @@
       "position": 80,
       "lineStart": 4276,
       "lineEnd": 4338,
-      "summary": "Helen discovers through dozens of messages that Cassandra Brand's death has been reported as suicide, then searches Duke's villa for the envelope but finds nothing.",
+      "summary": "Helen runs into Duke's villa and discovers dozens of messages informing her that Cassandra Brand has been reported dead of apparent suicide, then searches Duke's room but finds no envelope.",
       "tension": 7,
-      "turningPoint": false,
-      "turningPointNote": ""
+      "turningPoint": true,
+      "turningPointNote": "Helen learns her sister's death has been publicly reported as suicide, raising the stakes of her investigation while she's still undercover"
     },
     {
       "number": 102,
@@ -1551,7 +1556,7 @@
       "position": 81.5,
       "lineStart": 4339,
       "lineEnd": 4343,
-      "summary": "Helen runs desperately toward the glass onion in the darkness, screaming in frustration.",
+      "summary": "Helen runs across the dark grounds toward the glass onion, screaming in frustration.",
       "tension": 6,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1565,8 +1570,8 @@
       "position": 81.5,
       "lineStart": 4344,
       "lineEnd": 4354,
-      "summary": "Helen encounters Miles in the dark hallways before hearing Blanc's voice and running toward it, while Lionel emerges after she leaves.",
-      "tension": 6,
+      "summary": "Helen bursts through dark hallways, spots Miles turning a corner, then hears Blanc calling and runs toward his voice while Lionel emerges into the hall behind her.",
+      "tension": 7,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1579,10 +1584,10 @@
       "position": 81.5,
       "lineStart": 4355,
       "lineEnd": 4467,
-      "summary": "Helen reunites with Blanc outside the glass onion, learning Duke is dead and that they must search one final room for the envelope.",
+      "summary": "Helen runs into Blanc outside the glass onion and he tells her Duke is dead and asks if she found the envelope, which she hasn't, then Blanc says there's one more room to search and Helen realizes they already gave it to Miles.",
       "tension": 8,
-      "turningPoint": false,
-      "turningPointNote": ""
+      "turningPoint": true,
+      "turningPointNote": "Duke's death is revealed and Helen realizes the envelope is in the glass onion, setting up the final confrontation"
     },
     {
       "number": 105,
@@ -1593,8 +1598,8 @@
       "position": 83.7,
       "lineStart": 4468,
       "lineEnd": 4477,
-      "summary": "Helen sneaks through the hallways while Blanc's voice echoes from below discussing Duke, Andi, and the weekend's events.",
-      "tension": 5,
+      "summary": "Helen silently moves through hallways and up stairs while distant voices of Miles and Blanc are heard.",
+      "tension": 6,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1607,7 +1612,7 @@
       "position": 83.7,
       "lineStart": 4478,
       "lineEnd": 4496,
-      "summary": "Blanc gathers the suspects and begins explaining the case, stating only one person can reveal who killed Cassandra Brand.",
+      "summary": "The suspects gather in the lounge as Blanc announces he can peel back the layers but only one person can tell them who killed Cassandra Brand, then mentions the glass onion.",
       "tension": 7,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1621,8 +1626,8 @@
       "position": 84.4,
       "lineStart": 4497,
       "lineEnd": 4510,
-      "summary": "Helen searches the glass office space frantically while Blanc's voice continues explaining the glass onion metaphor.",
-      "tension": 6,
+      "summary": "Helen searches the glass office frantically while hearing Blanc's voice explaining that the glass onion seems mysterious but the center is in plain sight.",
+      "tension": 7,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1635,7 +1640,7 @@
       "position": 84.4,
       "lineStart": 4511,
       "lineEnd": 4518,
-      "summary": "Blanc explains how the case confounded him by expecting complexity when the truth was simple and obvious.",
+      "summary": "Blanc tells the group the case confounded him because he expected complexity and intelligence but that wasn't what this was.",
       "tension": 6,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1649,10 +1654,10 @@
       "position": 84.4,
       "lineStart": 4519,
       "lineEnd": 4541,
-      "summary": "Helen discovers the framed napkin and photo of Andi and Miles, pulling it from the wall to reveal the red envelope falling out.",
+      "summary": "Helen sees the framed napkin and photo of her sister with Miles, approaches it in a trance, pulls it off the wall, and the red envelope falls onto the floor.",
       "tension": 8,
       "turningPoint": true,
-      "turningPointNote": "Helen finds the crucial evidence that will expose Miles"
+      "turningPointNote": "Helen finds the crucial evidence that can prove Andi's original idea"
     },
     {
       "number": 110,
@@ -1663,7 +1668,7 @@
       "position": 85.2,
       "lineStart": 4542,
       "lineEnd": 4553,
-      "summary": "Blanc reveals that Miles's use of the non-word 'embreathiate' was the key clue that exposed him.",
+      "summary": "Blanc declares that the killer nearly struck his Achilles heel but he realized that 'embreathiate' is not a word, then spins to face Miles.",
       "tension": 7,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1677,8 +1682,8 @@
       "position": 85.2,
       "lineStart": 4554,
       "lineEnd": 4558,
-      "summary": "Flashback shows Miles using the made-up word 'embreathiate' when the group first arrived.",
-      "tension": 3,
+      "summary": "Flashback shows Miles saying 'Let's all embreathiate this moment' when they first arrived at the beach.",
+      "tension": 2,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1691,8 +1696,8 @@
       "position": 85.9,
       "lineStart": 4559,
       "lineEnd": 4564,
-      "summary": "Blanc explains that 'embreathiate' is not a real word and 'reclamation' is the wrong word for Miles's usage.",
-      "tension": 6,
+      "summary": "Blanc explains that 'embreathiate' is entirely made up and 'reclamation' is the wrong word.",
+      "tension": 5,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1705,8 +1710,8 @@
       "position": 85.9,
       "lineStart": 4565,
       "lineEnd": 4569,
-      "summary": "Flashback shows Miles incorrectly using 'reclamation' when describing his accomplishments.",
-      "tension": 3,
+      "summary": "Flashback shows Miles saying 'This place is the reclamation of everything I've ever accomplished.'",
+      "tension": 2,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1719,8 +1724,8 @@
       "position": 85.9,
       "lineStart": 4570,
       "lineEnd": 4572,
-      "summary": "Blanc continues his explanation of Miles's pattern of errors.",
-      "tension": 6,
+      "summary": "Blanc says 'This entire day—'",
+      "tension": 4,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1733,8 +1738,8 @@
       "position": 85.9,
       "lineStart": 4573,
       "lineEnd": 4576,
-      "summary": "Flashback shows Miles using 'predefinite' instead of the correct word when confronting Blanc.",
-      "tension": 3,
+      "summary": "Flashback shows Miles calling Blanc 'the predefinite detective.'",
+      "tension": 2,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1747,8 +1752,8 @@
       "position": 85.9,
       "lineStart": 4577,
       "lineEnd": 4580,
-      "summary": "Blanc describes Miles's speech as filled with malapropisms.",
-      "tension": 6,
+      "summary": "Blanc calls it 'a veritable minefield of malapropisms.'",
+      "tension": 4,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1761,8 +1766,8 @@
       "position": 85.9,
       "lineStart": 4581,
       "lineEnd": 4584,
-      "summary": "Flashback shows Miles using 'infraction point' incorrectly while telling a story.",
-      "tension": 3,
+      "summary": "Flashback shows Miles saying 'the infraction point' while telling the Sweety Pants story.",
+      "tension": 2,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1775,8 +1780,8 @@
       "position": 85.9,
       "lineStart": 4585,
       "lineEnd": 4588,
-      "summary": "Blanc continues cataloging Miles's factual errors.",
-      "tension": 6,
+      "summary": "Blanc says 'and factual errors!'",
+      "tension": 4,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1789,8 +1794,8 @@
       "position": 86.7,
       "lineStart": 4589,
       "lineEnd": 4592,
-      "summary": "Flashback shows Miles incorrectly identifying the surrounding water as the Ionian Sea.",
-      "tension": 3,
+      "summary": "Flashback shows Miles saying they'll 'bask in the sun, swim in the Ionian Sea.'",
+      "tension": 2,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1803,10 +1808,10 @@
       "position": 86.7,
       "lineStart": 4593,
       "lineEnd": 4661,
-      "summary": "Blanc reveals the central truth that Miles Bron is an idiot, not a complicated genius.",
-      "tension": 8,
+      "summary": "Blanc points out the window and corrects that it's the Aegean sea, then lists Miles's failures and declares that Miles Bron is an idiot, making everyone shift uncomfortably.",
+      "tension": 7,
       "turningPoint": true,
-      "turningPointNote": "Blanc exposes the fundamental misunderstanding about Miles's intelligence"
+      "turningPointNote": "Blanc's central revelation that Miles is not a genius but an idiot reframes the entire case"
     },
     {
       "number": 121,
@@ -1817,7 +1822,7 @@
       "position": 87.4,
       "lineStart": 4662,
       "lineEnd": 4675,
-      "summary": "Flashback shows Duke nearly being hit by Miles's distinctive blue Porsche leaving Andi's house.",
+      "summary": "Flashback shows Duke almost being hit by Miles in his distinctive blue Porsche as Miles leaves Andi's house, then Duke continues to the house.",
       "tension": 6,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1831,8 +1836,8 @@
       "position": 88.1,
       "lineStart": 4676,
       "lineEnd": 4684,
-      "summary": "Flashback reveals Duke clearly stating Miles almost hit him with the Porsche 'that night at Andi's.'",
-      "tension": 7,
+      "summary": "Flashback shows Duke saying 'Remember you almost pancaked me with it on the road that night at Andi's' while Miles cuts him off talking about Anderson Cooper's birthday in Spain.",
+      "tension": 6,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1845,10 +1850,10 @@
       "position": 88.1,
       "lineStart": 4685,
       "lineEnd": 4727,
-      "summary": "Blanc establishes that Miles was in New York two weeks ago for Whiskey's birthday, not Greece as claimed.",
-      "tension": 7,
-      "turningPoint": false,
-      "turningPointNote": ""
+      "summary": "Blanc identifies that Miles was at Andi's house that night and points out Whiskey's necklace was a birthday gift two weeks ago on May ninth, proving Miles was in New York, not Greece.",
+      "tension": 8,
+      "turningPoint": true,
+      "turningPointNote": "Blanc establishes Miles was in New York the night of Andi's murder, not Greece as claimed"
     },
     {
       "number": 124,
@@ -1859,7 +1864,7 @@
       "position": 88.9,
       "lineStart": 4728,
       "lineEnd": 4733,
-      "summary": "Flashback shows Lionel faxing Andi's threatening email to Miles.",
+      "summary": "Flashback shows Lionel guiltily feeding Andi's email into a fax machine at the aerospace factory.",
       "tension": 6,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1873,7 +1878,7 @@
       "position": 88.9,
       "lineStart": 4734,
       "lineEnd": 4743,
-      "summary": "Flashback shows Miles receiving the fax in New York and realizing the threat to his empire.",
+      "summary": "Flashback shows Miles in a robe receiving the fax in his New York penthouse, reading it troubled, as Blanc narrates that the truth in Andi's hands was the one thing that could destroy Miles's empire of lies.",
       "tension": 7,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1887,8 +1892,8 @@
       "position": 89.6,
       "lineStart": 4744,
       "lineEnd": 4748,
-      "summary": "Blanc describes Miles driving his signature Porsche to the crime scene.",
-      "tension": 6,
+      "summary": "Flashback shows Miles driving his baby blue Porsche down a country road.",
+      "tension": 5,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1901,8 +1906,8 @@
       "position": 89.6,
       "lineStart": 4749,
       "lineEnd": 4754,
-      "summary": "Blanc states Miles drove his distinctive Porsche to commit the crime.",
-      "tension": 6,
+      "summary": "Blanc stares at Miles and says he drove his signature baby blue Porsche to the scene of the crime.",
+      "tension": 7,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1916,7 +1921,7 @@
       "lineStart": 4755,
       "lineEnd": 4758,
       "summary": "Flashback shows Miles's car parked outside Andi's house.",
-      "tension": 5,
+      "tension": 6,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -1929,10 +1934,10 @@
       "position": 89.6,
       "lineStart": 4759,
       "lineEnd": 4784,
-      "summary": "Flashback shows Miles poisoning Andi's tea while she watches, then becoming distracted by a spider as she loses consciousness.",
+      "summary": "Flashback shows Miles and Andi drinking tea at her kitchen table as he talks gently and she watches coldly, then her head droops as she realizes she's been poisoned while Miles becomes distracted by a spider he gently releases outside.",
       "tension": 9,
-      "turningPoint": false,
-      "turningPointNote": ""
+      "turningPoint": true,
+      "turningPointNote": "The murder of Andi is shown in flashback—Miles poisoned her tea"
     },
     {
       "number": 130,
@@ -1943,7 +1948,7 @@
       "position": 90.4,
       "lineStart": 4785,
       "lineEnd": 4829,
-      "summary": "Blanc reveals that Duke knew Miles was at Andi's but didn't know she was dead until seeing the news alert.",
+      "summary": "Miles looks blankly at Blanc and Helen with terrifying emptiness as Blanc explains Duke knew Miles was there that night and showed him something on his phone, then Blanc reveals a phone in Miles's jacket pocket and takes it.",
       "tension": 8,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1957,7 +1962,7 @@
       "position": 91.1,
       "lineStart": 4830,
       "lineEnd": 4850,
-      "summary": "Flashback shows Duke revealing Andi's death to Miles and demanding a position at Alpha News in exchange for silence.",
+      "summary": "Flashback shows Duke showing Miles the news story about Andi's death and telling Miles this changes everything, then asking about Alpha News in exchange for his silence.",
       "tension": 8,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1971,7 +1976,7 @@
       "position": 91.1,
       "lineStart": 4851,
       "lineEnd": 4866,
-      "summary": "Helen asks if Miles keeps poison in his tooth while Blanc begins explaining the murder method involving pineapple juice.",
+      "summary": "Helen asks if Miles keeps poison in his tooth and Blanc asks Birdie what's in her Cuban Breeze, leading Whiskey to say 'Oh god.'",
       "tension": 7,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1985,7 +1990,7 @@
       "position": 91.9,
       "lineStart": 4867,
       "lineEnd": 4873,
-      "summary": "Flashback shows Miles secretly adding pineapple juice to Duke's whiskey at the bar cart.",
+      "summary": "Flashback shows Miles at the bar cart quietly adding pineapple juice to Duke's whiskey while Duke watches.",
       "tension": 8,
       "turningPoint": false,
       "turningPointNote": ""
@@ -1999,10 +2004,10 @@
       "position": 91.9,
       "lineStart": 4874,
       "lineEnd": 4910,
-      "summary": "Blanc explains that Miles killed Duke with pineapple juice, exploiting his deadly allergy, while the group realizes Helen's true identity.",
+      "summary": "Blanc exclaims that Miles put pineapple juice in Duke's whiskey despite Duke's deadly allergy, calling it so dumb, while the others read the news on their phones and realize Helen is Andi's twin sister, with Birdie finally understanding.",
       "tension": 8,
-      "turningPoint": false,
-      "turningPointNote": ""
+      "turningPoint": true,
+      "turningPointNote": "The method of Duke's murder is revealed and the group discovers Helen's true identity"
     },
     {
       "number": 135,
@@ -2013,8 +2018,8 @@
       "position": 92.6,
       "lineStart": 4911,
       "lineEnd": 4919,
-      "summary": "Flashback shows Miles calculating his next move during the blackout.",
-      "tension": 6,
+      "summary": "Flashback shows Miles in the dark with calculating eyes as Blanc narrates that Miles realized he had a house full of desperate people who all had reason to wish Andi harm.",
+      "tension": 7,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -2027,8 +2032,8 @@
       "position": 92.6,
       "lineStart": 4920,
       "lineEnd": 4923,
-      "summary": "Blanc continues explaining Miles's opportunity during the blackout.",
-      "tension": 6,
+      "summary": "Blanc squints and says 'Furthermore' as if something is strange.",
+      "tension": 5,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -2041,7 +2046,7 @@
       "position": 92.6,
       "lineStart": 4924,
       "lineEnd": 4928,
-      "summary": "Flashback shows Miles grabbing Duke's gun during the dark confusion.",
+      "summary": "Flashback shows Miles grabbing Duke's gun in the dark confusion.",
       "tension": 7,
       "turningPoint": false,
       "turningPointNote": ""
@@ -2055,8 +2060,8 @@
       "position": 92.6,
       "lineStart": 4929,
       "lineEnd": 4932,
-      "summary": "Blanc begins to realize something familiar about the murder setup.",
-      "tension": 6,
+      "summary": "Blanc narrows his eyes as if the words coming out of his mouth are strange.",
+      "tension": 5,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -2069,8 +2074,8 @@
       "position": 93.3,
       "lineStart": 4933,
       "lineEnd": 4938,
-      "summary": "Flashback shows Miles moving through dark hallways with Duke's phone and gun.",
-      "tension": 6,
+      "summary": "Flashback shows Miles in dark halls pocketing Duke's phone with gun in hand as Blanc narrates that the lights had been turned off.",
+      "tension": 7,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -2083,7 +2088,7 @@
       "position": 93.3,
       "lineStart": 4939,
       "lineEnd": 4942,
-      "summary": "Blanc has a sudden realization about why the murder scenario sounds familiar.",
+      "summary": "Blanc exclaims 'OH MY GOD' as he realizes why all this sounded familiar.",
       "tension": 7,
       "turningPoint": false,
       "turningPointNote": ""
@@ -2097,7 +2102,7 @@
       "position": 93.3,
       "lineStart": 4943,
       "lineEnd": 4953,
-      "summary": "Flashback shows Blanc earlier explaining to Miles how gathering enemies on an island with murder in mind is like putting a loaded gun on a table.",
+      "summary": "Flashback shows Blanc explaining to Miles that he gathered seven people with reason to wish him harm on a remote island and put the idea of murder in their heads, like putting a loaded gun on the table and turning off the lights.",
       "tension": 6,
       "turningPoint": false,
       "turningPointNote": ""
@@ -2111,8 +2116,8 @@
       "position": 93.3,
       "lineStart": 4954,
       "lineEnd": 4959,
-      "summary": "Blanc realizes Miles stole the entire murder plan from his own earlier explanation.",
-      "tension": 8,
+      "summary": "Blanc turns to Miles unbelieving and says Miles stole the whole murder idea from him.",
+      "tension": 7,
       "turningPoint": false,
       "turningPointNote": ""
     },
@@ -2125,10 +2130,10 @@
       "position": 93.3,
       "lineStart": 4960,
       "lineEnd": 4965,
-      "summary": "Flashback shows Miles shooting at Helen through the window, shattering the glass.",
+      "summary": "Flashback shows Miles raising Duke's gun and firing at Helen through the window, splintering the glass.",
       "tension": 9,
-      "turningPoint": false,
-      "turningPointNote": ""
+      "turningPoint": true,
+      "turningPointNote": "Miles's attempt to murder Helen is revealed in flashback"
     },
     {
       "number": 144,
@@ -2139,10 +2144,10 @@
       "position": 94.1,
       "lineStart": 4966,
       "lineEnd": 5207,
-      "summary": "Helen confronts Miles with the original napkin proving Andi's authorship, but Miles burns it with his lighter and destroys the Mona Lisa's protective glass.",
+      "summary": "Everyone looks at Miles as Lionel asks why he kept the envelope, Miles looks confused, Helen pulls out the original napkin with Andi's handwriting and the bar's embossed name, Miles ignites a lighter and burns the napkin to ash in a fraction of a second, then the Mona Lisa glass case comes down and Helen smashes the painting with the Klear scepter, causing Miles to scream as she throws the scepter into the Klear contraption which explodes.",
       "tension": 10,
       "turningPoint": true,
-      "turningPointNote": "Miles destroys the crucial evidence and the priceless painting in one devastating act"
+      "turningPointNote": "The crucial evidence is destroyed, Helen destroys the Mona Lisa and triggers the Klear explosion in an act of irreversible destruction"
     },
     {
       "number": 145,
@@ -2153,7 +2158,7 @@
       "position": 98.5,
       "lineStart": 5208,
       "lineEnd": 5223,
-      "summary": "The glass onion and all the villas explode in a chain reaction of fire and destruction while Blanc and Derol watch from lawn chairs.",
+      "summary": "The glass onion structure explodes with glass and fire, then every villa goes up in flames like fireworks while Blanc lights a cigar in a lawn chair and passes the lighter to Derol.",
       "tension": 8,
       "turningPoint": false,
       "turningPointNote": ""
@@ -2167,7 +2172,7 @@
       "position": 98.5,
       "lineStart": 5224,
       "lineEnd": 5254,
-      "summary": "Everyone emerges dazed from the burning atrium as Miles's Porsche crashes down from above, and Helen runs toward the Mona Lisa while others try to stop her.",
+      "summary": "Everyone raises their heads dazed in the damaged atrium as fire jets from ruptured walls, Miles's baby blue Porsche falls from above and smashes in a flaming heap, Miles chokes back a sob, then Helen runs toward the Mona Lisa with everyone chasing and grabbing at her but she reaches it and smashes it.",
       "tension": 9,
       "turningPoint": false,
       "turningPointNote": ""
@@ -2181,10 +2186,10 @@
       "position": 99.3,
       "lineStart": 5255,
       "lineEnd": 5299,
-      "summary": "Miles confronts Helen about her destruction, but she reveals that his fuel burning the Mona Lisa will end his career and empire.",
-      "tension": 9,
+      "summary": "Everyone stumbles out choking as Miles turns on Helen and rants that she accomplished nothing, but Helen tells him his fuel just barbecued the Mona Lisa and this is the end of Miles Bron, which sinks in as his face goes slack and the others realize they can finally tell the truth.",
+      "tension": 8,
       "turningPoint": true,
-      "turningPointNote": "Helen's final gambit destroys Miles's reputation and future through the public destruction of the world's most famous painting"
+      "turningPointNote": "Miles realizes his empire is destroyed and the group decides to testify against him"
     },
     {
       "number": 148,
@@ -2195,24 +2200,13 @@
       "position": 100,
       "lineStart": 5300,
       "lineEnd": 5312,
-      "summary": "Helen and Blanc sit on the beach watching police boats approach, with Helen appearing satisfied as they prepare to leave.",
+      "summary": "Helen sits on the beach with Blanc as he asks if she got the son of a bitch, she confirms she did, he asks if she's ready to go home, and she sits with straightened posture gazing at the approaching police boats.",
       "tension": 3,
       "turningPoint": false,
       "turningPointNote": ""
     }
   ],
-  "id": "mn4wy1fpoxl0r",
-  "savedAt": "2026-03-24T17:53:24.421Z",
-  "slug": "glass-onion",
-  "confidence": "MEDIUM",
-  "structuralWarnings": [
-    {
-      "text": "Act 3 is only 9% of the script — structural placement suspect",
-      "level": "critical"
-    },
-    {
-      "text": "2 of 3 key moments were auto-corrected by Phase 1C",
-      "level": "advisory"
-    }
-  ]
+  "frameworkBeats": {},
+  "activeFramework": null,
+  "confidence": "MEDIUM"
 }
