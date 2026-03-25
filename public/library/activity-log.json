@@ -1,6 +1,13 @@
 [
   {
     "action": "publish",
+    "filename": "joker.json",
+    "title": "Joker",
+    "confidence": "HIGH",
+    "timestamp": "2026-03-25T15:35:41.489Z"
+  },
+  {
+    "action": "publish",
     "filename": "glass-onion.json",
     "title": "Glass Onion",
     "confidence": "MEDIUM",
