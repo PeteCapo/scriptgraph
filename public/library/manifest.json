@@ -1,5 +1,14 @@
 [
   {
+    "filename": "midsommar.json",
+    "publishedAt": "2026-03-25T23:06:53.496Z",
+    "confidence": "HIGH",
+    "title": "Midsommar",
+    "writer": "Ari Aster",
+    "genre": "Horror",
+    "structureType": "linear"
+  },
+  {
     "filename": "if-beale-street-could-talk.json",
     "publishedAt": "2026-03-25T23:06:52.044Z",
     "confidence": "HIGH",
