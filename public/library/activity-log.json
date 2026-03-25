@@ -1,6 +1,13 @@
 [
   {
     "action": "publish",
+    "filename": "ex-machina.json",
+    "title": "Ex Machina",
+    "confidence": "MEDIUM",
+    "timestamp": "2026-03-25T23:06:49.278Z"
+  },
+  {
+    "action": "publish",
     "filename": "dune.json",
     "title": "Dune",
     "confidence": "MEDIUM",
