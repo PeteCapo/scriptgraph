@@ -1,6 +1,13 @@
 [
   {
     "action": "publish",
+    "filename": "if-beale-street-could-talk.json",
+    "title": "If Beale Street Could Talk",
+    "confidence": "HIGH",
+    "timestamp": "2026-03-25T23:06:52.044Z"
+  },
+  {
+    "action": "publish",
     "filename": "fight-club.json",
     "title": "Fight Club",
     "confidence": "HIGH",
