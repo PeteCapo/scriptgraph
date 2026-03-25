@@ -1,6 +1,13 @@
 [
   {
     "action": "publish",
+    "filename": "story-of-your-life.json",
+    "title": "Story of Your Life",
+    "confidence": "HIGH",
+    "timestamp": "2026-03-25T23:06:57.228Z"
+  },
+  {
+    "action": "publish",
     "filename": "prisoners.json",
     "title": "Prisoners",
     "confidence": "HIGH",
