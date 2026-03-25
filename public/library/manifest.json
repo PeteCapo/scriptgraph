@@ -1,5 +1,14 @@
 [
   {
+    "filename": "annihilation.json",
+    "publishedAt": "2026-03-25T23:06:43.449Z",
+    "confidence": "HIGH",
+    "title": "Annihilation",
+    "writer": "Alex Garland",
+    "genre": "Science Fiction Horror",
+    "structureType": "triptych"
+  },
+  {
     "filename": "ain-t-them-bodies-saints.json",
     "publishedAt": "2026-03-25T23:06:41.686Z",
     "confidence": "HIGH",
