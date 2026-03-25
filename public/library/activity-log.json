@@ -1,6 +1,13 @@
 [
   {
     "action": "publish",
+    "filename": "vice.json",
+    "title": "Vice",
+    "confidence": "HIGH",
+    "timestamp": "2026-03-25T23:07:01.891Z"
+  },
+  {
+    "action": "publish",
     "filename": "the-wrestler.json",
     "title": "The Wrestler",
     "confidence": "HIGH",
