@@ -1,5 +1,14 @@
 [
   {
+    "filename": "if-beale-street-could-talk.json",
+    "publishedAt": "2026-03-25T23:06:52.044Z",
+    "confidence": "HIGH",
+    "title": "If Beale Street Could Talk",
+    "writer": "",
+    "genre": "Drama",
+    "structureType": "non-linear"
+  },
+  {
     "filename": "fight-club.json",
     "publishedAt": "2026-03-25T23:06:50.642Z",
     "confidence": "HIGH",
