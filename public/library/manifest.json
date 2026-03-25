@@ -1,5 +1,14 @@
 [
   {
+    "filename": "blade-runner-2049.json",
+    "publishedAt": "2026-03-25T23:06:44.838Z",
+    "confidence": "HIGH",
+    "title": "Blade Runner 2049",
+    "writer": "Hampton Fancher and Michael Green",
+    "genre": "Science Fiction Thriller",
+    "structureType": "linear"
+  },
+  {
     "filename": "annihilation.json",
     "publishedAt": "2026-03-25T23:06:43.449Z",
     "confidence": "HIGH",
