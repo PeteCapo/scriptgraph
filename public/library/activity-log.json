@@ -1,6 +1,13 @@
 [
   {
     "action": "publish",
+    "filename": "annihilation.json",
+    "title": "Annihilation",
+    "confidence": "HIGH",
+    "timestamp": "2026-03-25T23:06:43.449Z"
+  },
+  {
+    "action": "publish",
     "filename": "ain-t-them-bodies-saints.json",
     "title": "Ain't Them Bodies Saints",
     "confidence": "HIGH",
