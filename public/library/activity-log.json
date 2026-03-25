@@ -1,6 +1,13 @@
 [
   {
     "action": "publish",
+    "filename": "midsommar.json",
+    "title": "Midsommar",
+    "confidence": "HIGH",
+    "timestamp": "2026-03-25T23:06:53.496Z"
+  },
+  {
+    "action": "publish",
     "filename": "if-beale-street-could-talk.json",
     "title": "If Beale Street Could Talk",
     "confidence": "HIGH",
