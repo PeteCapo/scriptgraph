@@ -1,6 +1,13 @@
 [
   {
     "action": "publish",
+    "filename": "the-big-short.json",
+    "title": "The Big Short",
+    "confidence": "HIGH",
+    "timestamp": "2026-03-25T23:06:58.804Z"
+  },
+  {
+    "action": "publish",
     "filename": "story-of-your-life.json",
     "title": "Story of Your Life",
     "confidence": "HIGH",
